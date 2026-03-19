@@ -1,36 +1,71 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CampusX - Student Social Media Platform
 
-## Getting Started
+CampusX is a modern, responsive social media platform designed specifically for college students. It allows students to share updates, join college-specific communities, follow peers, and interact through likes and comments.
 
-First, run the development server:
+## 🚀 Tech Stack
 
+- **Framework**: Next.js 15 (App Router)
+- **Database**: MongoDB with Mongoose
+- **Authentication**: JWT (HTTP-only cookies) with Edge Middleware protection
+- **Styling**: Tailwind CSS v4
+- **UI Components**: shadcn/ui (Radix UI)
+- **Icons**: Lucide React
+- **Notifications**: Sonner
+
+## ✨ Features
+
+- **Authentication**: Secure signup and login with hashed passwords.
+- **Dynamic Feed**: Real-time posts with support for anonymous posting.
+- **College Communities**: Automatic community discovery based on college tags.
+- **Interactions**: Like posts and comment on updates.
+- **Profile System**: Customizable user profiles with bio, college, and course details.
+- **Follow System**: Follow other students to see their updates.
+- **Responsive Design**: Fully optimized for mobile, tablet, and desktop views.
+- **Security**: Rate limiting on login, input sanitization, and ID validation.
+- **Performance**: Parallel data fetching and database query optimizations (`.lean()`).
+
+## 🛠️ Setup Instructions
+
+### Prerequisites
+- Node.js 18+
+- MongoDB instance (local or Atlas)
+
+### 1. Clone the repository
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <repository-url>
+cd campusx
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Install dependencies
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+### 3. Environment Variables
+Create a `.env.local` file in the root directory and add the following:
+```env
+MONGODB_URI=your_mongodb_connection_string
+JWT_SECRET=your_secure_jwt_secret
+JWT_EXPIRES_IN=7d
+NODE_ENV=development
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 4. Run the development server
+```bash
+npm run dev
+```
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Learn More
+## 📂 Folder Structure Summary
 
-To learn more about Next.js, take a look at the following resources:
+- `app/`: Next.js App Router pages and API routes.
+- `components/`: Reusable UI components (layout, post, shared, user).
+- `hooks/`: Custom React hooks for data fetching and state management.
+- `lib/`: Core utilities (database connection, authentication helpers).
+- `models/`: Mongoose schemas for User, Post, and Comment.
+- `public/`: Static assets.
+- `utils/`: Helper functions for formatting and validation.
+- `middleware.js`: Edge-compatible route protection.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📝 License
+MIT
