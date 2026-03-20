@@ -24,8 +24,10 @@ export default function FeedPage() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Feed header */}
-      <div className="sticky top-0 bg-background/80 backdrop-blur-md border-b border-border p-4 z-10">
-        <h1 className="text-2xl font-bold tracking-tight">Welcome back, {currentUser?.name || 'User'}</h1>
+      <div className="sticky top-0 bg-background/80 backdrop-blur-md border-b border-border p-4 z-20">
+        <h1 className="text-lg sm:text-2xl font-bold tracking-tight truncate">
+          Welcome back, {currentUser?.name || 'User'}
+        </h1>
       </div>
       
       {/* Post composer */}

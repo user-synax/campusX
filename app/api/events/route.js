@@ -1,0 +1,139 @@
+import { NextResponse } from 'next/server';
+import connectDB from '@/lib/db';
+import Event from '@/models/Event';
+import { getCurrentUser } from '@/lib/auth';
+import { sanitizeString } from '@/utils/validators';
+
+// GET /api/events - List events
+export async function GET(request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const college = searchParams.get('college') || '';
+    const page = parseInt(searchParams.get('page')) || 1;
+    const limit = Math.min(parseInt(searchParams.get('limit')) || 10, 50);
+    const filter = searchParams.get('filter') || 'upcoming';
+    const skip = (page - 1) * limit;
+
+    await connectDB();
+
+    const query = { isActive: true };
+
+    if (college) {
+      query.college = { $regex: college, $options: 'i' };
+    }
+
+    if (filter === 'upcoming') {
+      query.eventDate = { $gte: new Date() };
+    } else if (filter === 'past') {
+      query.eventDate = { $lt: new Date() };
+    }
+
+    const [events, total] = await Promise.all([
+      Event.find(query)
+        .sort({ eventDate: 1 })
+        .skip(skip)
+        .limit(limit)
+        .populate('organizer', 'name username avatar')
+        .lean(),
+      Event.countDocuments(query)
+    ]);
+
+    // Format virtuals for lean objects
+    const formattedEvents = events.map(event => ({
+      ...event,
+      rsvpCount: event.rsvps?.length || 0,
+      isFull: event.capacity > 0 && (event.rsvps?.length || 0) >= event.capacity,
+      isPast: new Date(event.eventDate) < new Date()
+    }));
+
+    return NextResponse.json({
+      events: formattedEvents,
+      hasMore: skip + events.length < total,
+      total
+    });
+  } catch (error) {
+    console.error('Fetch events error:', error);
+    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
+  }
+}
+
+// POST /api/events - Create event
+export async function POST(request) {
+  try {
+    const currentUser = await getCurrentUser(request);
+    if (!currentUser) {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
+
+    let body;
+    try {
+      body = await request.json();
+    } catch (e) {
+      return NextResponse.json({ message: 'Invalid request body' }, { status: 400 });
+    }
+
+    const { title, description, college, location, eventDate, capacity, tags } = body;
+
+    // Validation
+    if (!title || title.trim().length === 0) {
+      return NextResponse.json({ message: 'Title is required' }, { status: 400 });
+    }
+    if (title.length > 100) {
+      return NextResponse.json({ message: 'Title too long (max 100 chars)' }, { status: 400 });
+    }
+    if (!college || college.trim().length === 0) {
+      return NextResponse.json({ message: 'College is required' }, { status: 400 });
+    }
+    if (!location || location.trim().length === 0) {
+      return NextResponse.json({ message: 'Location is required' }, { status: 400 });
+    }
+    if (location.length > 200) {
+      return NextResponse.json({ message: 'Location too long (max 200 chars)' }, { status: 400 });
+    }
+    if (!eventDate) {
+      return NextResponse.json({ message: 'Event date is required' }, { status: 400 });
+    }
+
+    const date = new Date(eventDate);
+    if (isNaN(date.getTime())) {
+      return NextResponse.json({ message: 'Invalid event date' }, { status: 400 });
+    }
+    if (date.getTime() <= Date.now() + 3600000) {
+      return NextResponse.json({ message: 'Event must be scheduled at least 1 hour in advance' }, { status: 400 });
+    }
+
+    const eventCapacity = parseInt(capacity) || 0;
+    if (eventCapacity < 0) {
+      return NextResponse.json({ message: 'Capacity cannot be negative' }, { status: 400 });
+    }
+
+    let eventTags = [];
+    if (tags && Array.isArray(tags)) {
+      eventTags = tags
+        .map(t => sanitizeString(t))
+        .filter(t => t.length > 0 && t.length <= 30)
+        .slice(0, 5);
+    }
+
+    await connectDB();
+
+    const event = await Event.create({
+      title: sanitizeString(title),
+      description: description ? description.substring(0, 1000) : '',
+      organizer: currentUser._id,
+      college: college.trim(),
+      location: sanitizeString(location),
+      eventDate: date,
+      capacity: eventCapacity,
+      tags: eventTags,
+      rsvps: []
+    });
+
+    await event.populate('organizer', 'name username avatar');
+
+    return NextResponse.json(event, { status: 201 });
+  } catch (error) {
+    console.error('Create event error:', error);
+    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
+  }
+}

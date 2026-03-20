@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { format } from 'date-fns'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
+import { Calendar } from "lucide-react"
 import UserAvatar from "@/components/user/UserAvatar"
 import FollowButton from "@/components/user/FollowButton"
 import useUser from "@/hooks/useUser"
@@ -13,6 +15,7 @@ export default function RightPanel() {
   const { user: currentUser, loading: userLoading } = useUser()
   const [trending, setTrending] = useState([])
   const [trendingHashtags, setTrendingHashtags] = useState([])
+  const [upcomingEvents, setUpcomingEvents] = useState([])
   const [suggestions, setSuggestions] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -20,19 +23,22 @@ export default function RightPanel() {
     const fetchData = async () => {
       try {
         setLoading(true)
-        const [trendRes, suggestRes, hashtagRes] = await Promise.all([
+        const [trendRes, suggestRes, hashtagRes, eventRes] = await Promise.all([
           fetch('/api/communities?limit=5'),
           fetch('/api/users/suggestions'),
-          fetch('/api/hashtags/trending?limit=6')
+          fetch('/api/hashtags/trending?limit=6'),
+          fetch('/api/events?filter=upcoming&limit=3')
         ])
         
         const trendData = await trendRes.json()
         const suggestData = await suggestRes.json()
         const hashtagData = await hashtagRes.json()
+        const eventData = await eventRes.json()
         
         if (trendRes.ok) setTrending(trendData)
         if (suggestRes.ok) setSuggestions(suggestData)
         if (hashtagRes.ok) setTrendingHashtags(hashtagData.hashtags || [])
+        if (eventRes.ok) setUpcomingEvents(eventData.events || [])
       } catch (error) {
         console.error('Right panel fetch error:', error)
       } finally {
@@ -96,6 +102,46 @@ export default function RightPanel() {
               <Link key={ht.tag} href={`/hashtag/${ht.tag}`} className="group block">
                 <p className="text-sm font-semibold group-hover:underline text-primary">#{ht.tag}</p>
                 <p className="text-xs text-muted-foreground">{formatCount(ht.postCount)} posts</p>
+              </Link>
+            ))
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Upcoming Events */}
+      <Card className="bg-card/50 border-border">
+        <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
+          <CardTitle className="text-lg font-bold">Upcoming Events</CardTitle>
+          <Link href="/events" className="text-xs text-primary hover:underline font-medium">View all</Link>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {loading ? (
+            Array(3).fill(0).map((_, i) => (
+              <div key={i} className="flex gap-3">
+                <Skeleton className="h-10 w-10 rounded-lg bg-secondary" />
+                <div className="flex-1 space-y-1">
+                  <Skeleton className="h-4 w-32 bg-secondary" />
+                  <Skeleton className="h-3 w-20 bg-secondary" />
+                </div>
+              </div>
+            ))
+          ) : upcomingEvents.length === 0 ? (
+            <p className="text-xs text-muted-foreground text-center py-2">No upcoming events yet.</p>
+          ) : (
+            upcomingEvents.map((event) => (
+              <Link key={event._id} href={`/events/${event._id}`} className="group flex gap-3">
+                <div className="text-center bg-accent/50 rounded-lg p-1.5 flex-shrink-0 min-w-[45px] h-fit border border-border/50">
+                  <p className="text-[9px] text-muted-foreground uppercase font-black tracking-tighter">
+                    {format(new Date(event.eventDate), 'MMM')}
+                  </p>
+                  <p className="text-lg font-black leading-none mt-0.5">
+                    {format(new Date(event.eventDate), 'd')}
+                  </p>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold group-hover:underline truncate">{event.title}</p>
+                  <p className="text-xs text-muted-foreground truncate">{event.college}</p>
+                </div>
               </Link>
             ))
           )}

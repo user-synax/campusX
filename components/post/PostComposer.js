@@ -130,11 +130,11 @@ export default function PostComposer({ onPostCreated, defaultCommunity, noBorder
             />
           )}
           
-          <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
-            <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-3 pt-3 border-t border-border gap-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4 w-full sm:w-auto">
               <div className="flex items-center gap-1">
                 {defaultCommunity ? (
-                  <Badge variant="secondary" className="gap-1 px-2 py-1">
+                  <Badge variant="secondary" className="gap-1 px-2 py-1 text-[10px] sm:text-xs">
                     📍 {defaultCommunity}
                   </Badge>
                 ) : (
@@ -142,11 +142,11 @@ export default function PostComposer({ onPostCreated, defaultCommunity, noBorder
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      className="h-8 gap-1.5 text-muted-foreground hover:text-primary rounded-full px-3"
+                      className="h-8 gap-1.5 text-muted-foreground hover:text-primary rounded-full px-2 sm:px-3"
                       onClick={() => setShowTagInput(true)}
                     >
-                      <MapPin className="w-4 h-4" />
-                      <span className="text-xs">Tag College</span>
+                      <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      <span className="text-[10px] sm:text-xs">Tag College</span>
                     </Button>
                   )
                 )}
@@ -156,35 +156,36 @@ export default function PostComposer({ onPostCreated, defaultCommunity, noBorder
                   variant="ghost" 
                   size="sm" 
                   className={cn(
-                    "h-8 gap-1.5 rounded-full px-3 transition-colors",
+                    "h-8 gap-1.5 rounded-full px-2 sm:px-3 transition-colors",
                     showPoll ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-primary"
                   )}
                   onClick={() => setShowPoll(!showPoll)}
                 >
-                  <BarChart2 className="w-4 h-4" />
-                  <span className="text-xs">Poll</span>
+                  <BarChart2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <span className="text-[10px] sm:text-xs">Poll</span>
                 </Button>
               </div>
               
-              <div className="flex items-center gap-2 text-sm text-muted-foreground ml-2">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground ml-0 sm:ml-2">
                 <Switch 
                   id="anon-mode" 
                   checked={isAnonymous} 
                   onCheckedChange={setIsAnonymous} 
+                  className="scale-75 sm:scale-100"
                 />
-                <Label htmlFor="anon-mode" className="cursor-pointer font-normal text-xs">Anonymous</Label>
+                <Label htmlFor="anon-mode" className="cursor-pointer font-normal text-[10px] sm:text-xs">Anonymous</Label>
               </div>
             </div>
             
-            <div className="flex items-center gap-3">
-              <span className={`text-xs font-medium ${content.length > 450 ? 'text-destructive' : 'text-muted-foreground'}`}>
+            <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto border-t sm:border-t-0 pt-2 sm:pt-0 border-border/50">
+              <span className={`text-[10px] sm:text-xs font-medium ${content.length > 450 ? 'text-destructive' : 'text-muted-foreground'}`}>
                 {content.length}/500
               </span>
               <Button
                 onClick={handleSubmit}
                 disabled={!content.trim() || content.length > 500 || isLoading}
                 size="sm"
-                className="rounded-full px-5"
+                className="rounded-full px-4 sm:px-5 text-xs sm:text-sm h-8 sm:h-9"
               >
                 {isLoading ? 'Posting...' : 'Post'}
               </Button>

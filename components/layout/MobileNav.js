@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, GraduationCap, PlusSquare, User, Bell, Bookmark, LogOut, Menu, Search } from "lucide-react"
+import { Home, GraduationCap, PlusSquare, User, Bell, Bookmark, LogOut, Menu, Search, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Sheet,
@@ -145,6 +145,18 @@ export default function MobileNav() {
                 >
                   <GraduationCap className="w-5 h-5" />
                   <span className="text-base font-medium">Communities</span>
+                </Button>
+              </Link>
+              <Link href="/events">
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-start gap-4 h-12 px-3",
+                    pathname.startsWith("/events") ? "bg-accent text-accent-foreground" : "text-muted-foreground"
+                  )}
+                >
+                  <Calendar className="w-5 h-5" />
+                  <span className="text-base font-medium">Events</span>
                 </Button>
               </Link>
             </nav>

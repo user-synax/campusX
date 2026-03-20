@@ -13,7 +13,7 @@ const notificationSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['like', 'comment', 'follow'],
+    enum: ['like', 'comment', 'follow', 'event_cancelled'],
     required: true,
   },
   post: {
@@ -23,6 +23,10 @@ const notificationSchema = new mongoose.Schema({
   comment: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Comment',
+  },
+  event: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Event',
   },
   read: {
     type: Boolean,

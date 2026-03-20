@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Home, User, GraduationCap, Bell, LogOut, Bookmark, Search } from "lucide-react"
+import { Home, User, GraduationCap, Bell, LogOut, Bookmark, Search, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import useUser from "@/hooks/useUser"
@@ -21,6 +21,7 @@ export default function Sidebar() {
     { label: "Bookmarks", href: "/bookmarks", icon: Bookmark },
     { label: "Profile", href: user ? `/profile/${user.username}` : "/login", icon: User },
     { label: "Communities", href: "/community", icon: GraduationCap },
+    { label: "Events", href: "/events", icon: Calendar },
     { label: "Notifications", href: "/notifications", icon: Bell, badge: count },
   ]
 

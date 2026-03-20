@@ -183,62 +183,59 @@ export default function PostCard({ post, currentUserId, onDelete, onLike, onBook
             />
           )}
           
-          <div className="flex items-center gap-6 mt-3 text-muted-foreground">
-            <button 
-              onClick={handleLike}
-              className={cn(
-                "flex items-center gap-1.5 text-xs transition-colors group/like",
-                isLiked ? "text-red-500" : "hover:text-red-500"
-              )}
-            >
-              <div className={cn(
-                "p-2 rounded-full transition-colors",
-                isLiked ? "bg-red-500/10" : "group-hover/like:bg-red-500/10"
-              )}>
-                <Heart className={cn("w-4 h-4", isLiked && "fill-current")} />
-              </div>
-              <span className="font-medium">{likesCount}</span>
-            </button>
-            
-            <button 
-              onClick={(e) => {
-                e.stopPropagation()
-                setShowComments(!showComments)
-              }}
-              className="flex items-center gap-1.5 text-xs hover:text-blue-400 transition-colors group/comment"
-            >
-              <div className="p-2 rounded-full group-hover/comment:bg-blue-400/10">
-                <MessageCircle className="w-4 h-4" />
-              </div>
-              <span className="font-medium">{commentsCount}</span>
-            </button>
-            
-            {currentUserId === post.author?._id?.toString() && (
+          <div className="flex items-center justify-between mt-3 text-muted-foreground">
+            <div className="flex items-center gap-4 sm:gap-6">
               <button 
-                onClick={handleDelete}
-                className="p-2 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                onClick={handleLike}
+                className={cn(
+                  "flex items-center gap-1.5 text-xs transition-colors group/like",
+                  isLiked ? "text-red-500" : "hover:text-red-500"
+                )}
               >
-                <Trash2 className="w-4 h-4" />
+                <div className={cn(
+                  "p-2 rounded-full transition-colors",
+                  isLiked ? "bg-red-500/10" : "group-hover/like:bg-red-500/10"
+                )}>
+                  <Heart className={cn("w-4 h-4", isLiked && "fill-current")} />
+                </div>
+                <span className="font-medium text-[10px] sm:text-xs">{likesCount}</span>
               </button>
-            )}
 
-            <button 
-              onClick={handleBookmark} 
-              className={cn(
-                "flex items-center gap-1 text-sm transition-colors ml-auto group/bookmark",
-                isBookmarked 
-                  ? 'text-yellow-400' 
-                  : 'text-muted-foreground hover:text-yellow-400' 
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setShowComments(!showComments)
+                }}
+                className="flex items-center gap-1.5 text-xs hover:text-blue-400 transition-colors group/comment"
+              >
+                <div className="p-2 rounded-full group-hover/comment:bg-blue-400/10">
+                  <MessageCircle className="w-4 h-4" />
+                </div>
+                <span className="font-medium text-[10px] sm:text-xs">{commentsCount}</span>
+              </button>
+            </div>
+
+            <div className="flex items-center gap-1 sm:gap-2">
+              <button 
+                onClick={handleBookmark}
+                className={cn(
+                  "p-2 rounded-full transition-colors",
+                  isBookmarked ? "text-yellow-400 bg-yellow-400/10" : "hover:text-yellow-400 hover:bg-yellow-400/10"
+                )}
+                title={isBookmarked ? 'Remove bookmark' : 'Save post'}
+              >
+                <Bookmark className={cn("w-4 h-4", isBookmarked && "fill-current")} />
+              </button>
+
+              {currentUserId === post.author?._id?.toString() && (
+                <button 
+                  onClick={handleDelete}
+                  className="p-2 rounded-full hover:text-destructive hover:bg-destructive/10 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
               )}
-              title={isBookmarked ? 'Remove bookmark' : 'Save post'} 
-            > 
-              <div className={cn(
-                "p-2 rounded-full transition-colors",
-                isBookmarked ? "bg-yellow-400/10" : "group-hover/bookmark:bg-yellow-400/10"
-              )}>
-                <Bookmark className={cn("w-4 h-4", isBookmarked && "fill-current")} /> 
-              </div>
-            </button> 
+            </div>
           </div>
           
           {/* CommentSection */}
