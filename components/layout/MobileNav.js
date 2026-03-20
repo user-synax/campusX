@@ -37,6 +37,7 @@ export default function MobileNav() {
     { href: "/search", icon: Search, label: "Search" },
     { href: "#", icon: PlusSquare, label: "Post", isAction: true },
     { href: "/notifications", icon: Bell, label: "Notifications", badge: count },
+    { href: "#", icon: LogOut, label: "Logout", isLogout: true },
   ]
 
   return (
@@ -53,7 +54,7 @@ export default function MobileNav() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="w-12 h-12 text-primary"
+                  className="w-10 h-10 text-primary"
                 >
                   <Icon className="w-6 h-6" />
                 </Button>
@@ -62,12 +63,26 @@ export default function MobileNav() {
           )
         }
 
+        if (item.isLogout) {
+          return (
+            <Button
+              key={item.label}
+              variant="ghost"
+              size="icon"
+              onClick={handleLogout}
+              className="w-10 h-10 text-destructive"
+            >
+              <Icon className="w-6 h-6" />
+            </Button>
+          )
+        }
+
         return (
           <Link key={item.href} href={item.href}>
             <Button
               variant="ghost"
               size="icon"
-              className={`w-12 h-12 relative ${isActive ? "text-primary" : "text-muted-foreground"}`}
+              className={`w-10 h-10 relative ${isActive ? "text-primary" : "text-muted-foreground"}`}
             >
               <Icon className="w-6 h-6" />
               {item.badge > 0 && (
