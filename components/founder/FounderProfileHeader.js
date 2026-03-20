@@ -67,7 +67,7 @@ export default function FounderProfileHeader({ user, isOwnProfile, stats, onFoll
           <div className="flex items-center gap-2 flex-wrap"> 
             <h1 className="text-2xl font-bold">{user.name}</h1> 
             {/* Verified badge */} 
-            <svg viewBox="0 0 24 24" className="w-5 h-5"> 
+            <svg viewBox="0 0 24 24" className="w-5 h-5 flex-shrink-0"> 
               <circle cx="12" cy="12" r="12" fill="#3b82f6" /> 
               <path d="M9 12l2 2 4-4" stroke="white" strokeWidth="2.5" 
                 strokeLinecap="round" strokeLinejoin="round" fill="none" /> 

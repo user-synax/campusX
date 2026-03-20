@@ -111,7 +111,7 @@ export default function MobileNav() {
             </div>
 
             <nav className="flex-1 p-2 space-y-1">
-              <Link href={user ? `/profile/${user.username}` : "/login"}>
+              <Link href={`/profile/${user?.username}`}>
                 <Button
                   variant="ghost"
                   className={cn(

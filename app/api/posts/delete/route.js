@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Post from '@/models/Post';
 import User from '@/models/User';
+import Comment from '@/models/Comment';
 import { getCurrentUser } from '@/lib/auth';
 import { validateObjectId } from '@/utils/validators';
 import { removeHashtags } from '@/lib/hashtag-utils';

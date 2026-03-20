@@ -19,6 +19,7 @@ export default function useUser() {
       } else {
         const data = await res.json()
         setUser(data.user)
+        return data
       }
     } catch (err) {
       setError(err.message)

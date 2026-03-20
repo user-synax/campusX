@@ -90,3 +90,13 @@
   border-radius: 50%; 
   padding: 2px; 
 } 
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}

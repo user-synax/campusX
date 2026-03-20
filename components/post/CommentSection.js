@@ -66,10 +66,6 @@ export default function CommentSection({ postId, currentUser, onCountChange }) {
       // Replace optimistic with real
       setComments(prev => prev.map(c => c._id === optimisticComment._id ? data : c))
       if (onCountChange) onCountChange(1)
-      
-      // Update global count (dispatched event for simplicity if needed, 
-      // but here we just update local state if we had one. 
-      // PostCard handles the count UI usually via parent or re-fetch)
     } catch (error) {
       setComments(prev => prev.filter(c => c._id !== optimisticComment._id))
       setNewComment(currentText)

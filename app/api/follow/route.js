@@ -4,6 +4,7 @@ import User from '@/models/User';
 import { getCurrentUser } from '@/lib/auth';
 import { validateObjectId } from '@/utils/validators';
 import { createNotification } from '@/lib/notifications';
+import { awardXP } from '@/lib/xp';
 
 export async function POST(request) {
   try {

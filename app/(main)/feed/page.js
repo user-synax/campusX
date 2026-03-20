@@ -10,7 +10,7 @@ import useUser from "@/hooks/useUser"
 import { Button } from "@/components/ui/button"
 
 export default function FeedPage() {
-  const { user: currentUser } = useUser()
+  const { user: currentUser, refetch: refetchCurrentUser } = useUser()
   const { 
     posts, 
     loading, 
@@ -20,6 +20,15 @@ export default function FeedPage() {
     removePost, 
     updatePostLike 
   } = usePosts()
+
+  const handlePostCreated = (newPost) => {
+    addPost(newPost)
+    if (newPost.xpAwarded) {
+      refetchCurrentUser()
+      // Dispatch update event for sidebar/mobile XP bars
+      window.dispatchEvent(new CustomEvent('cx-xp-updated'))
+    }
+  }
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -31,7 +40,7 @@ export default function FeedPage() {
       </div>
       
       {/* Post composer */}
-      <PostComposer onPostCreated={addPost} />
+      <PostComposer onPostCreated={handlePostCreated} />
       
       {/* Posts list */}
       <div className="flex-1">

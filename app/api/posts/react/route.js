@@ -5,6 +5,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { validateObjectId } from '@/utils/validators';
 import { createNotification, deleteNotification } from '@/lib/notifications';
 import { REACTION_KEYS, computeReactionSummary } from '@/lib/reaction-utils';
+import { awardXP } from '@/lib/xp';
 
 export async function POST(request) {
   try {
@@ -68,6 +69,12 @@ export async function POST(request) {
         type: 'reaction', // New notification type
         reactionType: reactionType,
         post: postId
+      });
+
+      return NextResponse.json({
+        success: true,
+        reactions: updatedPost.reactions,
+        summary: computeReactionSummary(updatedPost.reactions)
       });
     } else if (existingReaction.type === reactionType) {
       // CASE B: Same reaction type - $pull (Toggle off)

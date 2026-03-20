@@ -98,7 +98,10 @@ export async function DELETE(request, { params }) {
     }
 
     const { postId } = await params;
-    
+    if (!validateObjectId(postId)) {
+      return NextResponse.json({ message: 'Invalid Post ID' }, { status: 400 });
+    }
+
     let body;
     try {
       body = await request.json();

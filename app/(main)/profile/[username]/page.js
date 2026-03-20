@@ -27,7 +27,7 @@ export default function ProfilePage() {
   const params = useParams()
   const username = params.username
   const { user: currentUser, refetch: refetchCurrentUser } = useUser()
-  const { posts, loading: postsLoading, removePost, updatePostLike } = usePosts({ username })
+  const { posts, loading: postsLoading, addPost, removePost, updatePostLike } = usePosts({ username })
   
   const [profileUser, setProfileUser] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -45,6 +45,11 @@ export default function ProfilePage() {
     course: '',
     year: ''
   })
+
+  // Derived state
+  const isOwnProfile = profileUser?.isMe || currentUser?.username?.toLowerCase() === profileUser?.username?.toLowerCase()
+  const isFollowing = profileUser?.isFollowing || currentUser?.following?.some(id => id.toString() === profileUser?._id?.toString())
+  const isFounderProfile = profileUser?.isFounder || isFounder(username)
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -142,10 +147,6 @@ export default function ProfilePage() {
     )
   }
 
-  const isOwnProfile = profileUser?.isMe || currentUser?.username?.toLowerCase() === profileUser?.username?.toLowerCase()
-  const isFollowing = profileUser?.isFollowing || currentUser?.following?.some(id => id.toString() === profileUser?._id?.toString())
-  const isFounderProfile = profileUser?.isFounder || isFounder(username)
-
   return (
     <div className="flex flex-col min-h-screen">
       {/* Header */}
@@ -184,7 +185,14 @@ export default function ProfilePage() {
               )}
             </div>
             
-            <h1 className="text-xl font-bold">{profileUser.name}</h1>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-xl font-bold">{profileUser.name}</h1>
+              {profileUser.isVerified && (
+                <svg viewBox="0 0 24 24" className="w-4 h-4 text-blue-500 fill-current">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                </svg>
+              )}
+            </div>
             <p className="text-muted-foreground text-sm">@{profileUser.username}</p>
             
             {profileUser.bio && <p className="mt-3 text-[15px]">{profileUser.bio}</p>}
@@ -216,7 +224,7 @@ export default function ProfilePage() {
 
       {/* Pinned Post if it exists */}
       {isFounderProfile && profileUser.pinnedPost && (
-        <div className="border-b border-border bg-accent/5">  
+        <div className="border-b border-border bg-accent/5">
           <div className="flex items-center gap-2 px-4 pt-3 pb-1 text-xs text-amber-400/80">
             <Pin className="w-3 h-3" />
             <span>Pinned post</span>
@@ -247,19 +255,18 @@ export default function ProfilePage() {
             description={isOwnProfile ? "You haven't posted anything yet." : `@${profileUser.username} hasn't posted anything yet.`} 
           />
         ) : (
-          posts.map(post => (
+          posts.filter(post => post._id !== (profileUser?.pinnedPost?._id || profileUser?.pinnedPost)).map(post => (
             <PostCard 
               key={post._id} 
               post={post} 
               currentUserId={currentUser?._id} 
               onDelete={removePost} 
               onLike={updatePostLike} 
-              isPinned={profileUser?.pinnedPost?._id === post._id || profileUser?.pinnedPost === post._id}
+              isPinned={false}
             />
           ))
         )}
       </div>
-
       {/* Edit Dialog */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="sm:max-w-160.25 bg-background">

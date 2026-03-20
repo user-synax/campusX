@@ -65,6 +65,7 @@ export default function PostComposer({ onPostCreated, defaultCommunity, noBorder
       setShowPoll(false)
       setPollOptions(['', ''])
       if (onPostCreated) onPostCreated(newPost)
+      
       toast.success("Posted!", {
         description: "Your post is live.",
       })
