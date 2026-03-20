@@ -2,9 +2,12 @@ import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Post from '@/models/Post';
 import User from '@/models/User';
+import { getCurrentUser } from '@/lib/auth';
+import { computeReactionSummary, getUserReaction } from '@/lib/reaction-utils';
 
 export async function GET(request) {
   try {
+    const currentUser = await getCurrentUser(request);
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page')) || 1;
     const limit = Math.min(parseInt(searchParams.get('limit')) || 20, 50);
@@ -40,8 +43,23 @@ export async function GET(request) {
       Post.countDocuments(query),
     ]);
 
+    // Add reaction summary and user reaction status
+    const postsWithReactions = posts.map(post => {
+      const summary = computeReactionSummary(post.reactions, post.likes);
+      const userReaction = currentUser ? getUserReaction(post.reactions, currentUser._id, post.likes) : null;
+      
+      // Remove raw reactions and likes for privacy/payload size
+      const { reactions, likes, ...postData } = post;
+      
+      return {
+        ...postData,
+        _reactionSummary: summary,
+        _userReaction: userReaction
+      };
+    });
+
     return NextResponse.json({
-      posts,
+      posts: postsWithReactions,
       hasMore: skip + posts.length < total,
       page,
       total,

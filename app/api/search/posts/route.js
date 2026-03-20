@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Post from '@/models/Post';
+import { getCurrentUser } from '@/lib/auth';
+import { computeReactionSummary, getUserReaction } from '@/lib/reaction-utils';
 
 export async function GET(request) {
   try {
+    const currentUser = await getCurrentUser(request);
     const { searchParams } = new URL(request.url);
     let q = searchParams.get('q') || '';
     const page = parseInt(searchParams.get('page')) || 1;
@@ -56,8 +59,22 @@ export async function GET(request) {
       total = await Post.countDocuments({ content: { $regex: sanitizedQuery, $options: 'i' } });
     }
 
+    // Add reaction summary and user reaction status
+    const postsWithReactions = posts.map(post => {
+      const summary = computeReactionSummary(post.reactions, post.likes);
+      const userReaction = currentUser ? getUserReaction(post.reactions, currentUser._id, post.likes) : null;
+      
+      const { reactions, likes, ...postData } = post;
+      
+      return {
+        ...postData,
+        _reactionSummary: summary,
+        _userReaction: userReaction
+      };
+    });
+
     return NextResponse.json({
-      posts,
+      posts: postsWithReactions,
       total,
       hasMore: skip + posts.length < total,
       query: sanitizedQuery

@@ -4,6 +4,7 @@ import User from '@/models/User';
 import Post from '@/models/Post';
 import { getCurrentUser } from '@/lib/auth';
 import { validateObjectId } from '@/utils/validators';
+import { computeReactionSummary, getUserReaction } from '@/lib/reaction-utils';
 
 // POST /api/bookmarks - Toggle bookmark
 export async function POST(request) {
@@ -114,8 +115,21 @@ export async function GET(request) {
       ).catch(err => console.error('Background bookmark cleanup error:', err));
     }
 
+    const sortedPosts = orderedPosts.map(post => {
+      const summary = computeReactionSummary(post.reactions, post.likes);
+      const userReaction = getUserReaction(post.reactions, currentUserInfo._id, post.likes);
+      
+      const { reactions, likes, ...postData } = post;
+      
+      return {
+        ...postData,
+        _reactionSummary: summary,
+        _userReaction: userReaction
+      };
+    });
+
     return NextResponse.json({
-      posts: orderedPosts,
+      posts: sortedPosts,
       hasMore: skip + paginatedIds.length < total,
       total
     });

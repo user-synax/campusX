@@ -34,6 +34,10 @@ const postSchema = new mongoose.Schema({
     ref: 'User',
     default: [],
   }],
+  reactions: [{
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    type: { type: String, enum: ['like', 'funny', 'wow', 'sad', 'respect', 'fire'], required: true }
+  }],
   commentsCount: {
     type: Number,
     default: 0,
@@ -69,9 +73,14 @@ postSchema.index({ createdAt: -1 });
 postSchema.index({ community: 1 });
 postSchema.index({ author: 1 });
 postSchema.index({ content: 'text' });
+postSchema.index({ 'reactions.user': 1 });
 
 postSchema.virtual('likesCount').get(function () {
   return this.likes.length;
+});
+
+postSchema.virtual('reactionCount').get(function () {
+  return this.reactions.length;
 });
 
 postSchema.virtual('hasPoll').get(function () {

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from "next/link"
 import { Heart, MessageCircle, Trash2, Bookmark } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
@@ -8,6 +8,7 @@ import { toast } from "sonner"
 import UserAvatar from "@/components/user/UserAvatar"
 import CommentSection from "@/components/post/CommentSection"
 import PollDisplay from "@/components/post/PollDisplay"
+import ReactionPicker, { REACTIONS } from "@/components/post/ReactionPicker"
 import { formatRelativeTime } from "@/utils/formatters"
 import { renderContentWithHashtags } from "@/utils/hashtags"
 import { cn } from "@/lib/utils"
@@ -15,11 +16,18 @@ import useUser from "@/hooks/useUser"
 
 export default function PostCard({ post, currentUserId, onDelete, onLike, onBookmark }) {
   const { user: currentUser } = useUser()
-  const [isLiked, setIsLiked] = useState(post.likes.includes(currentUserId))
-  const [likesCount, setLikesCount] = useState(post.likesCount || post.likes.length)
+  const [userReaction, setUserReaction] = useState(post._userReaction || null)
+  const [reactionSummary, setReactionSummary] = useState(post._reactionSummary || { total: 0, byType: {}, topEmojis: [] })
+  const [showPicker, setShowPicker] = useState(false)
+  const pickerTimerRef = useRef(null)
   const [commentsCount, setCommentsCount] = useState(post.commentsCount || 0)
   const [showComments, setShowComments] = useState(false)
   const [isBookmarked, setIsBookmarked] = useState(false);
+
+  const formatCount = (count) => {
+    if (count >= 1000) return (count / 1000).toFixed(1) + 'k'
+    return count
+  }
 
   useEffect(() => {
     if (!currentUser) return;
@@ -37,38 +45,69 @@ export default function PostCard({ post, currentUserId, onDelete, onLike, onBook
     checkBookmark();
   }, [currentUser, post._id]);
 
-  const handleLike = async (e) => {
-    e.preventDefault()
-    e.stopPropagation()
+  const handleReact = async (reactionType) => {
+    if (!currentUser) {
+      toast.error("Please login to react")
+      return
+    }
 
     // Optimistic update
-    const wasLiked = isLiked
-    const originalLikesCount = likesCount
-    const newIsLiked = !wasLiked
-    const newLikesCount = newIsLiked ? originalLikesCount + 1 : originalLikesCount - 1
+    const prevReaction = userReaction
+    const prevSummary = { ...reactionSummary }
     
-    setIsLiked(newIsLiked)
-    setLikesCount(newLikesCount)
+    let nextReaction = reactionType
+    let nextSummary = { ...prevSummary }
+
+    if (prevReaction === reactionType) {
+      // Toggle off
+      nextReaction = null
+      nextSummary.total--
+      nextSummary.byType[reactionType]--
+    } else {
+      // Toggle on or change
+      nextReaction = reactionType
+      if (prevReaction) {
+        nextSummary.byType[prevReaction]--
+      } else {
+        nextSummary.total++
+      }
+      nextSummary.byType[reactionType] = (nextSummary.byType[reactionType] || 0) + 1
+    }
+
+    // Update top emojis in nextSummary (simplified for optimism)
+    const sortedTypes = Object.keys(nextSummary.byType)
+      .filter(key => nextSummary.byType[key] > 0)
+      .sort((a, b) => nextSummary.byType[b] - nextSummary.byType[a])
+      .slice(0, 3);
+    
+    const REACTION_EMOJIS = {
+      like: '❤️', funny: '😂', wow: '😮', sad: '😢', respect: '👏', fire: '🔥'
+    }
+    nextSummary.topEmojis = sortedTypes.map(type => REACTION_EMOJIS[type])
+
+    setUserReaction(nextReaction)
+    setReactionSummary(nextSummary)
+    setShowPicker(false)
+    if (pickerTimerRef.current) clearTimeout(pickerTimerRef.current)
 
     try {
-      const res = await fetch('/api/posts/like', {
+      const res = await fetch('/api/posts/react', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ postId: post._id }),
+        body: JSON.stringify({ postId: post._id, reactionType }),
       })
 
       const data = await res.json()
       if (!res.ok) throw new Error(data.message)
 
       // Sync with server response
-      setIsLiked(data.liked)
-      setLikesCount(data.likesCount)
-      if (onLike) onLike(post._id, data.liked, data.likesCount)
+      setUserReaction(data.reactionType)
+      setReactionSummary(data.summary)
     } catch (error) {
       // Revert optimistic update
-      setIsLiked(wasLiked)
-      setLikesCount(originalLikesCount)
-      toast.error("Couldn't like post", {
+      setUserReaction(prevReaction)
+      setReactionSummary(prevSummary)
+      toast.error("Couldn't update reaction", {
         description: error.message,
       })
     }
@@ -185,21 +224,62 @@ export default function PostCard({ post, currentUserId, onDelete, onLike, onBook
           
           <div className="flex items-center justify-between mt-3 text-muted-foreground">
             <div className="flex items-center gap-4 sm:gap-6">
-              <button 
-                onClick={handleLike}
-                className={cn(
-                  "flex items-center gap-1.5 text-xs transition-colors group/like",
-                  isLiked ? "text-red-500" : "hover:text-red-500"
-                )}
+              <div 
+                className="relative"
+                onMouseEnter={() => {
+                  if (pickerTimerRef.current) clearTimeout(pickerTimerRef.current)
+                  setShowPicker(true)
+                }} 
+                onMouseLeave={() => {
+                  pickerTimerRef.current = setTimeout(() => {
+                    setShowPicker(false)
+                  }, 300) // Small delay to allow moving to picker
+                }}
               >
-                <div className={cn(
-                  "p-2 rounded-full transition-colors",
-                  isLiked ? "bg-red-500/10" : "group-hover/like:bg-red-500/10"
-                )}>
-                  <Heart className={cn("w-4 h-4", isLiked && "fill-current")} />
-                </div>
-                <span className="font-medium text-[10px] sm:text-xs">{likesCount}</span>
-              </button>
+                {showPicker && ( 
+                  <ReactionPicker 
+                    currentReaction={userReaction} 
+                    onSelect={handleReact} 
+                    onClose={() => setShowPicker(false)} 
+                  /> 
+                )} 
+
+                <button 
+                  onClick={(e) => { 
+                    e.preventDefault()
+                    e.stopPropagation()
+                    if (userReaction) { 
+                      handleReact(userReaction) 
+                    } else { 
+                      if (pickerTimerRef.current) clearTimeout(pickerTimerRef.current)
+                      setShowPicker(!showPicker) 
+                    } 
+                  }} 
+                  className={cn(
+                    "flex items-center gap-1.5 text-xs transition-colors hover:text-foreground p-2 rounded-full",
+                    userReaction ? "text-primary" : "text-muted-foreground"
+                  )}
+                > 
+                  {userReaction ? ( 
+                    <span className="text-base leading-none"> 
+                      {REACTIONS.find(r => r.type === userReaction)?.emoji} 
+                    </span> 
+                  ) : ( 
+                    <Heart className="w-4 h-4" /> 
+                  )} 
+                  
+                  <div className="flex items-center gap-0.5 ml-0.5"> 
+                    {reactionSummary.topEmojis.map((emoji, i) => ( 
+                      <span key={i} className="text-xs leading-none">{emoji}</span> 
+                    ))} 
+                    {reactionSummary.total > 0 && ( 
+                      <span className="ml-1 font-medium text-[10px] sm:text-xs">
+                        {formatCount(reactionSummary.total)}
+                      </span> 
+                    )} 
+                  </div> 
+                </button> 
+              </div>
 
               <button 
                 onClick={(e) => {

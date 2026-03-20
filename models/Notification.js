@@ -13,8 +13,12 @@ const notificationSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['like', 'comment', 'follow', 'event_cancelled'],
+    enum: ['like', 'comment', 'follow', 'event_cancelled', 'reaction'],
     required: true,
+  },
+  reactionType: {
+    type: String,
+    enum: ['like', 'funny', 'wow', 'sad', 'respect', 'fire'],
   },
   post: {
     type: mongoose.Schema.Types.ObjectId,

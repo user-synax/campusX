@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Post from '@/models/Post';
+import { getCurrentUser } from '@/lib/auth';
+import { computeReactionSummary, getUserReaction } from '@/lib/reaction-utils';
 
 export async function GET(request, { params }) {
   try {
+    const currentUser = await getCurrentUser(request);
     const { tag: rawTag } = await params;
     const tag = decodeURIComponent(rawTag).toLowerCase();
     
@@ -24,8 +27,22 @@ export async function GET(request, { params }) {
 
     const total = await Post.countDocuments({ hashtags: tag });
 
+    // Add reaction summary and user reaction status
+    const postsWithReactions = posts.map(post => {
+      const summary = computeReactionSummary(post.reactions, post.likes);
+      const userReaction = currentUser ? getUserReaction(post.reactions, currentUser._id, post.likes) : null;
+      
+      const { reactions, likes, ...postData } = post;
+      
+      return {
+        ...postData,
+        _reactionSummary: summary,
+        _userReaction: userReaction
+      };
+    });
+
     return NextResponse.json({
-      posts,
+      posts: postsWithReactions,
       hasMore: skip + posts.length < total,
       total,
       tag
