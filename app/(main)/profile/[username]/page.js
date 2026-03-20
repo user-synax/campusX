@@ -21,6 +21,7 @@ import { isFounder } from "@/lib/founder"
 import FounderProfileHeader from "@/components/founder/FounderProfileHeader"
 import RoadmapWidget from '@/components/founder/RoadmapWidget' 
 import BroadcastManager from '@/components/founder/BroadcastManager' 
+import FollowListModal from "@/components/user/FollowListModal"
 
 export default function ProfilePage() {
   const params = useParams()
@@ -32,6 +33,10 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true)
   const [editOpen, setEditOpen] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
+  
+  // Follow modal state
+  const [followModal, setFollowModal] = useState(false)
+  const [followModalTab, setFollowModalTab] = useState('followers')
   
   const [editData, setEditData] = useState({
     name: '',
@@ -149,6 +154,10 @@ export default function ProfilePage() {
           user={profileUser} 
           isOwnProfile={isOwnProfile} 
           stats={{ postCount: profileUser.postCount }} 
+          onFollowClick={(tab) => {
+            setFollowModalTab(tab)
+            setFollowModal(true)
+          }}
         />
       ) : (
         <div>
@@ -187,8 +196,18 @@ export default function ProfilePage() {
             </div>
             
             <div className="flex gap-5 mt-4 text-sm">
-              <span className="flex gap-1"><strong>{profileUser.followingCount}</strong> <span className="text-muted-foreground">Following</span></span>
-              <span className="flex gap-1"><strong>{profileUser.followersCount}</strong> <span className="text-muted-foreground">Followers</span></span>
+              <button 
+                onClick={() => { setFollowModal(true); setFollowModalTab('following') }} 
+                className="flex gap-1 hover:underline"
+              >
+                <strong>{profileUser.followingCount}</strong> <span className="text-muted-foreground">Following</span>
+              </button>
+              <button 
+                onClick={() => { setFollowModal(true); setFollowModalTab('followers') }} 
+                className="flex gap-1 hover:underline"
+              >
+                <strong>{profileUser.followersCount}</strong> <span className="text-muted-foreground">Followers</span>
+              </button>
               <span className="flex gap-1"><strong>{profileUser.postCount}</strong> <span className="text-muted-foreground">Posts</span></span>
             </div>
           </div>
@@ -312,6 +331,17 @@ export default function ProfilePage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Follow list modal */}
+      <FollowListModal 
+        username={username} 
+        initialTab={followModalTab} 
+        followersCount={profileUser.followersCount} 
+        followingCount={profileUser.followingCount} 
+        open={followModal} 
+        onOpenChange={setFollowModal} 
+        currentUserId={currentUser?._id} 
+      />
     </div>
   )
 }

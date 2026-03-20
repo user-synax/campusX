@@ -3,13 +3,18 @@
 import { useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
+import { cn } from "@/lib/utils"
 
-export default function FollowButton({ targetUserId, username, initialIsFollowing, initialFollowersCount, onToggle }) {
+export default function FollowButton({ targetUserId, username, initialIsFollowing, initialFollowersCount, onToggle, compact = false }) {
   const [isFollowing, setIsFollowing] = useState(initialIsFollowing)
   const [followersCount, setFollowersCount] = useState(initialFollowersCount)
   const [isLoading, setIsLoading] = useState(false)
 
-  const handleFollow = async () => {
+  const handleFollow = async (e) => {
+    if (e) {
+      e.preventDefault()
+      e.stopPropagation()
+    }
     setIsLoading(true)
     
     // Optimistic update
@@ -60,7 +65,10 @@ export default function FollowButton({ targetUserId, username, initialIsFollowin
         size="sm" 
         disabled={isLoading}
         onClick={handleFollow}
-        className="rounded-full px-6 hover:bg-destructive hover:text-white hover:border-destructive group"
+        className={cn(
+          "rounded-full hover:bg-destructive hover:text-white hover:border-destructive group",
+          compact ? "px-3 h-8 text-xs" : "px-6"
+        )}
       >
         <span className="group-hover:hidden">Following</span>
         <span className="hidden group-hover:inline">Unfollow</span>
@@ -74,7 +82,10 @@ export default function FollowButton({ targetUserId, username, initialIsFollowin
       size="sm" 
       disabled={isLoading}
       onClick={handleFollow}
-      className="rounded-full px-6"
+      className={cn(
+        "rounded-full",
+        compact ? "px-4 h-8 text-xs font-bold" : "px-6"
+      )}
     >
       Follow
     </Button>

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Eye } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { cn } from "@/lib/utils"
 import { getDaysSinceLaunch, LAUNCH_DATE } from '@/lib/founder' 
 import { formatCount } from '@/utils/formatters'
 import FounderAvatar from './FounderAvatar'
@@ -11,7 +12,7 @@ import RoadmapWidget from './RoadmapWidget'
 import FollowButton from '@/components/user/FollowButton'
 import BroadcastManager from './BroadcastManager'
 
-export default function FounderProfileHeader({ user, isOwnProfile, stats }) {
+export default function FounderProfileHeader({ user, isOwnProfile, stats, onFollowClick }) {
   const [editOpen, setEditOpen] = useState(false)
 
   return (
@@ -109,14 +110,20 @@ export default function FounderProfileHeader({ user, isOwnProfile, stats }) {
         {/* Stats row — special styling */} 
         <div className="grid grid-cols-3 gap-3 mt-5"> 
           {[ 
-            { label: 'Posts', value: stats.postCount }, 
-            { label: 'Followers', value: formatCount(user.followers?.length || 0) }, 
-            { label: 'Following', value: formatCount(user.following?.length || 0) } 
+            { label: 'Posts', value: stats.postCount, clickable: false }, 
+            { label: 'Followers', value: formatCount(user.followers?.length || 0), clickable: true, tab: 'followers' }, 
+            { label: 'Following', value: formatCount(user.following?.length || 0), clickable: true, tab: 'following' } 
           ].map(stat => ( 
-            <div key={stat.label} 
-              className="text-center py-2 rounded-lg" 
-              style={{ background: '#1a1a1a', border: '1px solid #2a2a2a' }}> 
-              <p className="text-lg font-bold">{stat.value}</p> 
+            <div 
+              key={stat.label} 
+              onClick={() => stat.clickable && onFollowClick?.(stat.tab)}
+              className={cn(
+                "text-center py-2 rounded-lg transition-colors",
+                stat.clickable && "cursor-pointer hover:bg-[#252525] hover:border-amber-500/30 group"
+              )} 
+              style={{ background: '#1a1a1a', border: '1px solid #2a2a2a' }}
+            > 
+              <p className={cn("text-lg font-bold transition-colors", stat.clickable && "group-hover:text-amber-400")}>{stat.value}</p> 
               <p className="text-xs text-muted-foreground">{stat.label}</p> 
             </div> 
           ))} 
