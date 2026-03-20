@@ -4,6 +4,7 @@ import Sidebar from "@/components/layout/Sidebar"
 import RightPanel from "@/components/layout/RightPanel"
 import MobileNav from "@/components/layout/MobileNav"
 import { Toaster } from "@/components/ui/sonner"
+import BroadcastBanner from "@/components/founder/BroadcastBanner"
 
 export default function MainLayout({ children }) {
   return (
@@ -12,8 +13,11 @@ export default function MainLayout({ children }) {
       <Sidebar />
 
       {/* Main Content Area */}
-      <main className="flex-1 flex justify-center md:ml-[72px] lg:ml-[280px] pb-20 md:pb-0 overflow-x-hidden">
-        <div className="w-full max-w-2xl border-x border-border min-h-screen bg-background/50 backdrop-blur-sm overflow-x-hidden">
+      <main className="flex-1 flex flex-col md:ml-[72px] lg:ml-[280px] pb-20 md:pb-0 overflow-x-hidden">
+        {/* Broadcast banner — site-wide announcement */}
+        <BroadcastBanner />
+        
+        <div className="w-full max-w-2xl border-x border-border min-h-screen bg-background/50 backdrop-blur-sm overflow-x-hidden self-center">
           {children}
         </div>
       </main>

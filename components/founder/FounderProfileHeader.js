@@ -9,6 +9,7 @@ import FounderAvatar from './FounderAvatar'
 import FounderBadges from './FounderBadges'
 import RoadmapWidget from './RoadmapWidget'
 import FollowButton from '@/components/user/FollowButton'
+import BroadcastManager from './BroadcastManager'
 
 export default function FounderProfileHeader({ user, isOwnProfile, stats }) {
   const [editOpen, setEditOpen] = useState(false)
@@ -132,6 +133,16 @@ export default function FounderProfileHeader({ user, isOwnProfile, stats }) {
 
         {/* Roadmap widget */}
         <RoadmapWidget isOwnProfile={isOwnProfile} />
+
+        {/* Broadcast Manager — only for founder's own profile */}
+        {isOwnProfile && (
+          <BroadcastManager 
+            currentBroadcast={{
+              message: user.founderData?.broadcastMessage,
+              active: user.founderData?.broadcastActive
+            }} 
+          />
+        )}
     
       </div> 
     </div> 

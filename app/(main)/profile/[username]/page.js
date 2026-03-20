@@ -61,6 +61,11 @@ export default function ProfilePage() {
             course: userData.course || '',
             year: userData.year?.toString() || '1'
           })
+
+          // Track profile view if it's the founder's profile and not their own visit
+          if (isFounder(username) && currentUser?.username !== username) {
+            fetch('/api/founder/profile-view', { method: 'POST' }).catch(() => {})
+          }
         } else {
           toast.error("Failed to load profile", {
             description: userData.message,
