@@ -13,6 +13,9 @@ import { formatRelativeTime } from "@/utils/formatters"
 import { renderContentWithHashtags } from "@/utils/hashtags"
 import { cn } from "@/lib/utils"
 import useUser from "@/hooks/useUser"
+import { isFounder } from "@/lib/founder"
+import FounderAvatar from "@/components/founder/FounderAvatar"
+import FounderBadges from "@/components/founder/FounderBadges"
 
 export default function PostCard({ post, currentUserId, onDelete, onLike, onBookmark }) {
   const { user: currentUser } = useUser()
@@ -166,10 +169,16 @@ export default function PostCard({ post, currentUserId, onDelete, onLike, onBook
     }
   }
 
+  const isPostFounder = !post.isAnonymous && post.author && isFounder(post.author.username)
+
   return (
     <div className="border-b border-border p-4 hover:bg-accent/10 transition-colors cursor-pointer group">
       <div className="flex gap-3">
-        <UserAvatar user={post.isAnonymous ? null : post.author} size="md" />
+        {isPostFounder ? (
+          <FounderAvatar user={post.author} size="md" />
+        ) : (
+          <UserAvatar user={post.isAnonymous ? null : post.author} size="md" />
+        )}
         
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap text-sm">
@@ -184,6 +193,7 @@ export default function PostCard({ post, currentUserId, onDelete, onLike, onBook
                 >
                   {post.author.name}
                 </Link>
+                {isPostFounder && <FounderBadges size="sm" />}
                 <span className="text-muted-foreground truncate">@{post.author.username}</span>
               </>
             )}

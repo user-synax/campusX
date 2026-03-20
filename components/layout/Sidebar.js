@@ -8,6 +8,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import useUser from "@/hooks/useUser"
 import useNotificationCount from "@/hooks/useNotificationCount"
 import { cn } from "@/lib/utils"
+import { isFounder } from "@/lib/founder"
+import FounderAvatar from "@/components/founder/FounderAvatar"
 
 export default function Sidebar() {
   const pathname = usePathname()
@@ -79,10 +81,14 @@ export default function Sidebar() {
       <div className="p-4 border-t border-border">
         {!loading && user && (
           <div className="flex flex-col lg:flex-row items-center gap-3 mb-4">
-            <Avatar className="w-10 h-10 border border-border">
-              <AvatarImage src={user.avatar} alt={user.name} />
-              <AvatarFallback className="bg-secondary">{user.name?.[0]}</AvatarFallback>
-            </Avatar>
+            {isFounder(user.username) ? (
+              <FounderAvatar user={user} size="sm" />
+            ) : (
+              <Avatar className="w-10 h-10 border border-border">
+                <AvatarImage src={user.avatar} alt={user.name} />
+                <AvatarFallback className="bg-secondary">{user.name?.[0]}</AvatarFallback>
+              </Avatar>
+            )}
             <div className="hidden lg:block flex-1 min-w-0">
               <p className="text-sm font-semibold truncate">{user.name}</p>
               <p className="text-xs text-muted-foreground truncate">@{user.username}</p>

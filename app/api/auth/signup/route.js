@@ -57,6 +57,27 @@ export async function POST(request) {
       year,
     });
 
+    // Auto-follow founder 
+    try {
+      const { FOUNDER_USERNAME } = await import('@/lib/founder');
+      if (FOUNDER_USERNAME) {
+        const founderUser = await User.findOne({ username: FOUNDER_USERNAME });
+        if (founderUser && founderUser._id.toString() !== user._id.toString()) {
+          // Add founder to new user's following 
+          await User.findByIdAndUpdate(user._id, {
+            $addToSet: { following: founderUser._id }
+          });
+          // Add new user to founder's followers 
+          await User.findByIdAndUpdate(founderUser._id, {
+            $addToSet: { followers: user._id }
+          });
+        }
+      }
+    } catch (err) {
+      // Never block signup if auto-follow fails 
+      console.error('Auto-follow founder failed:', err.message);
+    }
+
     const token = signToken({ userId: user._id, username: user.username });
 
     const response = NextResponse.json(

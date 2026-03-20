@@ -17,6 +17,8 @@ import EmptyState from "@/components/shared/EmptyState"
 import { FileText } from "lucide-react"
 import useUser from "@/hooks/useUser"
 import { usePosts } from "@/hooks/usePosts"
+import { isFounder } from "@/lib/founder"
+import FounderProfileHeader from "@/components/founder/FounderProfileHeader"
 
 export default function ProfilePage() {
   const params = useParams()
@@ -130,52 +132,61 @@ export default function ProfilePage() {
 
   const isOwnProfile = currentUser?.username?.toLowerCase() === profileUser.username?.toLowerCase()
   const isFollowing = currentUser?.following?.includes(profileUser._id)
+  const isFounderUser = isFounder(profileUser.username)
 
   return (
     <div className="flex flex-col min-h-screen">
       {/* Header */}
-      <div>
-        <div className="h-32 bg-linear-to-r from-[#1a1a1a] to-[#2a2a2a]" />
-        
-        <div className="px-4 pb-4">
-          <div className="flex justify-between items-end -mt-12 mb-3">
-            <UserAvatar user={profileUser} size="lg" className="w-24 h-24 border-4 border-background" />
+      {isFounderUser ? (
+        <FounderProfileHeader 
+          user={profileUser} 
+          isOwnProfile={isOwnProfile} 
+          stats={{ postCount: profileUser.postCount }} 
+        />
+      ) : (
+        <div>
+          <div className="h-32 bg-linear-to-r from-[#1a1a1a] to-[#2a2a2a]" />
+          
+          <div className="px-4 pb-4">
+            <div className="flex justify-between items-end -mt-12 mb-3">
+              <UserAvatar user={profileUser} size="lg" className="w-24 h-24 border-4 border-background" />
+              
+              {isOwnProfile ? (
+                <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="rounded-full">
+                  Edit profile
+                </Button>
+              ) : (
+                <FollowButton 
+                  targetUserId={profileUser._id} 
+                  username={profileUser.username}
+                  initialIsFollowing={isFollowing} 
+                  initialFollowersCount={profileUser.followersCount}
+                  onToggle={(following, count) => {
+                    setProfileUser(prev => ({ ...prev, followersCount: count }))
+                  }}
+                />
+              )}
+            </div>
             
-            {isOwnProfile ? (
-              <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="rounded-full">
-                Edit profile
-              </Button>
-            ) : (
-              <FollowButton 
-                targetUserId={profileUser._id} 
-                username={profileUser.username}
-                initialIsFollowing={isFollowing} 
-                initialFollowersCount={profileUser.followersCount}
-                onToggle={(following, count) => {
-                  setProfileUser(prev => ({ ...prev, followersCount: count }))
-                }}
-              />
-            )}
-          </div>
-          
-          <h1 className="text-xl font-bold">{profileUser.name}</h1>
-          <p className="text-muted-foreground text-sm">@{profileUser.username}</p>
-          
-          {profileUser.bio && <p className="mt-3 text-[15px]">{profileUser.bio}</p>}
-          
-          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-sm text-muted-foreground">
-            {profileUser.college && <span className="flex items-center gap-1">🎓 {profileUser.college}</span>}
-            {profileUser.course && <span className="flex items-center gap-1">📚 {profileUser.course}</span>}
-            {profileUser.year && <span className="flex items-center gap-1">📅 Year {profileUser.year}</span>}
-          </div>
-          
-          <div className="flex gap-5 mt-4 text-sm">
-            <span className="flex gap-1"><strong>{profileUser.followingCount}</strong> <span className="text-muted-foreground">Following</span></span>
-            <span className="flex gap-1"><strong>{profileUser.followersCount}</strong> <span className="text-muted-foreground">Followers</span></span>
-            <span className="flex gap-1"><strong>{profileUser.postCount}</strong> <span className="text-muted-foreground">Posts</span></span>
+            <h1 className="text-xl font-bold">{profileUser.name}</h1>
+            <p className="text-muted-foreground text-sm">@{profileUser.username}</p>
+            
+            {profileUser.bio && <p className="mt-3 text-[15px]">{profileUser.bio}</p>}
+            
+            <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-sm text-muted-foreground">
+              {profileUser.college && <span className="flex items-center gap-1">🎓 {profileUser.college}</span>}
+              {profileUser.course && <span className="flex items-center gap-1">📚 {profileUser.course}</span>}
+              {profileUser.year && <span className="flex items-center gap-1">📅 Year {profileUser.year}</span>}
+            </div>
+            
+            <div className="flex gap-5 mt-4 text-sm">
+              <span className="flex gap-1"><strong>{profileUser.followingCount}</strong> <span className="text-muted-foreground">Following</span></span>
+              <span className="flex gap-1"><strong>{profileUser.followersCount}</strong> <span className="text-muted-foreground">Followers</span></span>
+              <span className="flex gap-1"><strong>{profileUser.postCount}</strong> <span className="text-muted-foreground">Posts</span></span>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Tabs Placeholder */}
       <div className="flex border-b border-border mt-2">

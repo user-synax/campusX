@@ -66,6 +66,30 @@ const userSchema = new mongoose.Schema({
     ref: 'Post',
     default: [],
   }],
+  // Founder-related fields (only populated for founder account) 
+  founderData: { 
+    roadmap: {
+      type: [{ 
+        title: String, 
+        status: { 
+          type: String, 
+          enum: ['done', 'inprogress', 'upcoming'], 
+          default: 'upcoming' 
+        }, 
+        emoji: String, 
+        order: Number 
+      }],
+      default: []
+    },
+    broadcastMessage: String,  // current site-wide announcement 
+    broadcastId: String,       // unique ID per announcement (for dismiss tracking) 
+    broadcastActive: Boolean, 
+    broadcastCreatedAt: Date, 
+    profileViews: { type: Number, default: 0 }, 
+    profileViewsToday: { type: Number, default: 0 }, 
+    profileViewsResetAt: Date, 
+    totalUsersAtJoining: { type: Number, default: 0 }, 
+  },
 }, { timestamps: true });
 
 userSchema.methods.comparePassword = async function (plainPassword) {
