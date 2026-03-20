@@ -61,6 +61,10 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
   }],
+  bookmarks: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Post',
+  }],
 }, { timestamps: true });
 
 userSchema.methods.comparePassword = async function (plainPassword) {

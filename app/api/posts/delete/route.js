@@ -43,6 +43,12 @@ export async function DELETE(request) {
       deletePostNotifications(postId),
     ]);
 
+    // Remove this post from all users' bookmarks
+    await User.updateMany(
+      { bookmarks: postId },
+      { $pull: { bookmarks: postId } }
+    );
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Post deletion error:', error);

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from "next/link"
 import { Heart, MessageCircle, Trash2 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
@@ -17,6 +17,23 @@ export default function PostCard({ post, currentUserId, onDelete, onLike }) {
   const [likesCount, setLikesCount] = useState(post.likesCount || post.likes.length)
   const [commentsCount, setCommentsCount] = useState(post.commentsCount || 0)
   const [showComments, setShowComments] = useState(false)
+  const [isBookmarked, setIsBookmarked] = useState(false);
+
+  useEffect(() => {
+    if (!currentUser) return;
+    const checkBookmark = async () => {
+      try {
+        const res = await fetch(`/api/bookmarks/check?postId=${post._id}`);
+        const data = await res.json();
+        if (res.ok) {
+          setIsBookmarked(data.bookmarked);
+        }
+      } catch (error) {
+        console.error('Failed to check bookmark status', error);
+      }
+    };
+    checkBookmark();
+  }, [currentUser, post._id]);
 
   const handleLike = async (e) => {
     e.preventDefault()
@@ -54,6 +71,31 @@ export default function PostCard({ post, currentUserId, onDelete, onLike }) {
       })
     }
   }
+
+  const handleBookmark = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const wasBookmarked = isBookmarked;
+    setIsBookmarked(!wasBookmarked);
+
+    try {
+      const res = await fetch('/api/bookmarks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ postId: post._id }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+
+      setIsBookmarked(data.bookmarked);
+      toast.success(data.message);
+    } catch (error) {
+      setIsBookmarked(wasBookmarked);
+      toast.error(error.message || 'Failed to update bookmark');
+    }
+  };
 
   const handleDelete = async (e) => {
     e.preventDefault()
@@ -154,6 +196,9 @@ export default function PostCard({ post, currentUserId, onDelete, onLike }) {
                 <Trash2 className="w-4 h-4" />
               </button>
             )}
+            <button onClick={handleBookmark} className={`flex items-center gap-1 text-sm transition-colors ml-auto ${ isBookmarked ? 'text-yellow-400' : 'text-muted-foreground hover:text-yellow-400' }`} title={isBookmarked ? 'Remove bookmark' : 'Save post'} >
+              <span className={`w-4 h-4 ${isBookmarked ? 'fill-current' : ''}`}>🔖</span>
+            </button>
           </div>
           
           {/* CommentSection */}
