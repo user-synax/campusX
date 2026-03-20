@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Heart, MessageCircle, Trash2, Bookmark, MoreHorizontal, Pin } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { 
@@ -25,6 +26,7 @@ import FounderAvatar from "@/components/founder/FounderAvatar"
 import FounderBadges from "@/components/founder/FounderBadges"
 
 export default function PostCard({ post, currentUserId, onDelete, onLike, onBookmark, isPinned = false }) {
+  const router = useRouter()
   const { user: currentUser } = useUser()
   const [userReaction, setUserReaction] = useState(post._userReaction || null)
   const [reactionSummary, setReactionSummary] = useState(post._reactionSummary || { total: 0, byType: {}, topEmojis: [] })
@@ -203,7 +205,10 @@ export default function PostCard({ post, currentUserId, onDelete, onLike, onBook
   const isPostFounder = !post.isAnonymous && post.author && typeof post.author === 'object' && isFounder(post.author.username)
 
   return (
-    <div className="border-b border-border p-4 hover:bg-accent/10 transition-colors cursor-pointer group">
+    <div 
+      className="border-b border-border p-4 hover:bg-accent/10 transition-colors cursor-pointer group"
+      onClick={() => router.push(`/post/${post._id}`)}
+    >
       <div className="flex gap-3">
         {isPostFounder ? (
           <FounderAvatar user={post.author} size="md" />
@@ -233,7 +238,13 @@ export default function PostCard({ post, currentUserId, onDelete, onLike, onBook
               </>
             )}
             <span className="text-muted-foreground">·</span>
-            <span className="text-muted-foreground">{formatRelativeTime(new Date(post.createdAt))}</span>
+            <Link 
+              href={`/post/${post._id}`} 
+              className="text-muted-foreground hover:underline"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {formatRelativeTime(new Date(post.createdAt))}
+            </Link>
             {post.community && (
               <Badge variant="outline" className="text-[10px] h-5 px-1.5 font-normal border-border bg-secondary/30">
                 🎓 {post.community}
@@ -259,12 +270,14 @@ export default function PostCard({ post, currentUserId, onDelete, onLike, onBook
           </p>
 
           {post.poll?.options?.length > 0 && (
-            <PollDisplay 
-              poll={post.poll} 
-              postId={post._id} 
-              currentUserId={currentUser?._id || currentUserId} 
-              isExpired={post.poll.expiresAt && new Date(post.poll.expiresAt) < new Date()} 
-            />
+            <div onClick={(e) => e.stopPropagation()}>
+              <PollDisplay 
+                poll={post.poll} 
+                postId={post._id} 
+                currentUserId={currentUser?._id || currentUserId} 
+                isExpired={post.poll.expiresAt && new Date(post.poll.expiresAt) < new Date()} 
+              />
+            </div>
           )}
           
           <div className="flex items-center justify-between mt-3 text-muted-foreground">
@@ -383,11 +396,13 @@ export default function PostCard({ post, currentUserId, onDelete, onLike, onBook
           
           {/* CommentSection */}
           {showComments && (
-            <CommentSection 
-              postId={post._id} 
-              currentUser={currentUser} 
-              onCountChange={(diff) => setCommentsCount(prev => prev + diff)}
-            />
+            <div onClick={(e) => e.stopPropagation()}>
+              <CommentSection 
+                postId={post._id} 
+                currentUser={currentUser} 
+                onCountChange={(diff) => setCommentsCount(prev => prev + diff)}
+              />
+            </div>
           )}
         </div>
       </div>

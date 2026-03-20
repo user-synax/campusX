@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from "sonner"
 import UserAvatar from "@/components/user/UserAvatar"
 import { formatRelativeTime } from "@/utils/formatters"
+import CommentItem from "./CommentItem"
 
 export default function CommentSection({ postId, currentUser, onCountChange }) {
   const [comments, setComments] = useState([])
@@ -150,35 +151,12 @@ export default function CommentSection({ postId, currentUser, onCountChange }) {
       ) : (
         <div className="space-y-4">
           {comments.map(comment => (
-            <div key={comment._id} className="flex gap-2 group">
-              <UserAvatar user={comment.author} size="sm" className="mt-0.5" />
-              <div className="flex-1 min-w-0">
-                <div className="bg-secondary/40 rounded-2xl px-3 py-2 inline-block max-w-full">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <Link 
-                      href={`/profile/${comment.author?.username}`} 
-                      className="text-xs font-bold hover:underline"
-                    >
-                      {comment.author?.name}
-                    </Link>
-                    <span className="text-[10px] text-muted-foreground">
-                      {formatRelativeTime(new Date(comment.createdAt))}
-                    </span>
-                  </div>
-                  <p className="text-sm break-words leading-tight">{comment.content}</p>
-                </div>
-              </div>
-              
-              {/* Delete button — visible on hover for own comments */}
-              {!comment.isOptimistic && comment.author?._id === currentUser?._id && (
-                <button 
-                  onClick={() => handleDelete(comment._id)} 
-                  className="opacity-0 group-hover:opacity-100 p-1.5 text-muted-foreground hover:text-destructive transition-all self-start mt-1" 
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
+            <CommentItem 
+              key={comment._id} 
+              comment={comment} 
+              currentUserId={currentUser?._id} 
+              onDelete={handleDelete}
+            />
           ))}
         </div>
       )}
