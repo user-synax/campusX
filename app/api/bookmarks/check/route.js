@@ -1,37 +1,36 @@
-
 import { NextResponse } from 'next/server';
-import { getToken } from 'next-auth/jwt';
+import connectDB from '@/lib/db';
 import User from '@/models/User';
-import dbConnect from '@/lib/db';
+import { getCurrentUser } from '@/lib/auth';
+import { validateObjectId } from '@/utils/validators';
 
-export async function GET(req) {
-  await dbConnect();
-  const token = await getToken({ req });
-
-  if (!token) {
-    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-  }
-
+// GET /api/bookmarks/check?postId=xxx
+export async function GET(request) {
   try {
-    const { searchParams } = new URL(req.url);
-    const postId = searchParams.get('postId');
-
-    if (!postId) {
-      return NextResponse.json({ message: 'Post ID is required' }, { status: 400 });
+    const currentUserInfo = await getCurrentUser(request);
+    if (!currentUserInfo) {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    const user = await User.findById(token.id).select('bookmarks').lean();
+    const { searchParams } = new URL(request.url);
+    const postId = searchParams.get('postId');
 
+    if (!postId || !validateObjectId(postId)) {
+      return NextResponse.json({ message: 'Invalid Post ID' }, { status: 400 });
+    }
+
+    await connectDB();
+
+    const user = await User.findById(currentUserInfo._id).select('bookmarks').lean();
     if (!user) {
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
 
-    const bookmarked = user.bookmarks.some(bm => bm.toString() === postId);
+    const isBookmarked = user.bookmarks.some(id => id.toString() === postId);
 
-    return NextResponse.json({ bookmarked });
-
+    return NextResponse.json({ bookmarked: isBookmarked });
   } catch (error) {
-    console.error('Error checking bookmark:', error);
+    console.error('Bookmark check error:', error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }

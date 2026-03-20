@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from "next/link"
-import { Heart, MessageCircle, Trash2 } from "lucide-react"
+import { Heart, MessageCircle, Trash2, Bookmark } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import UserAvatar from "@/components/user/UserAvatar"
@@ -11,7 +11,7 @@ import { formatRelativeTime } from "@/utils/formatters"
 import { cn } from "@/lib/utils"
 import useUser from "@/hooks/useUser"
 
-export default function PostCard({ post, currentUserId, onDelete, onLike }) {
+export default function PostCard({ post, currentUserId, onDelete, onLike, onBookmark }) {
   const { user: currentUser } = useUser()
   const [isLiked, setIsLiked] = useState(post.likes.includes(currentUserId))
   const [likesCount, setLikesCount] = useState(post.likesCount || post.likes.length)
@@ -91,6 +91,7 @@ export default function PostCard({ post, currentUserId, onDelete, onLike }) {
 
       setIsBookmarked(data.bookmarked);
       toast.success(data.message);
+      if (onBookmark) onBookmark(post._id, data.bookmarked);
     } catch (error) {
       setIsBookmarked(wasBookmarked);
       toast.error(error.message || 'Failed to update bookmark');
@@ -191,14 +192,29 @@ export default function PostCard({ post, currentUserId, onDelete, onLike }) {
             {currentUserId === post.author?._id?.toString() && (
               <button 
                 onClick={handleDelete}
-                className="ml-auto p-2 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                className="p-2 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
               >
                 <Trash2 className="w-4 h-4" />
               </button>
             )}
-            <button onClick={handleBookmark} className={`flex items-center gap-1 text-sm transition-colors ml-auto ${ isBookmarked ? 'text-yellow-400' : 'text-muted-foreground hover:text-yellow-400' }`} title={isBookmarked ? 'Remove bookmark' : 'Save post'} >
-              <span className={`w-4 h-4 ${isBookmarked ? 'fill-current' : ''}`}>🔖</span>
-            </button>
+
+            <button 
+              onClick={handleBookmark} 
+              className={cn(
+                "flex items-center gap-1 text-sm transition-colors ml-auto group/bookmark",
+                isBookmarked 
+                  ? 'text-yellow-400' 
+                  : 'text-muted-foreground hover:text-yellow-400' 
+              )}
+              title={isBookmarked ? 'Remove bookmark' : 'Save post'} 
+            > 
+              <div className={cn(
+                "p-2 rounded-full transition-colors",
+                isBookmarked ? "bg-yellow-400/10" : "group-hover/bookmark:bg-yellow-400/10"
+              )}>
+                <Bookmark className={cn("w-4 h-4", isBookmarked && "fill-current")} /> 
+              </div>
+            </button> 
           </div>
           
           {/* CommentSection */}

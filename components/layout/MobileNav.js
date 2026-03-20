@@ -2,23 +2,40 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, GraduationCap, PlusSquare, User, Bell } from "lucide-react"
+import { Home, GraduationCap, PlusSquare, User, Bell, Bookmark, LogOut, Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import useUser from "@/hooks/useUser"
 import useNotificationCount from "@/hooks/useNotificationCount"
 import CreatePostDialog from "@/components/post/CreatePostDialog"
+import { cn } from "@/lib/utils"
 
 export default function MobileNav() {
   const pathname = usePathname()
-  const { user } = useUser()
+  const { user, loading } = useUser()
   const { count } = useNotificationCount()
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" })
+      window.location.href = "/login"
+    } catch (error) {
+      console.error("Logout failed:", error)
+    }
+  }
 
   const navItems = [
     { href: "/feed", icon: Home, label: "Home" },
     { href: "/community", icon: GraduationCap, label: "Communities" },
     { href: "#", icon: PlusSquare, label: "Post", isAction: true },
     { href: "/notifications", icon: Bell, label: "Notifications", badge: count },
-    { href: user ? `/profile/${user.username}` : "/login", icon: User, label: "Profile" },
   ]
 
   return (
@@ -61,6 +78,78 @@ export default function MobileNav() {
           </Link>
         )
       })}
+
+      <Sheet>
+        <SheetTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="w-12 h-12 text-muted-foreground"
+          >
+            <Menu className="w-6 h-6" />
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="right" className="w-[280px] p-0">
+          <SheetHeader className="p-6 border-b text-left">
+            <SheetTitle>Menu</SheetTitle>
+          </SheetHeader>
+          
+          <div className="flex flex-col h-full">
+            <div className="p-4 border-b">
+              {!loading && user && (
+                <div className="flex items-center gap-3">
+                  <Avatar className="w-10 h-10 border border-border">
+                    <AvatarImage src={user.avatar} alt={user.name} />
+                    <AvatarFallback className="bg-secondary">{user.name?.[0]}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold truncate">{user.name}</p>
+                    <p className="text-xs text-muted-foreground truncate">@{user.username}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <nav className="flex-1 p-2 space-y-1">
+              <Link href={user ? `/profile/${user.username}` : "/login"}>
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-start gap-4 h-12 px-3",
+                    pathname.startsWith("/profile") ? "bg-accent text-accent-foreground" : "text-muted-foreground"
+                  )}
+                >
+                  <User className="w-5 h-5" />
+                  <span className="text-base font-medium">Profile</span>
+                </Button>
+              </Link>
+              <Link href="/bookmarks">
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-start gap-4 h-12 px-3",
+                    pathname === "/bookmarks" ? "bg-accent text-accent-foreground" : "text-muted-foreground"
+                  )}
+                >
+                  <Bookmark className="w-5 h-5" />
+                  <span className="text-base font-medium">Bookmarks</span>
+                </Button>
+              </Link>
+            </nav>
+
+            <div className="p-4 border-t mb-8">
+              <Button
+                variant="ghost"
+                onClick={handleLogout}
+                className="w-full justify-start gap-4 h-10 px-3 text-destructive hover:text-destructive hover:bg-destructive/10"
+              >
+                <LogOut className="w-5 h-5" />
+                <span className="text-sm font-medium">Log out</span>
+              </Button>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
     </nav>
   )
 }

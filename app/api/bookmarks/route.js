@@ -1,114 +1,126 @@
-
 import { NextResponse } from 'next/server';
-import { getToken } from 'next-auth/jwt';
+import connectDB from '@/lib/db';
 import User from '@/models/User';
 import Post from '@/models/Post';
-import dbConnect from '@/lib/db';
-import mongoose from 'mongoose';
+import { getCurrentUser } from '@/lib/auth';
+import { validateObjectId } from '@/utils/validators';
 
-export async function POST(req) {
-  await dbConnect();
-  const token = await getToken({ req });
-
-  if (!token) {
-    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-  }
-
+// POST /api/bookmarks - Toggle bookmark
+export async function POST(request) {
   try {
-    const { postId } = await req.json();
+    const currentUserInfo = await getCurrentUser(request);
+    if (!currentUserInfo) {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
 
-    if (!mongoose.Types.ObjectId.isValid(postId)) {
+    let body;
+    try {
+      body = await request.json();
+    } catch (e) {
+      return NextResponse.json({ message: 'Invalid request body' }, { status: 400 });
+    }
+
+    const { postId } = body;
+
+    if (!postId || !validateObjectId(postId)) {
       return NextResponse.json({ message: 'Invalid Post ID' }, { status: 400 });
     }
 
-    const user = await User.findById(token.id);
-    if (!user) {
-      return NextResponse.json({ message: 'User not found' }, { status: 404 });
-    }
+    await connectDB();
 
     const post = await Post.findById(postId);
     if (!post) {
       return NextResponse.json({ message: 'Post not found' }, { status: 404 });
     }
 
-    const wasBookmarked = user.bookmarks.includes(postId);
-    let updatedUser;
+    const currentUser = await User.findById(currentUserInfo._id);
+    const wasBookmarked = currentUser.bookmarks.includes(postId);
 
     if (wasBookmarked) {
       // Unbookmark
-      updatedUser = await User.findByIdAndUpdate(
-        token.id,
-        { $pull: { bookmarks: postId } },
-        { new: true }
-      );
+      currentUser.bookmarks.pull(postId);
     } else {
       // Bookmark
-      updatedUser = await User.findByIdAndUpdate(
-        token.id,
-        { $push: { bookmarks: postId } },
-        { new: true }
-      );
+      currentUser.bookmarks.push(postId);
     }
+
+    await currentUser.save();
 
     return NextResponse.json({
       bookmarked: !wasBookmarked,
-      message: !wasBookmarked ? 'Saved' : 'Removed',
+      message: !wasBookmarked ? 'Saved' : 'Removed'
     });
-
   } catch (error) {
-    console.error('Error toggling bookmark:', error);
+    console.error('Bookmark toggle error:', error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }
 
-export async function GET(req) {
-  await dbConnect();
-  const token = await getToken({ req });
-
-  if (!token) {
-    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-  }
-
+// GET /api/bookmarks - Fetch paginated bookmarks
+export async function GET(request) {
   try {
-    const user = await User.findById(token.id);
-    if (!user) {
-      return NextResponse.json({ message: 'User not found' }, { status: 404 });
+    const currentUserInfo = await getCurrentUser(request);
+    if (!currentUserInfo) {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    const { searchParams } = new URL(req.url);
-    const page = parseInt(searchParams.get('page') || '1', 10);
-    const limit = parseInt(searchParams.get('limit') || '20', 10);
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page')) || 1;
+    const limit = Math.min(parseInt(searchParams.get('limit')) || 20, 50);
     const skip = (page - 1) * limit;
 
-    const total = user.bookmarks.length;
-    const paginatedIds = user.bookmarks.slice(skip, skip + limit);
+    await connectDB();
 
+    // Get the user with bookmarks array
+    const user = await User.findById(currentUserInfo._id).select('bookmarks').lean();
+    
+    // Sort bookmarks to have newest first (Mongoose push adds to end, so we reverse it)
+    // The instructions don't explicitly say newest first, but it's common for bookmarks.
+    // However, the instructions say "Sort by the ORDER they were bookmarked". 
+    // Usually that means newest first. Let's assume newest first (reversed bookmarks array).
+    const allBookmarks = [...user.bookmarks].reverse();
+    const total = allBookmarks.length;
+    const paginatedIds = allBookmarks.slice(skip, skip + limit);
+
+    if (paginatedIds.length === 0) {
+      return NextResponse.json({ posts: [], hasMore: false, total });
+    }
+
+    // Populate posts
     const posts = await Post.find({ _id: { $in: paginatedIds } })
       .populate('author', 'name username avatar college')
       .lean();
 
-    const originalOrder = paginatedIds.reduce((acc, id, index) => {
-      acc[id.toString()] = index;
+    // Filter out null results (posts that were deleted)
+    // Also, preserve the order of bookmarks
+    const postsMap = posts.reduce((acc, post) => {
+      acc[post._id.toString()] = post;
       return acc;
     }, {});
 
-    const sortedPosts = posts.sort((a, b) => originalOrder[a._id.toString()] - originalOrder[b._id.toString()]);
+    const orderedPosts = paginatedIds
+      .map(id => postsMap[id.toString()])
+      .filter(post => !!post);
 
-    const postIdsFromDb = posts.map(p => p._id.toString());
-    const deletedPostIds = paginatedIds.filter(id => !postIdsFromDb.includes(id.toString()));
+    // Identify deleted post IDs that were still in the bookmarks
+    const foundIds = orderedPosts.map(p => p._id.toString());
+    const deletedIds = paginatedIds.filter(id => !foundIds.includes(id.toString()));
 
-    if (deletedPostIds.length > 0) {
-      await User.findByIdAndUpdate(token.id, { $pull: { bookmarks: { $in: deletedPostIds } } });
+    // Clean up deleted post IDs in the background
+    if (deletedIds.length > 0) {
+      User.updateOne(
+        { _id: currentUserInfo._id },
+        { $pull: { bookmarks: { $in: deletedIds } } }
+      ).catch(err => console.error('Background bookmark cleanup error:', err));
     }
 
     return NextResponse.json({
-      posts: sortedPosts,
-      hasMore: total > page * limit,
-      total,
+      posts: orderedPosts,
+      hasMore: skip + paginatedIds.length < total,
+      total
     });
-
   } catch (error) {
-    console.error('Error fetching bookmarks:', error);
+    console.error('Fetch bookmarks error:', error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }

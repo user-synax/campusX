@@ -5,6 +5,7 @@ import Comment from '@/models/Comment';
 import { getCurrentUser } from '@/lib/auth';
 import { validateObjectId } from '@/utils/validators';
 import { deletePostNotifications } from '@/lib/notifications';
+import User from '@/models/User';
 
 export async function DELETE(request) {
   try {

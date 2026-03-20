@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { verifyToken } from './lib/auth-edge';
 
-const protectedRoutes = ['/feed', '/profile', '/community'];
+const protectedRoutes = ['/feed', '/profile', '/community', '/bookmarks'];
 
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
@@ -37,5 +37,5 @@ export async function middleware(request) {
 }
 
 export const config = {
-  matcher: ['/feed/:path*', '/profile/:path*', '/community/:path*'],
+  matcher: ['/feed/:path*', '/profile/:path*', '/community/:path*', '/bookmarks/:path*'],
 };

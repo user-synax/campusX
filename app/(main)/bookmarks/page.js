@@ -1,88 +1,126 @@
-
 "use client"
 
-import { useState, useEffect, useCallback } from 'react';
-import { Bookmark, Lock } from 'lucide-react';
-import useUser from '@/hooks/useUser';
-import PostCard from '@/components/post/PostCard';
-import PostSkeleton from '@/components/post/PostSkeleton';
-import EmptyState from '@/components/shared/EmptyState';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect } from "react"
+import { Bookmark, Lock } from "lucide-react"
+import PostCard from "@/components/post/PostCard"
+import PostSkeleton from "@/components/post/PostSkeleton"
+import EmptyState from "@/components/shared/EmptyState"
+import { Button } from "@/components/ui/button"
+import useUser from "@/hooks/useUser"
+import { toast } from "sonner"
 
 export default function BookmarksPage() {
-  const { user: currentUser } = useUser();
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [hasMore, setHasMore] = useState(false);
-  const [page, setPage] = useState(1);
-
-  const fetchBookmarks = useCallback(async (pageNum) => {
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/bookmarks?page=${pageNum}&limit=20`);
-      const data = await res.json();
-      if (res.ok) {
-        setPosts(prev => pageNum === 1 ? data.posts : [...prev, ...data.posts]);
-        setHasMore(data.hasMore);
-      }
-    } catch (error) {
-      console.error('Failed to fetch bookmarks', error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const { user: currentUser, loading: userLoading } = useUser()
+  const [posts, setPosts] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(false)
+  const [total, setTotal] = useState(0)
 
   useEffect(() => {
-    fetchBookmarks(1);
-  }, [fetchBookmarks]);
+    if (userLoading) return;
+    
+    const fetchBookmarks = async () => {
+      try {
+        setLoading(true)
+        const res = await fetch(`/api/bookmarks?page=${page}&limit=20`)
+        const data = await res.json()
+        
+        if (!res.ok) throw new Error(data.message)
+        
+        if (page === 1) {
+          setPosts(data.posts)
+        } else {
+          setPosts(prev => [...prev, ...data.posts])
+        }
+        
+        setHasMore(data.hasMore)
+        setTotal(data.total)
+      } catch (error) {
+        console.error("Failed to fetch bookmarks:", error)
+        toast.error("Failed to load bookmarks")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchBookmarks()
+  }, [page, userLoading])
 
   const loadMore = () => {
-    const nextPage = page + 1;
-    setPage(nextPage);
-    fetchBookmarks(nextPage);
-  };
+    if (!loading && hasMore) {
+      setPage(prev => prev + 1)
+    }
+  }
 
-  const handlePostDelete = (deletedPostId) => {
-    setPosts(posts.filter(p => p._id !== deletedPostId));
-  };
+  // Handle unbookmarking on the bookmarks page
+  const handleBookmarkToggle = (postId, bookmarked) => {
+    if (!bookmarked) {
+      // If unbookmarked, remove from list immediately (optimistic)
+      setPosts(prev => prev.filter(p => p._id !== postId))
+      setTotal(prev => Math.max(0, prev - 1))
+    }
+  }
+
+  const handleDeletePost = (postId) => {
+    setPosts(prev => prev.filter(p => p._id !== postId))
+    setTotal(prev => Math.max(0, prev - 1))
+  }
 
   return (
-    <>
+    <div className="flex-1 max-w-2xl border-r border-border min-h-screen">
+      {/* Header */}
       <div className="sticky top-0 bg-background/80 backdrop-blur border-b p-4 z-10">
         <h1 className="text-xl font-bold">Bookmarks</h1>
         <p className="text-sm text-muted-foreground mt-0.5">Only visible to you</p>
       </div>
 
-      <div className="mx-4 mt-4 p-3 rounded-lg bg-accent border border-border">
+      {/* Private notice */}
+      <div className="mx-4 mt-4 p-3 rounded-lg bg-accent/50 border border-border">
         <p className="text-xs text-muted-foreground flex items-center gap-2">
-          <Lock className="w-3 h-3" /> Your bookmarks are private. No one else can see this page.
+          <Lock className="w-3 h-3" />
+          Your bookmarks are private. No one else can see this page.
         </p>
       </div>
 
-      <div className="mt-4">
-        {loading && posts.length === 0 ? (
+      {/* Bookmarked posts */}
+      <div className="mt-2">
+        {loading && page === 1 ? (
           Array(3).fill(0).map((_, i) => <PostSkeleton key={i} />)
         ) : posts.length === 0 ? (
-          <EmptyState 
-            icon={Bookmark} 
-            title="No saved posts yet" 
-            description="Tap the bookmark icon on any post to save it here for later." 
-          />
+          <div className="mt-20">
+            <EmptyState
+              icon={Bookmark}
+              title="No saved posts yet"
+              description="Tap the bookmark icon on any post to save it here for later."
+            />
+          </div>
         ) : (
           <>
             {posts.map(post => (
-              post && <PostCard key={post._id} post={post} currentUserId={currentUser?._id} onDelete={handlePostDelete} />
+              <PostCard 
+                key={post._id} 
+                post={post} 
+                currentUserId={currentUser?._id}
+                onDelete={handleDeletePost}
+                onBookmark={handleBookmarkToggle}
+              />
             ))}
+            
             {hasMore && (
-              <div className="flex justify-center my-4">
-                <Button variant="ghost" onClick={loadMore} disabled={loading}>
-                  {loading ? 'Loading...' : 'Load more'}
+              <div className="p-4 flex justify-center">
+                <Button 
+                  variant="ghost" 
+                  onClick={loadMore}
+                  disabled={loading}
+                >
+                  {loading ? "Loading..." : "Load more"}
                 </Button>
               </div>
             )}
           </>
         )}
       </div>
-    </>
-  );
+    </div>
+  )
 }
