@@ -108,18 +108,67 @@ export async function PATCH(request, { params }) {
 
     const { name, bio, college, course, year } = body;
 
+    if (Object.keys(body).length === 0) {
+      return NextResponse.json({ message: 'No fields to update' }, { status: 400 });
+    }
+
     await connectDB();
 
     const updateData = {};
-    if (name) updateData.name = sanitizeString(name).slice(0, 50);
-    if (bio !== undefined) updateData.bio = sanitizeString(bio).slice(0, 160);
-    if (college !== undefined) updateData.college = sanitizeString(college);
-    if (course !== undefined) updateData.course = sanitizeString(course);
+    
+    // Name validation: min 2, max 50, required, non-empty after trim
+    if (name !== undefined) {
+      const trimmedName = name.trim();
+      if (!trimmedName) {
+        return NextResponse.json({ message: 'Name cannot be empty' }, { status: 400 });
+      }
+      if (trimmedName.length < 2) {
+        return NextResponse.json({ message: 'Name must be at least 2 characters long' }, { status: 400 });
+      }
+      if (trimmedName.length > 50) {
+        return NextResponse.json({ message: 'Name must be under 50 characters' }, { status: 400 });
+      }
+      updateData.name = sanitizeString(trimmedName);
+    }
+
+    // Bio validation: max 160
+    if (bio !== undefined) {
+      const trimmedBio = bio.trim();
+      if (trimmedBio.length > 160) {
+        return NextResponse.json({ message: 'Bio must be under 160 characters' }, { status: 400 });
+      }
+      updateData.bio = sanitizeString(trimmedBio);
+    }
+
+    // College validation: max 100
+    if (college !== undefined) {
+      const trimmedCollege = college.trim();
+      if (trimmedCollege.length > 100) {
+        return NextResponse.json({ message: 'College must be under 100 characters' }, { status: 400 });
+      }
+      updateData.college = sanitizeString(trimmedCollege);
+    }
+
+    // Course validation: max 50
+    if (course !== undefined) {
+      const trimmedCourse = course.trim();
+      if (trimmedCourse.length > 50) {
+        return NextResponse.json({ message: 'Course must be under 50 characters' }, { status: 400 });
+      }
+      updateData.course = sanitizeString(trimmedCourse);
+    }
+
+    // Year validation: 1-6
     if (year !== undefined) {
       const yearNum = parseInt(year);
-      if (yearNum >= 1 && yearNum <= 6) {
-        updateData.year = yearNum;
+      if (isNaN(yearNum) || yearNum < 1 || yearNum > 6) {
+        return NextResponse.json({ message: 'Year must be between 1 and 6' }, { status: 400 });
       }
+      updateData.year = yearNum;
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return NextResponse.json({ message: 'No valid fields to update' }, { status: 400 });
     }
 
     const updatedUser = await User.findOneAndUpdate(
@@ -127,6 +176,10 @@ export async function PATCH(request, { params }) {
       { $set: updateData },
       { new: true }
     );
+
+    if (!updatedUser) {
+      return NextResponse.json({ message: 'User not found' }, { status: 404 });
+    }
 
     return NextResponse.json(updatedUser.toSafeObject());
   } catch (error) {

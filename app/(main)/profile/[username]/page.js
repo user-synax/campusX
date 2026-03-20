@@ -6,8 +6,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { toast } from "sonner"
 import UserAvatar from "@/components/user/UserAvatar"
 import FollowButton from "@/components/user/FollowButton"
@@ -24,6 +22,7 @@ import FounderProfileHeader from "@/components/founder/FounderProfileHeader"
 import RoadmapWidget from '@/components/founder/RoadmapWidget' 
 import BroadcastManager from '@/components/founder/BroadcastManager' 
 import FollowListModal from "@/components/user/FollowListModal"
+import EditProfileDrawer from "@/components/user/EditProfileDrawer"
 
 export default function ProfilePage() {
   const params = useParams()
@@ -49,20 +48,11 @@ export default function ProfilePage() {
   const [profileUser, setProfileUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [editOpen, setEditOpen] = useState(false)
-  const [isUpdating, setIsUpdating] = useState(false)
   
   // Follow modal state
   const [followModal, setFollowModal] = useState(false)
   const [followModalTab, setFollowModalTab] = useState('followers')
   
-  const [editData, setEditData] = useState({
-    name: '',
-    bio: '',
-    college: '',
-    course: '',
-    year: ''
-  })
-
   // Derived state
   const isOwnProfile = profileUser?.isMe || currentUser?.username?.toLowerCase() === profileUser?.username?.toLowerCase()
   const isFollowing = profileUser?.isFollowing || currentUser?.following?.some(id => id.toString() === profileUser?._id?.toString())
@@ -83,13 +73,6 @@ export default function ProfilePage() {
         
         if (userRes.ok) {
           setProfileUser(userData)
-          setEditData({
-            name: userData.name || '',
-            bio: userData.bio || '',
-            college: userData.college || '',
-            course: userData.course || '',
-            year: userData.year?.toString() || '1'
-          })
 
           // Track profile view if it's the founder's profile and not their own visit
           if (isFounder(username) && currentUser?.username !== username) {
@@ -111,31 +94,9 @@ export default function ProfilePage() {
     if (username) fetchProfileData()
   }, [username])
 
-  const handleEditSave = async () => {
-    setIsUpdating(true)
-    try {
-      const res = await fetch(`/api/users/${username}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editData)
-      })
-
-      const data = await res.json()
-      if (res.ok) {
-        setProfileUser(prev => ({ ...prev, ...data }))
-        setEditOpen(false)
-        toast.success("Profile updated!")
-        refetchCurrentUser()
-      } else {
-        throw new Error(data.message)
-      }
-    } catch (error) {
-      toast.error("Update failed", {
-        variant: "destructive",
-      })
-    } finally {
-      setIsUpdating(false)
-    }
+  const handleEditSave = (updatedUser) => {
+    setProfileUser(prev => ({ ...prev, ...updatedUser }))
+    refetchCurrentUser()
   }
 
   if (loading) {
@@ -297,77 +258,15 @@ export default function ProfilePage() {
           </>
         )}
       </div>
-      {/* Edit Dialog */}
-      <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="sm:max-w-160.25 bg-background">
-          <DialogHeader>
-            <DialogTitle>Edit Profile</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="edit-name">Name</Label>
-              <Input 
-                id="edit-name" 
-                value={editData.name} 
-                onChange={e => setEditData({...editData, name: e.target.value})} 
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="edit-bio">Bio</Label>
-              <Textarea 
-                id="edit-bio" 
-                value={editData.bio} 
-                onChange={e => setEditData({...editData, bio: e.target.value})} 
-                placeholder="Tell us about yourself"
-                className="resize-none"
-                maxLength={160}
-              />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="edit-college">College</Label>
-                <Input 
-                  id="edit-college" 
-                  value={editData.college} 
-                  onChange={e => setEditData({...editData, college: e.target.value})} 
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="edit-course">Course</Label>
-                <Input 
-                  id="edit-course" 
-                  value={editData.course} 
-                  onChange={e => setEditData({...editData, course: e.target.value})} 
-                />
-              </div>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="edit-year">Year</Label>
-              <Select 
-                value={editData.year} 
-                onValueChange={v => setEditData({...editData, year: v})}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select year" />
-                </SelectTrigger>
-                <SelectContent>
-                  {[1, 2, 3, 4, 5, 6].map(y => (
-                    <SelectItem key={y} value={y.toString()}>{y}st Year</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditOpen(false)} disabled={isUpdating}>
-              Cancel
-            </Button>
-            <Button onClick={handleEditSave} disabled={isUpdating}>
-              {isUpdating ? 'Saving...' : 'Save changes'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Edit Profile Drawer */}
+      {isOwnProfile && (
+        <EditProfileDrawer 
+          user={profileUser} 
+          open={editOpen} 
+          onOpenChange={setEditOpen} 
+          onSave={handleEditSave}
+        />
+      )}
 
       {/* Follow list modal */}
       <FollowListModal 
