@@ -9,6 +9,7 @@ import UserAvatar from "@/components/user/UserAvatar"
 import CommentSection from "@/components/post/CommentSection"
 import PollDisplay from "@/components/post/PollDisplay"
 import { formatRelativeTime } from "@/utils/formatters"
+import { renderContentWithHashtags } from "@/utils/hashtags"
 import { cn } from "@/lib/utils"
 import useUser from "@/hooks/useUser"
 
@@ -157,7 +158,20 @@ export default function PostCard({ post, currentUserId, onDelete, onLike, onBook
           </div>
           
           <p className="mt-1 text-[15px] leading-normal whitespace-pre-wrap wrap-break-words">
-            {post.content}
+            {renderContentWithHashtags(post.content || '').map((segment, i) => (
+              segment.type === 'hashtag' ? (
+                <Link 
+                  key={i} 
+                  href={`/hashtag/${segment.value}`}
+                  className="text-blue-400 hover:text-blue-300 hover:underline"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  #{segment.value}
+                </Link>
+              ) : (
+                <span key={i}>{segment.value}</span>
+              )
+            ))}
           </p>
 
           {post.poll?.options?.length > 0 && (

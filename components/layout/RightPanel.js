@@ -10,8 +10,9 @@ import FollowButton from "@/components/user/FollowButton"
 import useUser from "@/hooks/useUser"
 
 export default function RightPanel() {
-  const { user: currentUser } = useUser()
+  const { user: currentUser, loading: userLoading } = useUser()
   const [trending, setTrending] = useState([])
+  const [trendingHashtags, setTrendingHashtags] = useState([])
   const [suggestions, setSuggestions] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -19,16 +20,19 @@ export default function RightPanel() {
     const fetchData = async () => {
       try {
         setLoading(true)
-        const [trendRes, suggestRes] = await Promise.all([
+        const [trendRes, suggestRes, hashtagRes] = await Promise.all([
           fetch('/api/communities?limit=5'),
-          fetch('/api/users/suggestions')
+          fetch('/api/users/suggestions'),
+          fetch('/api/hashtags/trending?limit=6')
         ])
         
         const trendData = await trendRes.json()
         const suggestData = await suggestRes.json()
+        const hashtagData = await hashtagRes.json()
         
         if (trendRes.ok) setTrending(trendData)
         if (suggestRes.ok) setSuggestions(suggestData)
+        if (hashtagRes.ok) setTrendingHashtags(hashtagData.hashtags || [])
       } catch (error) {
         console.error('Right panel fetch error:', error)
       } finally {
@@ -38,6 +42,11 @@ export default function RightPanel() {
 
     fetchData()
   }, [])
+
+  const formatCount = (count) => {
+    if (count >= 1000) return (count / 1000).toFixed(1) + 'k'
+    return count
+  }
 
   return (
     <aside className="hidden xl:flex flex-col sticky top-0 h-screen w-[350px] p-4 space-y-6 overflow-y-auto">
@@ -61,6 +70,32 @@ export default function RightPanel() {
               <Link key={item.slug} href={`/community/${item.slug}`} className="group block">
                 <p className="text-sm font-semibold group-hover:underline">🎓 {item.name}</p>
                 <p className="text-xs text-muted-foreground">{item.postCount} posts · {item.memberCount} members</p>
+              </Link>
+            ))
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Trending Hashtags */}
+      <Card className="bg-card/50 border-border">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg font-bold">Trending Hashtags</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {loading ? (
+            Array(3).fill(0).map((_, i) => (
+              <div key={i} className="space-y-1">
+                <Skeleton className="h-4 w-24 bg-secondary" />
+                <Skeleton className="h-3 w-12 bg-secondary" />
+              </div>
+            ))
+          ) : trendingHashtags.length === 0 ? (
+            <p className="text-xs text-muted-foreground text-center py-2">No trending hashtags yet.</p>
+          ) : (
+            trendingHashtags.map((ht) => (
+              <Link key={ht.tag} href={`/hashtag/${ht.tag}`} className="group block">
+                <p className="text-sm font-semibold group-hover:underline text-primary">#{ht.tag}</p>
+                <p className="text-xs text-muted-foreground">{formatCount(ht.postCount)} posts</p>
               </Link>
             ))
           )}
