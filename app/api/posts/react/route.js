@@ -5,7 +5,6 @@ import { getCurrentUser } from '@/lib/auth';
 import { validateObjectId } from '@/utils/validators';
 import { createNotification, deleteNotification } from '@/lib/notifications';
 import { REACTION_KEYS, computeReactionSummary } from '@/lib/reaction-utils';
-import { awardXP } from '@/lib/xp';
 
 export async function POST(request) {
   try {

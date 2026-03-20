@@ -7,19 +7,27 @@ import PostSkeleton from "@/components/post/PostSkeleton"
 import EmptyState from "@/components/shared/EmptyState"
 import { usePosts } from "@/hooks/usePosts"
 import useUser from "@/hooks/useUser"
-import { Button } from "@/components/ui/button"
+import { useInfiniteScroll } from "@/hooks/useInfiniteScroll"
+import InfiniteScrollSentinel from "@/components/shared/InfiniteScrollSentinel"
 
 export default function FeedPage() {
   const { user: currentUser, refetch: refetchCurrentUser } = useUser()
   const { 
     posts, 
     loading, 
+    error,
     hasMore, 
     loadMore, 
     addPost, 
     removePost, 
     updatePostLike 
   } = usePosts()
+
+  const { sentinelRef } = useInfiniteScroll({
+    fetchMore: loadMore,
+    hasMore,
+    loading
+  })
 
   const handlePostCreated = (newPost) => {
     addPost(newPost)
@@ -54,34 +62,26 @@ export default function FeedPage() {
           />
         ) : (
           <>
-            {posts.map(post => (
-              <PostCard 
-                key={post._id} 
-                post={post} 
-                currentUserId={currentUser?._id} 
-                onDelete={removePost} 
-                onLike={updatePostLike} 
+            <div className="divide-y divide-border">
+              {posts.map(post => (
+                <PostCard 
+                  key={post._id} 
+                  post={post} 
+                  currentUserId={currentUser?._id} 
+                  onDelete={removePost} 
+                  onLike={updatePostLike} 
+                />
+              ))}
+            </div>
+            
+            <div ref={sentinelRef}>
+              <InfiniteScrollSentinel 
+                loading={loading} 
+                hasMore={hasMore} 
+                error={error} 
+                onRetry={loadMore} 
               />
-            ))}
-            
-            {hasMore && (
-              <div className="p-8 text-center">
-                <Button 
-                  variant="ghost" 
-                  onClick={loadMore} 
-                  disabled={loading}
-                  className="text-primary hover:bg-primary/5 rounded-full px-8"
-                >
-                  {loading ? 'Loading...' : 'Show more posts'}
-                </Button>
-              </div>
-            )}
-            
-            {!hasMore && posts.length > 0 && (
-              <div className="p-12 text-center text-sm text-muted-foreground border-t border-border mt-4">
-                You&apos;ve reached the end of the feed.
-              </div>
-            )}
+            </div>
           </>
         )}
       </div>

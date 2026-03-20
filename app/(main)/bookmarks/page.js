@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Bookmark, Lock } from "lucide-react"
 import PostCard from "@/components/post/PostCard"
 import PostSkeleton from "@/components/post/PostSkeleton"
@@ -8,50 +8,65 @@ import EmptyState from "@/components/shared/EmptyState"
 import { Button } from "@/components/ui/button"
 import useUser from "@/hooks/useUser"
 import { toast } from "sonner"
+import { useInfiniteScroll } from "@/hooks/useInfiniteScroll"
+import InfiniteScrollSentinel from "@/components/shared/InfiniteScrollSentinel"
 
 export default function BookmarksPage() {
   const { user: currentUser, loading: userLoading } = useUser()
   const [posts, setPosts] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
   const [page, setPage] = useState(1)
-  const [hasMore, setHasMore] = useState(false)
+  const [hasMore, setHasMore] = useState(true)
   const [total, setTotal] = useState(0)
 
-  useEffect(() => {
-    if (userLoading) return;
+  const fetchBookmarks = useCallback(async (pageNum, append = false) => {
+    if (userLoading || loading) return;
     
-    const fetchBookmarks = async () => {
-      try {
-        setLoading(true)
-        const res = await fetch(`/api/bookmarks?page=${page}&limit=20`)
-        const data = await res.json()
-        
-        if (!res.ok) throw new Error(data.message)
-        
-        if (page === 1) {
-          setPosts(data.posts)
-        } else {
-          setPosts(prev => [...prev, ...data.posts])
-        }
-        
-        setHasMore(data.hasMore)
-        setTotal(data.total)
-      } catch (error) {
-        console.error("Failed to fetch bookmarks:", error)
-        toast.error("Failed to load bookmarks")
-      } finally {
-        setLoading(false)
+    setLoading(true)
+    setError(null)
+    
+    try {
+      const res = await fetch(`/api/bookmarks?page=${pageNum}&limit=20`)
+      const data = await res.json()
+      
+      if (!res.ok) throw new Error(data.message || "Failed to fetch bookmarks")
+      
+      if (append) {
+        setPosts(prev => [...prev, ...data.posts])
+      } else {
+        setPosts(data.posts)
       }
+      
+      setHasMore(data.hasMore)
+      setTotal(data.total)
+      setPage(pageNum)
+    } catch (err) {
+      console.error("Failed to fetch bookmarks:", err)
+      setError(err.message)
+      toast.error("Failed to load bookmarks")
+    } finally {
+      setLoading(false)
     }
+  }, [userLoading, loading])
 
-    fetchBookmarks()
-  }, [page, userLoading])
-
-  const loadMore = () => {
-    if (!loading && hasMore) {
-      setPage(prev => prev + 1)
+  useEffect(() => {
+    if (!userLoading) {
+      setPage(1)
+      fetchBookmarks(1, false)
     }
-  }
+  }, [userLoading])
+
+  const loadMore = useCallback(() => {
+    if (!hasMore || loading) return
+    fetchBookmarks(page + 1, true)
+  }, [page, hasMore, loading, fetchBookmarks])
+
+  const { sentinelRef } = useInfiniteScroll({
+    fetchMore: loadMore,
+    hasMore,
+    loading
+  })
 
   // Handle unbookmarking on the bookmarks page
   const handleBookmarkToggle = (postId, bookmarked) => {
@@ -97,27 +112,26 @@ export default function BookmarksPage() {
           </div>
         ) : (
           <>
-            {posts.map(post => (
-              <PostCard 
-                key={post._id} 
-                post={post} 
-                currentUserId={currentUser?._id}
-                onDelete={handleDeletePost}
-                onBookmark={handleBookmarkToggle}
-              />
-            ))}
+            <div className="divide-y divide-border">
+              {posts.map(post => (
+                <PostCard 
+                  key={post._id} 
+                  post={post} 
+                  currentUserId={currentUser?._id} 
+                  onBookmarkToggle={handleBookmarkToggle}
+                  onDelete={handleDeletePost}
+                />
+              ))}
+            </div>
             
-            {hasMore && (
-              <div className="p-4 flex justify-center">
-                <Button 
-                  variant="ghost" 
-                  onClick={loadMore}
-                  disabled={loading}
-                >
-                  {loading ? "Loading..." : "Load more"}
-                </Button>
-              </div>
-            )}
+            <div ref={sentinelRef}>
+              <InfiniteScrollSentinel 
+                loading={loading} 
+                hasMore={hasMore} 
+                error={error} 
+                onRetry={loadMore} 
+              />
+            </div>
           </>
         )}
       </div>

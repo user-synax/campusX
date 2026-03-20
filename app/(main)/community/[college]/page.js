@@ -10,6 +10,8 @@ import PostSkeleton from "@/components/post/PostSkeleton"
 import EmptyState from "@/components/shared/EmptyState"
 import { usePosts } from "@/hooks/usePosts"
 import useUser from "@/hooks/useUser"
+import { useInfiniteScroll } from "@/hooks/useInfiniteScroll"
+import InfiniteScrollSentinel from "@/components/shared/InfiniteScrollSentinel"
 import { formatCollegeName } from "@/utils/formatters"
 
 export default function CollegeCommunityPage() {
@@ -23,10 +25,19 @@ export default function CollegeCommunityPage() {
   const { 
     posts, 
     loading: postsLoading, 
+    error: postsError,
+    hasMore, 
+    loadMore, 
     addPost, 
     removePost, 
     updatePostLike 
   } = usePosts({ community: displayName })
+
+  const { sentinelRef } = useInfiniteScroll({
+    fetchMore: loadMore,
+    hasMore,
+    loading: postsLoading
+  })
 
   const [stats, setStats] = useState({ postCount: 0, memberCount: 0 })
   const [statsLoading, setStatsLoading] = useState(true)
@@ -88,15 +99,28 @@ export default function CollegeCommunityPage() {
             description="Be the first to share something with your college community!" 
           />
         ) : (
-          posts.map(post => (
-            <PostCard 
-              key={post._id} 
-              post={post} 
-              currentUserId={currentUser?._id} 
-              onDelete={removePost} 
-              onLike={updatePostLike} 
-            />
-          ))
+          <>
+            <div className="divide-y divide-border">
+              {posts.map(post => (
+                <PostCard 
+                  key={post._id} 
+                  post={post} 
+                  currentUserId={currentUser?._id} 
+                  onDelete={removePost} 
+                  onLike={updatePostLike} 
+                />
+              ))}
+            </div>
+            
+            <div ref={sentinelRef}>
+              <InfiniteScrollSentinel 
+                loading={postsLoading} 
+                hasMore={hasMore} 
+                error={postsError} 
+                onRetry={loadMore} 
+              />
+            </div>
+          </>
         )}
       </div>
     </div>

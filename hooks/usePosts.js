@@ -4,73 +4,65 @@ import { useState, useEffect, useCallback } from 'react'
 
 export function usePosts(queryParams = {}, initialPosts = []) {
   const [posts, setPosts] = useState(initialPosts)
-  const [loading, setLoading] = useState(initialPosts.length === 0)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-  const [hasMore, setHasMore] = useState(false)
+  const [hasMore, setHasMore] = useState(true)
   const [page, setPage] = useState(1)
 
-  const fetchPosts = useCallback(async (pageNum = 1) => {
-    // If we have initial posts and we're on page 1, don't fetch
-    if (pageNum === 1 && initialPosts.length > 0) {
+  const fetchPosts = useCallback(async (pageNum, append = false) => {
+    if (loading) return  // loading lock
+    
+    // If we have initial posts and we're on page 1, don't fetch unless explicitly told to
+    if (pageNum === 1 && initialPosts.length > 0 && !append) {
       setLoading(false)
       return
     }
+
+    setLoading(true)
+    setError(null)
+    
     try {
-      setLoading(true)
       const params = new URLSearchParams({
         page: pageNum,
+        limit: 20,
         ...queryParams
       })
       
       const res = await fetch(`/api/posts/get?${params.toString()}`)
-      const data = await res.json()
-
-      if (!res.ok) throw new Error(data.message || 'Failed to fetch posts')
-
-      if (pageNum === 1) {
-        setPosts(data.posts)
-      } else {
-        setPosts(prev => [...prev, ...data.posts])
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.message || 'Failed to fetch posts')
       }
+      
+      const { posts: newPosts, hasMore: more } = await res.json()
 
-      setHasMore(data.hasMore)
-      setPage(data.page)
+      if (append) {
+        setPosts(prev => [...prev, ...newPosts])
+      } else {
+        setPosts(newPosts)
+      }
+      
+      setHasMore(more)
+      setPage(pageNum)
     } catch (err) {
       setError(err.message)
     } finally {
       setLoading(false)
     }
+  }, [loading, JSON.stringify(queryParams)])
+
+  // Initial load
+  useEffect(() => {
+    fetchPosts(1, false)
+    setPage(1)
   }, [JSON.stringify(queryParams)])
 
-  useEffect(() => {
-    fetchPosts(1)
-  }, [fetchPosts])
-
-  const loadMore = () => {
-    if (!loading && hasMore) {
-      fetchPosts(page + 1)
-    }
-  }
-
-  const addPost = (newPost) => {
-    setPosts(prev => [newPost, ...prev])
-  }
-
-  const removePost = (postId) => {
-    setPosts(prev => prev.filter(p => p._id !== postId))
-  }
-
-  const updatePostLike = (postId, liked, count) => {
-    setPosts(prev => prev.map(p => {
-      if (p._id === postId) {
-        return {
-          ...p,
-          likesCount: count,
-        }
-      }
-      return p
-    }))
-  }
+  // Load more
+  const loadMore = useCallback(() => {
+    if (!hasMore || loading) return
+    const nextPage = page + 1
+    fetchPosts(nextPage, true)  // append = true
+  }, [page, hasMore, loading, fetchPosts])
 
   return { 
     posts, 
@@ -78,8 +70,18 @@ export function usePosts(queryParams = {}, initialPosts = []) {
     error, 
     hasMore, 
     loadMore, 
-    addPost, 
-    removePost, 
-    updatePostLike 
+    addPost: (post) => setPosts(prev => [post, ...prev]),
+    removePost: (id) => setPosts(prev => prev.filter(p => p._id !== id)),
+    updatePostLike: (postId, liked, count) => {
+      setPosts(prev => prev.map(p => {
+        if (p._id === postId) {
+          return {
+            ...p,
+            likesCount: count,
+          }
+        }
+        return p
+      }))
+    }
   }
 }

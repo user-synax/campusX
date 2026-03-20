@@ -17,6 +17,8 @@ import EmptyState from "@/components/shared/EmptyState"
 import { FileText, Pin } from "lucide-react"
 import useUser from "@/hooks/useUser"
 import { usePosts } from "@/hooks/usePosts"
+import { useInfiniteScroll } from "@/hooks/useInfiniteScroll"
+import InfiniteScrollSentinel from "@/components/shared/InfiniteScrollSentinel"
 import { isFounder } from "@/lib/founder"
 import FounderProfileHeader from "@/components/founder/FounderProfileHeader"
 import RoadmapWidget from '@/components/founder/RoadmapWidget' 
@@ -27,7 +29,22 @@ export default function ProfilePage() {
   const params = useParams()
   const username = params.username
   const { user: currentUser, refetch: refetchCurrentUser } = useUser()
-  const { posts, loading: postsLoading, addPost, removePost, updatePostLike } = usePosts({ username })
+  const { 
+    posts, 
+    loading: postsLoading, 
+    error: postsError,
+    hasMore, 
+    loadMore, 
+    addPost, 
+    removePost, 
+    updatePostLike 
+  } = usePosts({ username })
+  
+  const { sentinelRef } = useInfiniteScroll({
+    fetchMore: loadMore,
+    hasMore,
+    loading: postsLoading
+  })
   
   const [profileUser, setProfileUser] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -255,16 +272,29 @@ export default function ProfilePage() {
             description={isOwnProfile ? "You haven't posted anything yet." : `@${profileUser.username} hasn't posted anything yet.`} 
           />
         ) : (
-          posts.filter(post => post._id !== (profileUser?.pinnedPost?._id || profileUser?.pinnedPost)).map(post => (
-            <PostCard 
-              key={post._id} 
-              post={post} 
-              currentUserId={currentUser?._id} 
-              onDelete={removePost} 
-              onLike={updatePostLike} 
-              isPinned={false}
-            />
-          ))
+          <>
+            <div className="divide-y divide-border">
+              {posts.filter(post => post._id !== (profileUser?.pinnedPost?._id || profileUser?.pinnedPost)).map(post => (
+                <PostCard 
+                  key={post._id} 
+                  post={post} 
+                  currentUserId={currentUser?._id} 
+                  onDelete={removePost} 
+                  onLike={updatePostLike} 
+                  isPinned={false}
+                />
+              ))}
+            </div>
+            
+            <div ref={sentinelRef}>
+              <InfiniteScrollSentinel 
+                loading={postsLoading} 
+                hasMore={hasMore} 
+                error={postsError} 
+                onRetry={loadMore} 
+              />
+            </div>
+          </>
         )}
       </div>
       {/* Edit Dialog */}

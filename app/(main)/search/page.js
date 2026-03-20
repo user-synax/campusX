@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import { Search, X, Users, Bookmark, FileSearch, Flame, Zap } from "lucide-react"
 import { Input } from "@/components/ui/input"
@@ -13,6 +13,8 @@ import EmptyState from "@/components/shared/EmptyState"
 import useUser from "@/hooks/useUser"
 import { slugifyCollege } from "@/utils/formatters"
 import { cn } from "@/lib/utils"
+import { useInfiniteScroll } from "@/hooks/useInfiniteScroll"
+import InfiniteScrollSentinel from "@/components/shared/InfiniteScrollSentinel"
 
 export default function SearchPage() {
   const { user: currentUser } = useUser()
@@ -22,52 +24,75 @@ export default function SearchPage() {
   const [userResults, setUserResults] = useState([])
   const [trending, setTrending] = useState({ communities: [], users: [] })
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
   const [hasSearched, setHasSearched] = useState(false)
+  const [hasMore, setHasMore] = useState(false)
+  const [page, setPage] = useState(1)
+
+  const performSearch = useCallback(async (pageNum = 1, append = false) => {
+    if (!query.trim()) return
+    
+    setLoading(true)
+    setError(null)
+    setHasSearched(true)
+    
+    try {
+      // For people search, we don't do infinite scroll yet in this simplified version
+      // but we could if needed. Focusing on posts as per prompt.
+      const postsRes = await fetch(`/api/search/posts?q=${encodeURIComponent(query)}&page=${pageNum}&limit=20`)
+      const postsData = await postsRes.json()
+
+      if (postsRes.ok) {
+        if (append) {
+          setPostResults(prev => [...prev, ...postsData.posts])
+        } else {
+          setPostResults(postsData.posts || [])
+          
+          // Also fetch users on initial search
+          const usersRes = await fetch(`/api/search/users?q=${encodeURIComponent(query)}&limit=10`)
+          const usersData = await usersRes.json()
+          if (usersRes.ok) setUserResults(usersData.users || [])
+        }
+        setHasMore(postsData.hasMore)
+        setPage(pageNum)
+      } else {
+        throw new Error(postsData.message || "Search failed")
+      }
+    } catch (error) {
+      console.error("Search failed:", error)
+      setError(error.message)
+    } finally {
+      setLoading(false)
+    }
+  }, [query])
 
   // Debounce logic for search
   useEffect(() => {
     const timer = setTimeout(() => {
       if (query.trim().length >= 2) {
-        performSearch()
+        setPage(1) // Reset page on new query
+        performSearch(1, false)
       } else if (query.trim().length === 0 && hasSearched) {
         setPostResults([])
         setUserResults([])
         setHasSearched(false)
+        setHasMore(false)
       }
     }, 300)
 
     return () => clearTimeout(timer)
-  }, [query])
+  }, [query, performSearch])
 
-  // Fetch trending data when tab changes to 'trending' or on mount
-  useEffect(() => {
-    if (activeTab === 'trending' && trending.communities.length === 0) {
-      fetchTrending()
-    }
-  }, [activeTab])
+  const loadMore = useCallback(() => {
+    if (!hasMore || loading || activeTab !== 'posts') return
+    performSearch(page + 1, true)
+  }, [page, hasMore, loading, activeTab, performSearch])
 
-  const performSearch = async () => {
-    setLoading(true)
-    setHasSearched(true)
-    try {
-      const [postsRes, usersRes] = await Promise.all([
-        fetch(`/api/search/posts?q=${encodeURIComponent(query)}&limit=20`),
-        fetch(`/api/search/users?q=${encodeURIComponent(query)}&limit=10`)
-      ])
-
-      const [postsData, usersData] = await Promise.all([
-        postsRes.json(),
-        usersRes.json()
-      ])
-
-      if (postsRes.ok) setPostResults(postsData.posts || [])
-      if (usersRes.ok) setUserResults(usersData.users || [])
-    } catch (error) {
-      console.error("Search failed:", error)
-    } finally {
-      setLoading(false)
-    }
-  }
+  const { sentinelRef } = useInfiniteScroll({
+    fetchMore: loadMore,
+    hasMore: hasMore && activeTab === 'posts',
+    loading
+  })
 
   const fetchTrending = async () => {
     try {
@@ -154,13 +179,26 @@ export default function SearchPage() {
                 /> 
               </div>
             ) : (
-              postResults.map(post => (
-                <PostCard 
-                  key={post._id} 
-                  post={post} 
-                  currentUserId={currentUser?._id} 
-                />
-              ))
+              <>
+                <div className="divide-y divide-border">
+                  {postResults.map(post => (
+                    <PostCard 
+                      key={post._id} 
+                      post={post} 
+                      currentUserId={currentUser?._id} 
+                    />
+                  ))}
+                </div>
+                
+                <div ref={sentinelRef}>
+                  <InfiniteScrollSentinel 
+                    loading={loading} 
+                    hasMore={hasMore} 
+                    error={error} 
+                    onRetry={loadMore} 
+                  />
+                </div>
+              </>
             )} 
           </div> 
         )} 
