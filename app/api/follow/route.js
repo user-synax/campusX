@@ -56,18 +56,25 @@ export async function POST(request) {
 
     await Promise.all([currentUser.save(), targetUser.save()]);
 
-    // Notification
+    let xpResult = { xpAwarded: false };
     if (nowFollowing) {
       await createNotification({
         recipient: targetUserId,
         sender: currentUser._id,
         type: 'follow'
       });
+
+      // Award XP for following someone
+      xpResult = await awardXP(currentUser._id, 'follow');
     }
 
     return NextResponse.json({
       following: nowFollowing,
       followersCount: targetUser.followers.length,
+      xpAwarded: xpResult.xpAwarded,
+      newXP: xpResult.newXP,
+      newLevel: xpResult.newLevel,
+      leveledUp: xpResult.leveledUp
     });
   } catch (error) {
     console.error('Follow toggle error:', error);

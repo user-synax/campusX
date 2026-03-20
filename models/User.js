@@ -90,6 +90,14 @@ const userSchema = new mongoose.Schema({
     profileViewsResetAt: Date, 
     totalUsersAtJoining: { type: Number, default: 0 }, 
   },
+  xp: {
+    type: Number,
+    default: 0,
+  },
+  level: {
+    type: Number,
+    default: 1,
+  },
   pinnedPost: { type: mongoose.Schema.Types.ObjectId, ref: 'Post', default: null }
 }, { timestamps: true });
 

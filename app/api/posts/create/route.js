@@ -74,7 +74,16 @@ export async function POST(request) {
     // Index hashtags in background
     indexHashtags(hashtags).catch(err => console.error('Background hashtag indexing error:', err));
 
-    return NextResponse.json(post, { status: 201 });
+    // Award XP for posting
+    const xpResult = await awardXP(currentUser._id, 'post');
+
+    return NextResponse.json({
+      ...post.toObject(),
+      xpAwarded: xpResult.xpAwarded,
+      newXP: xpResult.newXP,
+      newLevel: xpResult.newLevel,
+      leveledUp: xpResult.leveledUp
+    }, { status: 201 });
   } catch (error) {
     console.error('Post creation error:', error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
