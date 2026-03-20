@@ -3,6 +3,8 @@ import connectDB from '@/lib/db';
 import Post from '@/models/Post';
 import { getCurrentUser } from '@/lib/auth';
 import { sanitizeString } from '@/utils/validators';
+import { extractHashtags } from '@/utils/hashtags';
+import { indexHashtags } from '@/lib/hashtag-utils';
 
 export async function POST(request) {
   try {
@@ -30,6 +32,8 @@ export async function POST(request) {
     if (sanitizedContent.length > 500) {
       return NextResponse.json({ message: 'Post too long' }, { status: 400 });
     }
+
+    const hashtags = extractHashtags(sanitizedContent);
 
     // Poll validation
     let pollData = null;
@@ -60,10 +64,14 @@ export async function POST(request) {
       content: sanitizedContent,
       community: community || '',
       isAnonymous: isAnonymous || false,
-      poll: pollData
+      poll: pollData,
+      hashtags
     });
 
     await post.populate('author', 'name username avatar college');
+
+    // Index hashtags in background
+    indexHashtags(hashtags).catch(err => console.error('Background hashtag indexing error:', err));
 
     return NextResponse.json(post, { status: 201 });
   } catch (error) {

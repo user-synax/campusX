@@ -54,7 +54,12 @@ const postSchema = new mongoose.Schema({
     }],
     expiresAt: Date,
     active: { type: Boolean, default: true }
-  }
+  },
+  hashtags: [{ 
+    type: String, 
+    lowercase: true, 
+    trim: true 
+  }]
 }, { 
   timestamps: true,toJSON: { virtuals: true },
   toObject: { virtuals: true },

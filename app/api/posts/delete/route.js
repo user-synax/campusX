@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Post from '@/models/Post';
-import Comment from '@/models/Comment';
+import User from '@/models/User';
 import { getCurrentUser } from '@/lib/auth';
 import { validateObjectId } from '@/utils/validators';
+import { removeHashtags } from '@/lib/hashtag-utils';
 import { deletePostNotifications } from '@/lib/notifications';
-import User from '@/models/User';
 
 export async function DELETE(request) {
   try {
@@ -50,7 +50,12 @@ export async function DELETE(request) {
       { $pull: { bookmarks: postId } }
     );
 
-    return NextResponse.json({ success: true });
+    // Remove hashtags
+    if (post.hashtags?.length > 0) {
+      await removeHashtags(post.hashtags);
+    }
+
+    return NextResponse.json({ message: 'Post deleted successfully' });
   } catch (error) {
     console.error('Post deletion error:', error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
