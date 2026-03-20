@@ -14,11 +14,13 @@ import FollowButton from "@/components/user/FollowButton"
 import PostCard from "@/components/post/PostCard"
 import PostSkeleton from "@/components/post/PostSkeleton"
 import EmptyState from "@/components/shared/EmptyState"
-import { FileText } from "lucide-react"
+import { FileText, Pin } from "lucide-react"
 import useUser from "@/hooks/useUser"
 import { usePosts } from "@/hooks/usePosts"
 import { isFounder } from "@/lib/founder"
 import FounderProfileHeader from "@/components/founder/FounderProfileHeader"
+import RoadmapWidget from '@/components/founder/RoadmapWidget' 
+import BroadcastManager from '@/components/founder/BroadcastManager' 
 
 export default function ProfilePage() {
   const params = useParams()
@@ -135,14 +137,14 @@ export default function ProfilePage() {
     )
   }
 
-  const isOwnProfile = currentUser?.username?.toLowerCase() === profileUser.username?.toLowerCase()
-  const isFollowing = currentUser?.following?.includes(profileUser._id)
-  const isFounderUser = isFounder(profileUser.username)
+  const isOwnProfile = profileUser?.isMe || currentUser?.username?.toLowerCase() === profileUser?.username?.toLowerCase()
+  const isFollowing = profileUser?.isFollowing || currentUser?.following?.some(id => id.toString() === profileUser?._id?.toString())
+  const isFounderProfile = profileUser?.isFounder || isFounder(username)
 
   return (
     <div className="flex flex-col min-h-screen">
       {/* Header */}
-      {isFounderUser ? (
+      {isFounderProfile ? (
         <FounderProfileHeader 
           user={profileUser} 
           isOwnProfile={isOwnProfile} 
@@ -193,6 +195,23 @@ export default function ProfilePage() {
         </div>
       )}
 
+      {/* Pinned Post if it exists */}
+      {isFounderProfile && profileUser.pinnedPost && (
+        <div className="border-b border-border bg-accent/5">  
+          <div className="flex items-center gap-2 px-4 pt-3 pb-1 text-xs text-amber-400/80">
+            <Pin className="w-3 h-3" />
+            <span>Pinned post</span>
+          </div>
+          <PostCard 
+            post={profileUser.pinnedPost} 
+            currentUserId={currentUser?._id} 
+            isPinned={true} 
+            onDelete={removePost}
+            onLike={updatePostLike}
+          />
+        </div>
+      )}
+
       {/* Tabs Placeholder */}
       <div className="flex border-b border-border mt-2">
         <div className="px-6 py-3 border-b-2 border-primary font-bold text-sm">Posts</div>
@@ -216,6 +235,7 @@ export default function ProfilePage() {
               currentUserId={currentUser?._id} 
               onDelete={removePost} 
               onLike={updatePostLike} 
+              isPinned={profileUser?.pinnedPost?._id === post._id || profileUser?.pinnedPost === post._id}
             />
           ))
         )}

@@ -80,19 +80,35 @@ export default function Sidebar() {
 
       <div className="p-4 border-t border-border">
         {!loading && user && (
-          <div className="flex flex-col lg:flex-row items-center gap-3 mb-4">
+          <div className="mb-4">
             {isFounder(user.username) ? (
-              <FounderAvatar user={user} size="sm" />
+              <div className="relative group">
+                <div className="absolute inset-0 rounded-xl blur-md opacity-20 group-hover:opacity-30 transition-opacity" 
+                  style={{ background: 'linear-gradient(135deg, #f59e0b, #8b5cf6)' }} />
+                
+                <div className="relative rounded-xl p-3 flex items-center gap-3 bg-black/80 border border-amber-500/30">
+                  <FounderAvatar user={user} size="sm" />
+                  <div className="hidden lg:block flex-1 min-w-0">
+                    <div className="flex items-center gap-1">
+                      <p className="text-sm font-bold truncate text-foreground">{user.name}</p>
+                      <span className="text-xs">⚡</span>
+                    </div>
+                    <p className="text-[10px] font-bold text-amber-500/80 uppercase tracking-wider">Founder</p>
+                  </div>
+                </div>
+              </div>
             ) : (
-              <Avatar className="w-10 h-10 border border-border">
-                <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className="bg-secondary">{user.name?.[0]}</AvatarFallback>
-              </Avatar>
+              <div className="flex flex-col lg:flex-row items-center gap-3">
+                <Avatar className="w-10 h-10 border border-border">
+                  <AvatarImage src={user.avatar} alt={user.name} />
+                  <AvatarFallback className="bg-secondary">{user.name?.[0]}</AvatarFallback>
+                </Avatar>
+                <div className="hidden lg:block flex-1 min-w-0">
+                  <p className="text-sm font-semibold truncate text-foreground">{user.name}</p>
+                  <p className="text-xs text-muted-foreground truncate">@{user.username}</p>
+                </div>
+              </div>
             )}
-            <div className="hidden lg:block flex-1 min-w-0">
-              <p className="text-sm font-semibold truncate">{user.name}</p>
-              <p className="text-xs text-muted-foreground truncate">@{user.username}</p>
-            </div>
           </div>
         )}
         

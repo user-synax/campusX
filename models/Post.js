@@ -87,11 +87,6 @@ postSchema.virtual('hasPoll').get(function () {
   return this.poll?.options?.length > 0;
 });
 
-// Force Mongoose to use the updated schema in development
-if (mongoose.models.Post) {
-  delete mongoose.models.Post;
-}
-
-const Post = mongoose.model('Post', postSchema);
+const Post = mongoose.models.Post || mongoose.model('Post', postSchema);
 
 export default Post;

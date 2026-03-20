@@ -2,8 +2,15 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from "next/link"
-import { Heart, MessageCircle, Trash2, Bookmark } from "lucide-react"
+import { Heart, MessageCircle, Trash2, Bookmark, MoreHorizontal, Pin } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu"
 import { toast } from "sonner"
 import UserAvatar from "@/components/user/UserAvatar"
 import CommentSection from "@/components/post/CommentSection"
@@ -17,7 +24,7 @@ import { isFounder } from "@/lib/founder"
 import FounderAvatar from "@/components/founder/FounderAvatar"
 import FounderBadges from "@/components/founder/FounderBadges"
 
-export default function PostCard({ post, currentUserId, onDelete, onLike, onBookmark }) {
+export default function PostCard({ post, currentUserId, onDelete, onLike, onBookmark, isPinned = false }) {
   const { user: currentUser } = useUser()
   const [userReaction, setUserReaction] = useState(post._userReaction || null)
   const [reactionSummary, setReactionSummary] = useState(post._reactionSummary || { total: 0, byType: {}, topEmojis: [] })
@@ -169,7 +176,31 @@ export default function PostCard({ post, currentUserId, onDelete, onLike, onBook
     }
   }
 
-  const isPostFounder = !post.isAnonymous && post.author && isFounder(post.author.username)
+  const handlePin = async (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    try {
+      const res = await fetch('/api/founder/pin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ postId: isPinned ? null : post._id }),
+      })
+
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.message)
+      }
+
+      toast.success(isPinned ? "Post unpinned" : "Post pinned to profile")
+      // Force refresh current profile view if needed
+      window.location.reload()
+    } catch (error) {
+      toast.error(error.message || "Failed to update pin")
+    }
+  }
+
+  const isPostFounder = !post.isAnonymous && post.author && typeof post.author === 'object' && isFounder(post.author.username)
 
   return (
     <div className="border-b border-border p-4 hover:bg-accent/10 transition-colors cursor-pointer group">
@@ -177,7 +208,7 @@ export default function PostCard({ post, currentUserId, onDelete, onLike, onBook
         {isPostFounder ? (
           <FounderAvatar user={post.author} size="md" />
         ) : (
-          <UserAvatar user={post.isAnonymous ? null : post.author} size="md" />
+          <UserAvatar user={post.isAnonymous || typeof post.author !== 'object' ? null : post.author} size="md" />
         )}
         
         <div className="flex-1 min-w-0">
@@ -193,7 +224,11 @@ export default function PostCard({ post, currentUserId, onDelete, onLike, onBook
                 >
                   {post.author.name}
                 </Link>
-                {isPostFounder && <FounderBadges size="sm" />}
+                {isPostFounder && (
+                  <span className="flex-shrink-0">
+                    <FounderBadges size="sm" />
+                  </span>
+                )}
                 <span className="text-muted-foreground truncate">@{post.author.username}</span>
               </>
             )}
@@ -318,12 +353,30 @@ export default function PostCard({ post, currentUserId, onDelete, onLike, onBook
               </button>
 
               {currentUserId === post.author?._id?.toString() && (
-                <button 
-                  onClick={handleDelete}
-                  className="p-2 rounded-full hover:text-destructive hover:bg-destructive/10 transition-colors"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                <div onClick={(e) => e.stopPropagation()}>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="p-2 rounded-full hover:bg-accent transition-colors">
+                        <MoreHorizontal className="w-4 h-4" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      {isPostFounder && (
+                        <>
+                          <DropdownMenuItem onClick={handlePin}>
+                            <Pin className="w-4 h-4 mr-2" />
+                            {isPinned ? 'Unpin from profile' : 'Pin to profile'}
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                        </>
+                      )}
+                      <DropdownMenuItem onClick={handleDelete} className="text-destructive">
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Delete post
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               )}
             </div>
           </div>

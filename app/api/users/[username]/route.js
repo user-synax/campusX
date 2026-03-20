@@ -4,35 +4,83 @@ import User from '@/models/User';
 import Post from '@/models/Post';
 import { getCurrentUser } from '@/lib/auth';
 import { sanitizeString } from '@/utils/validators';
+import { isFounder } from '@/lib/founder';
 
 // GET /api/users/[username]
 export async function GET(request, { params }) {
   try {
-    const { username } = await params;
+    const username = (await params).username;
+    
+    if (!username) {
+      return NextResponse.json({ message: 'Username is required' }, { status: 400 });
+    }
 
     await connectDB();
+    console.log('Fetching profile for:', username);
 
-    const user = await User.findOne({ username: { $regex: new RegExp(`^${username.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } });
+    const escapedUsername = username.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const userQuery = User.findOne({ 
+      username: { $regex: new RegExp(`^${escapedUsername}$`, 'i') } 
+    });
+
+    // Always populate pinnedPost for profiles if it exists
+    userQuery.populate({
+      path: 'pinnedPost',
+      populate: {
+        path: 'author',
+        select: 'name username avatar image'
+      }
+    });
+
+    const user = await userQuery.exec();
+
+    console.log('GET User result for:', username, 'Found:', !!user);
 
     if (!user) {
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
 
-    const postCount = await Post.countDocuments({ author: user._id, isAnonymous: false }).lean();
+    let postCount = 0;
+    try {
+      postCount = await Post.countDocuments({ author: user._id, isAnonymous: false });
+    } catch (e) {
+      console.error('Post count error:', e);
+    }
 
-
-
-    const userSafe = user.toSafeObject();
+    const currentUser = await getCurrentUser(request);
+    console.log('Current user:', currentUser?.username);
     
-    return NextResponse.json({
-      ...userSafe,
+    // Robust checks for following/me
+    const isFollowing = currentUser ? (user.followers || []).some(id => id.toString() === currentUser._id.toString()) : false;
+    const isMe = currentUser ? currentUser._id.toString() === user._id.toString() : false;
+
+    console.log('Is following:', isFollowing, 'Is me:', isMe);
+
+    const userSafe = typeof user.toSafeObject === 'function' ? user.toSafeObject() : user;
+    
+    // Create a plain response object
+    const responseData = {
+      ...(userSafe.toObject && typeof userSafe.toObject === 'function' ? userSafe.toObject() : userSafe),
       postCount,
-      followersCount: user.followers.length,
-      followingCount: user.following.length,
-    });
+      followersCount: (user.followers || []).length,
+      followingCount: (user.following || []).length,
+      isFollowing,
+      isMe,
+      isFounder: isFounder(user.username),
+      pinnedPost: user.pinnedPost,
+      founderData: user.founderData
+    };
+
+    // Remove sensitive fields just in case
+    delete responseData.password;
+    delete responseData.__v;
+
+    console.log('Response data keys:', Object.keys(responseData));
+
+    return NextResponse.json(responseData);
   } catch (error) {
     console.error('User profile fetch error:', error);
-    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ message: 'Internal Server Error', error: error.message }, { status: 500 });
   }
 }
 

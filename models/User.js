@@ -90,6 +90,7 @@ const userSchema = new mongoose.Schema({
     profileViewsResetAt: Date, 
     totalUsersAtJoining: { type: Number, default: 0 }, 
   },
+  pinnedPost: { type: mongoose.Schema.Types.ObjectId, ref: 'Post', default: null }
 }, { timestamps: true });
 
 userSchema.methods.comparePassword = async function (plainPassword) {
