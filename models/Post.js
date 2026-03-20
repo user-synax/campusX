@@ -1,5 +1,18 @@
 import mongoose from 'mongoose';
 
+const pollOptionSchema = new mongoose.Schema({
+  text: { 
+    type: String, 
+    required: true, 
+    trim: true, 
+    maxlength: 80 
+  },
+  votes: [{ 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'User' 
+  }]
+}, { _id: true });
+
 const postSchema = new mongoose.Schema({
   author: {
     type: mongoose.Schema.Types.ObjectId,
@@ -30,14 +43,20 @@ const postSchema = new mongoose.Schema({
     type: String,
     trim: true,
     default: '',
-  },
-  isAnonymous: {
+  },isAnonymous: {
     type: Boolean,
     default: false,
   },
+  poll: {
+    options: [{
+      text: String,
+      votes: [mongoose.Schema.Types.ObjectId]
+    }],
+    expiresAt: Date,
+    active: { type: Boolean, default: true }
+  }
 }, { 
-  timestamps: true,
-  toJSON: { virtuals: true },
+  timestamps: true,toJSON: { virtuals: true },
   toObject: { virtuals: true },
 });
 
@@ -50,6 +69,15 @@ postSchema.virtual('likesCount').get(function () {
   return this.likes.length;
 });
 
-const Post = mongoose.models.Post || mongoose.model('Post', postSchema);
+postSchema.virtual('hasPoll').get(function () {
+  return this.poll?.options?.length > 0;
+});
+
+// Force Mongoose to use the updated schema in development
+if (mongoose.models.Post) {
+  delete mongoose.models.Post;
+}
+
+const Post = mongoose.model('Post', postSchema);
 
 export default Post;

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from 'react'
-import { MapPin, X } from 'lucide-react'
+import { MapPin, X, BarChart2 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import UserAvatar from "@/components/user/UserAvatar"
+import PollCreator from "@/components/post/PollCreator"
 import { cn } from "@/lib/utils"
 import useUser from "@/hooks/useUser"
 
@@ -20,20 +21,35 @@ export default function PostComposer({ onPostCreated, defaultCommunity, noBorder
   const [isLoading, setIsLoading] = useState(false)
   const [showTagInput, setShowTagInput] = useState(false)
   const [manualCommunity, setManualCommunity] = useState('')
+  const [showPoll, setShowPoll] = useState(false)
+  const [pollOptions, setPollOptions] = useState(['', ''])
 
   const handleSubmit = async () => {
     if (!content.trim() || content.length > 500) return
+
+    // Poll validation
+    if (showPoll) {
+      if (!pollOptions[0].trim() || !pollOptions[1].trim()) {
+        toast.error("Poll needs at least 2 options", {
+          description: "Please fill in the first two options.",
+        })
+        return
+      }
+    }
+
+    const payload = {
+      content,
+      community: defaultCommunity || manualCommunity,
+      isAnonymous,
+      poll: showPoll ? pollOptions.filter(o => o.trim()) : null
+    };
 
     setIsLoading(true)
     try {
       const res = await fetch('/api/posts/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          content,
-          community: defaultCommunity || manualCommunity,
-          isAnonymous
-        }),
+        body: JSON.stringify(payload),
       })
 
       const newPost = await res.json()
@@ -46,6 +62,8 @@ export default function PostComposer({ onPostCreated, defaultCommunity, noBorder
       setIsAnonymous(false)
       setManualCommunity('')
       setShowTagInput(false)
+      setShowPoll(false)
+      setPollOptions(['', ''])
       if (onPostCreated) onPostCreated(newPost)
       toast.success("Posted!", {
         description: "Your post is live.",
@@ -99,26 +117,54 @@ export default function PostComposer({ onPostCreated, defaultCommunity, noBorder
               </Button>
             </div>
           )}
+
+          {/* Poll Creator */}
+          {showPoll && (
+            <PollCreator 
+              options={pollOptions} 
+              onChange={setPollOptions} 
+              onRemove={() => {
+                setShowPoll(false)
+                setPollOptions(['', ''])
+              }}
+            />
+          )}
           
           <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
             <div className="flex items-center gap-4">
-              {defaultCommunity ? (
-                <Badge variant="secondary" className="gap-1 px-2 py-1">
-                  📍 {defaultCommunity}
-                </Badge>
-              ) : (
-                !showTagInput && (
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-8 gap-1.5 text-muted-foreground hover:text-primary rounded-full px-3"
-                    onClick={() => setShowTagInput(true)}
-                  >
-                    <MapPin className="w-4 h-4" />
-                    <span className="text-xs">Tag College</span>
-                  </Button>
-                )
-              )}
+              <div className="flex items-center gap-1">
+                {defaultCommunity ? (
+                  <Badge variant="secondary" className="gap-1 px-2 py-1">
+                    📍 {defaultCommunity}
+                  </Badge>
+                ) : (
+                  !showTagInput && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 gap-1.5 text-muted-foreground hover:text-primary rounded-full px-3"
+                      onClick={() => setShowTagInput(true)}
+                    >
+                      <MapPin className="w-4 h-4" />
+                      <span className="text-xs">Tag College</span>
+                    </Button>
+                  )
+                )}
+
+                <Button 
+                  type="button"
+                  variant="ghost" 
+                  size="sm" 
+                  className={cn(
+                    "h-8 gap-1.5 rounded-full px-3 transition-colors",
+                    showPoll ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-primary"
+                  )}
+                  onClick={() => setShowPoll(!showPoll)}
+                >
+                  <BarChart2 className="w-4 h-4" />
+                  <span className="text-xs">Poll</span>
+                </Button>
+              </div>
               
               <div className="flex items-center gap-2 text-sm text-muted-foreground ml-2">
                 <Switch 

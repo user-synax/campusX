@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import UserAvatar from "@/components/user/UserAvatar"
 import CommentSection from "@/components/post/CommentSection"
+import PollDisplay from "@/components/post/PollDisplay"
 import { formatRelativeTime } from "@/utils/formatters"
 import { cn } from "@/lib/utils"
 import useUser from "@/hooks/useUser"
@@ -158,6 +159,15 @@ export default function PostCard({ post, currentUserId, onDelete, onLike, onBook
           <p className="mt-1 text-[15px] leading-normal whitespace-pre-wrap wrap-break-words">
             {post.content}
           </p>
+
+          {post.poll?.options?.length > 0 && (
+            <PollDisplay 
+              poll={post.poll} 
+              postId={post._id} 
+              currentUserId={currentUser?._id || currentUserId} 
+              isExpired={post.poll.expiresAt && new Date(post.poll.expiresAt) < new Date()} 
+            />
+          )}
           
           <div className="flex items-center gap-6 mt-3 text-muted-foreground">
             <button 

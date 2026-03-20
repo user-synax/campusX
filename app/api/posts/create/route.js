@@ -18,7 +18,7 @@ export async function POST(request) {
       return NextResponse.json({ message: 'Invalid request body' }, { status: 400 });
     }
 
-    const { content, community, isAnonymous } = body;
+    const { content, community, isAnonymous, poll } = body;
 
     await connectDB();
 
@@ -31,11 +31,36 @@ export async function POST(request) {
       return NextResponse.json({ message: 'Post too long' }, { status: 400 });
     }
 
+    // Poll validation
+    let pollData = null;
+    if (poll && Array.isArray(poll) && poll.length > 0) {
+      const trimmedOptions = poll
+        .map(opt => typeof opt === 'string' ? opt.trim() : '')
+        .filter(opt => opt.length > 0);
+      
+      const uniqueOptions = [...new Set(trimmedOptions)];
+
+      if (uniqueOptions.length < 2 || uniqueOptions.length > 4) {
+        return NextResponse.json({ message: 'Poll must have 2-4 unique options' }, { status: 400 });
+      }
+
+      if (uniqueOptions.some(opt => opt.length > 80)) {
+        return NextResponse.json({ message: 'Poll options must be under 80 characters' }, { status: 400 });
+      }
+
+      pollData = {
+        options: uniqueOptions.map(text => ({ text, votes: [] })),
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+        active: true
+      };
+    }
+
     const post = await Post.create({
       author: currentUser._id,
       content: sanitizedContent,
       community: community || '',
       isAnonymous: isAnonymous || false,
+      poll: pollData
     });
 
     await post.populate('author', 'name username avatar college');
