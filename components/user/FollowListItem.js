@@ -16,13 +16,6 @@ export default function FollowListItem({ user, currentUserId, isOwnProfile, onCl
         <div className="min-w-0"> 
           <div className="flex items-center gap-1"> 
             <p className="font-medium text-sm truncate text-foreground">{user.name}</p> 
-            {user.isVerified && (
-              <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 shrink-0"> 
-                <circle cx="12" cy="12" r="12" fill="#3b82f6" /> 
-                <path d="M9 12l2 2 4-4" stroke="white" strokeWidth="2.5" 
-                  strokeLinecap="round" strokeLinejoin="round" fill="none" /> 
-              </svg>
-            )} 
           </div> 
           <p className="text-xs text-muted-foreground truncate">@{user.username}</p> 
           {user.college && ( 

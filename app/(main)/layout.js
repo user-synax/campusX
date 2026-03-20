@@ -5,8 +5,11 @@ import RightPanel from "@/components/layout/RightPanel"
 import MobileNav from "@/components/layout/MobileNav"
 import { Toaster } from "@/components/ui/sonner"
 import BroadcastBanner from "@/components/founder/BroadcastBanner"
+import useUser from "@/hooks/useUser"
 
 export default function MainLayout({ children }) {
+  const { user } = useUser()
+
   return (
     <div className="flex min-h-screen bg-background text-foreground selection:bg-primary/20 overflow-x-hidden">
       {/* Fixed Sidebar */}

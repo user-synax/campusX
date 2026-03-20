@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { Home, User, GraduationCap, Bell, LogOut, Bookmark, Search, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import Logo from "@/components/shared/Logo"
 import useUser from "@/hooks/useUser"
 import useNotificationCount from "@/hooks/useNotificationCount"
 import { cn } from "@/lib/utils"
@@ -21,7 +22,7 @@ export default function Sidebar() {
     { label: "Feed", href: "/feed", icon: Home },
     { label: "Search", href: "/search", icon: Search },
     { label: "Bookmarks", href: "/bookmarks", icon: Bookmark },
-    { label: "Profile", href: user ? `/profile/${user.username}` : "/login", icon: User },
+    { label: "Profile", href: user?.username ? `/profile/${user.username}` : "/login", icon: User },
     { label: "Communities", href: "/community", icon: GraduationCap },
     { label: "Events", href: "/events", icon: Calendar },
     { label: "Notifications", href: "/notifications", icon: Bell, badge: count },
@@ -31,43 +32,38 @@ export default function Sidebar() {
     try {
       await fetch("/api/auth/logout", { method: "POST" })
       router.push("/login")
+      window.location.reload() // Clear all state
     } catch (error) {
       console.error("Logout failed:", error)
     }
   }
 
   return (
-    <aside className="hidden md:flex flex-col fixed left-0 h-screen border-r border-border bg-background md:w-[72px] lg:w-[280px] z-40">
-      <div className="p-4 lg:p-6">
-        <Link href="/feed" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-            <span className="text-primary-foreground font-bold">CX</span>
-          </div>
-          <span className="hidden lg:block text-xl font-bold tracking-tight">CampusX</span>
-        </Link>
+    <aside className="fixed left-0 top-0 h-screen w-[72px] lg:w-[280px] border-r border-border bg-background z-50 hidden md:flex flex-col">
+      <div className="p-6">
+        <Logo className="lg:hidden" showText={false} />
+        <Logo className="hidden lg:flex" />
       </div>
 
-      <nav className="flex-1 px-2 lg:px-4 space-y-2 mt-4">
+      <nav className="flex-1 px-3 space-y-1">
         {navItems.map((item) => {
+          const isActive = pathname === item.href
           const Icon = item.icon
-          const isActive = item.href === "/feed" 
-            ? pathname === "/feed" 
-            : pathname.startsWith(item.href)
-          
+
           return (
             <Link key={item.href} href={item.href}>
               <Button
                 variant="ghost"
                 className={cn(
-                  "w-full justify-start gap-4 h-12 px-3 relative",
+                  "w-full justify-start gap-4 h-12 px-3 relative transition-all duration-200",
                   isActive ? "bg-accent text-accent-foreground font-bold" : "text-muted-foreground"
                 )}
               >
                 <div className="relative">
-                  <Icon className="w-5 h-5 flex-shrink-0" />
+                  <Icon className="w-5 h-5 shrink-0" />
                   {item.badge > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
-                      {item.badge > 99 ? '99+' : item.badge}
+                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary text-[10px] text-white flex items-center justify-center rounded-full border-2 border-background animate-in zoom-in">
+                      {item.badge}
                     </span>
                   )}
                 </div>
@@ -79,35 +75,31 @@ export default function Sidebar() {
       </nav>
 
       <div className="p-4 border-t border-border">
-        {!loading && user && (
+        {!loading && user && user.username && (
           <div className="mb-4">
             {isFounder(user.username) ? (
-              <div className="relative group">
-                <div className="absolute inset-0 rounded-xl blur-md opacity-20 group-hover:opacity-30 transition-opacity" 
-                  style={{ background: 'linear-gradient(135deg, #f59e0b, #8b5cf6)' }} />
-                
-                <div className="relative rounded-xl p-3 flex items-center gap-3 bg-black/80 border border-amber-500/30">
-                  <FounderAvatar user={user} size="sm" />
+              <Link href={`/profile/${user.username}`}>
+                <div className="flex flex-col lg:flex-row items-center gap-3 p-2 rounded-xl bg-primary/5 border border-primary/10 hover:bg-primary/10 transition-colors">
+                  <FounderAvatar user={user} size="md" />
                   <div className="hidden lg:block flex-1 min-w-0">
-                    <div className="flex items-center gap-1">
-                      <p className="text-sm font-bold truncate text-foreground">{user.name}</p>
-                      <span className="text-xs">⚡</span>
-                    </div>
-                    <p className="text-[10px] font-bold text-amber-500/80 uppercase tracking-wider">Founder</p>
+                    <p className="text-sm font-bold text-foreground truncate">{user.name}</p>
+                    <p className="text-xs text-primary/80 font-medium truncate">Founder</p>
                   </div>
                 </div>
-              </div>
+              </Link>
             ) : (
-              <div className="flex flex-col lg:flex-row items-center gap-3">
-                <Avatar className="w-10 h-10 border border-border">
-                  <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className="bg-secondary">{user.name?.[0]}</AvatarFallback>
-                </Avatar>
-                <div className="hidden lg:block flex-1 min-w-0">
-                  <p className="text-sm font-semibold truncate text-foreground">{user.name}</p>
-                  <p className="text-xs text-muted-foreground truncate">@{user.username}</p>
+              <Link href={`/profile/${user.username}`}>
+                <div className="flex flex-col lg:flex-row items-center gap-3 p-2 rounded-xl hover:bg-accent transition-colors">
+                  <Avatar className="w-10 h-10 border border-border">
+                    <AvatarImage src={user.avatar} alt={user.name} />
+                    <AvatarFallback className="bg-secondary">{user.name?.[0]}</AvatarFallback>
+                  </Avatar>
+                  <div className="hidden lg:block flex-1 min-w-0">
+                    <p className="text-sm font-semibold truncate text-foreground">{user.name}</p>
+                    <p className="text-xs text-muted-foreground truncate">@{user.username}</p>
+                  </div>
                 </div>
-              </div>
+              </Link>
             )}
           </div>
         )}

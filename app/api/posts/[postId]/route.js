@@ -20,7 +20,7 @@ export async function GET(request, { params }) {
 
     // Find post and populate author details
     const post = await Post.findById(postId)
-      .populate('author', 'name username avatar college isVerified')
+      .populate('author', 'name username avatar college')
       .lean();
 
     // If not found, return 404

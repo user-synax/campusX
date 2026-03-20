@@ -15,6 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import useUser from "@/hooks/useUser"
 import useNotificationCount from "@/hooks/useNotificationCount"
 import CreatePostDialog from "@/components/post/CreatePostDialog"
+import Logo from "@/components/shared/Logo"
 import { cn } from "@/lib/utils"
 
 export default function MobileNav() {
@@ -91,7 +92,9 @@ export default function MobileNav() {
         </SheetTrigger>
         <SheetContent side="right" className="w-[280px] p-0">
           <SheetHeader className="p-6 border-b text-left">
-            <SheetTitle>Menu</SheetTitle>
+            <SheetTitle>
+              <Logo size="sm" />
+            </SheetTitle>
           </SheetHeader>
           
           <div className="flex flex-col h-full">

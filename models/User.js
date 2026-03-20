@@ -98,6 +98,11 @@ const userSchema = new mongoose.Schema({
     type: Number,
     default: 1,
   },
+  isVerified: {
+    type: Boolean,
+    default: true
+  },
+  verifiedAt: Date,
   pinnedPost: { type: mongoose.Schema.Types.ObjectId, ref: 'Post', default: null }
 }, { timestamps: true });
 

@@ -30,7 +30,7 @@ export async function GET(request, { params }) {
 
     // 4. Fetch user details for those IDs 
     const following = await User.find({ _id: { $in: paginatedIds } })
-      .select('name username avatar college bio followers isVerified')
+      .select('name username avatar college bio followers')
       .lean()
 
     // Edge case: filter out any null entries 
