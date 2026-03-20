@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Home, User, GraduationCap, Bell, LogOut, Bookmark } from "lucide-react"
+import { Home, User, GraduationCap, Bell, LogOut, Bookmark, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import useUser from "@/hooks/useUser"
@@ -17,6 +17,7 @@ export default function Sidebar() {
 
   const navItems = [
     { label: "Feed", href: "/feed", icon: Home },
+    { label: "Search", href: "/search", icon: Search },
     { label: "Bookmarks", href: "/bookmarks", icon: Bookmark },
     { label: "Profile", href: user ? `/profile/${user.username}` : "/login", icon: User },
     { label: "Communities", href: "/community", icon: GraduationCap },

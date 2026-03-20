@@ -44,6 +44,7 @@ const postSchema = new mongoose.Schema({
 postSchema.index({ createdAt: -1 });
 postSchema.index({ community: 1 });
 postSchema.index({ author: 1 });
+postSchema.index({ content: 'text' });
 
 postSchema.virtual('likesCount').get(function () {
   return this.likes.length;

@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, GraduationCap, PlusSquare, User, Bell, Bookmark, LogOut, Menu } from "lucide-react"
+import { Home, GraduationCap, PlusSquare, User, Bell, Bookmark, LogOut, Menu, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Sheet,
@@ -33,7 +33,7 @@ export default function MobileNav() {
 
   const navItems = [
     { href: "/feed", icon: Home, label: "Home" },
-    { href: "/community", icon: GraduationCap, label: "Communities" },
+    { href: "/search", icon: Search, label: "Search" },
     { href: "#", icon: PlusSquare, label: "Post", isAction: true },
     { href: "/notifications", icon: Bell, label: "Notifications", badge: count },
   ]
@@ -133,6 +133,18 @@ export default function MobileNav() {
                 >
                   <Bookmark className="w-5 h-5" />
                   <span className="text-base font-medium">Bookmarks</span>
+                </Button>
+              </Link>
+              <Link href="/community">
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-start gap-4 h-12 px-3",
+                    pathname.startsWith("/community") ? "bg-accent text-accent-foreground" : "text-muted-foreground"
+                  )}
+                >
+                  <GraduationCap className="w-5 h-5" />
+                  <span className="text-base font-medium">Communities</span>
                 </Button>
               </Link>
             </nav>

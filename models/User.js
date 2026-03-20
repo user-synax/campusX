@@ -78,6 +78,8 @@ userSchema.methods.toSafeObject = function () {
   return userObject;
 };
 
+userSchema.index({ name: 'text', username: 'text', college: 'text' });
+
 const User = mongoose.models.User || mongoose.model('User', userSchema);
 
 export default User;
