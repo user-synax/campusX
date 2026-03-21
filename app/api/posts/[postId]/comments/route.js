@@ -86,8 +86,7 @@ export async function POST(request, { params }) {
         recipient: post.author,
         sender: currentUser._id,
         type: 'comment',
-        post: postId,
-        comment: comment._id
+        postId: postId
       });
     }
 

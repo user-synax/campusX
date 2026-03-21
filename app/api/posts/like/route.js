@@ -88,7 +88,7 @@ export async function POST(request) {
           recipient: post.author,
           sender: currentUser._id,
           type: 'like',
-          post: postId
+          postId: postId
         }).catch(err => console.error('Notification error:', err));
       }
     }

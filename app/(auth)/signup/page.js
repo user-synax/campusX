@@ -57,7 +57,9 @@ export default function SignupPage() {
         throw new Error(data.message || 'Something went wrong');
       }
 
-      router.push('/feed');
+      // Use window.location.href for a full refresh to ensure cookies are 
+      // correctly picked up by the middleware on the next request.
+      window.location.href = '/feed';
     } catch (err) {
       setError(err.message);
     } finally {

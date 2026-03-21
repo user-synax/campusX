@@ -23,12 +23,12 @@ export default function NotificationsPage() {
       
       if (res.ok) {
         if (pageNum === 1) {
-          setNotifications(data.notifications)
+          setNotifications(data.notifications || [])
         } else {
-          setNotifications(prev => [...prev, ...data.notifications])
+          setNotifications(prev => [...prev, ...(data.notifications || [])])
         }
-        setUnreadCount(data.unreadCount)
-        setHasMore(data.hasMore)
+        setUnreadCount(data.unreadCount || 0)
+        setHasMore(data.pagination?.page < data.pagination?.pages)
       } else {
         toast.error(data.message || 'Failed to fetch notifications')
       }

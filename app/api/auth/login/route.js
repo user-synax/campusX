@@ -66,7 +66,7 @@ export async function POST(request) {
 
     const response = NextResponse.json({ success: true, user: sanitizeUser(user) });
 
-    setAuthCookie(response, token);
+    await setAuthCookie(response, token);
 
     return response;
   } catch (error) {

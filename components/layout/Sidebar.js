@@ -2,8 +2,9 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Home, User, GraduationCap, Bell, LogOut, Bookmark, Search, Calendar } from "lucide-react"
+import { Home, User, GraduationCap, Bell, LogOut, Bookmark, Search, Calendar, Trophy } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Progress } from "@/components/ui/progress"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import Logo from "@/components/shared/Logo"
 import useUser from "@/hooks/useUser"
@@ -25,6 +26,7 @@ export default function Sidebar() {
     { label: "Profile", href: user?.username ? `/profile/${user.username}` : "/login", icon: User },
     { label: "Communities", href: "/community", icon: GraduationCap },
     { label: "Events", href: "/events", icon: Calendar },
+    { label: "Leaderboard", href: "/leaderboard", icon: Trophy },
     { label: "Notifications", href: "/notifications", icon: Bell, badge: count },
   ]
 
@@ -76,7 +78,16 @@ export default function Sidebar() {
 
       <div className="p-4 border-t border-border">
         {!loading && user && user.username && (
-          <div className="mb-4">
+          <div className="mb-4 space-y-4">
+            {/* XP Progress Bar */}
+            <div className="hidden lg:block px-2 space-y-1.5">
+              <div className="flex justify-between items-end">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Level {user.level || 1}</span>
+                <span className="text-[10px] font-medium text-muted-foreground">{(user.xp || 0) % 1000} / 1000 XP</span>
+              </div>
+              <Progress value={((user.xp || 0) % 1000) / 10} className="h-1.5" />
+            </div>
+
             {isFounder(user.username) ? (
               <Link href={`/profile/${user.username}`}>
                 <div className="flex flex-col lg:flex-row items-center gap-3 p-2 rounded-xl bg-primary/5 border border-primary/10 hover:bg-primary/10 transition-colors">

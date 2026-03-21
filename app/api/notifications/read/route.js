@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Notification from '@/models/Notification';
+import User from '@/models/User';
+import Post from '@/models/Post';
+import Event from '@/models/Event';
+import Resource from '@/models/Resource';
 import { getCurrentUser } from '@/lib/auth';
 import { validateObjectId } from '@/utils/validators';
 import { sanitizeMongoInput } from '@/lib/sanitize';

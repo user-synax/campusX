@@ -99,7 +99,7 @@ export async function POST(request) {
       { status: 201 }
     );
 
-    setAuthCookie(response, token);
+    await setAuthCookie(response, token);
 
     return response;
   } catch (error) {

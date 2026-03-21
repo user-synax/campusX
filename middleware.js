@@ -18,8 +18,18 @@ export async function middleware(request) {
     const decoded = await verifyToken(token);
 
     if (!decoded) {
-      const response = NextResponse.redirect(new URL('/login?reason=expired', request.url));
-      response.cookies.set('campusx_token', '', { maxAge: 0 });
+      // Create redirect response
+      const loginUrl = new URL('/login', request.url);
+      loginUrl.searchParams.set('reason', 'expired');
+      const response = NextResponse.redirect(loginUrl);
+      
+      // Clear the invalid/expired cookie across all paths and domains
+      response.cookies.set('campusx_token', '', { 
+        maxAge: 0,
+        path: '/',
+        secure: process.env.NODE_ENV === 'production' || process.env.VERCEL === '1',
+        sameSite: 'lax'
+      });
       return response;
     }
 
