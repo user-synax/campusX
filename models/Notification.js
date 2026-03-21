@@ -39,10 +39,7 @@ const notificationSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // For fetching user's notifications
-notificationSchema.index({ recipient: 1, createdAt: -1 });
-
-// For unread count queries
-notificationSchema.index({ recipient: 1, read: 1 });
+notificationSchema.index({ recipient: 1, read: 1, createdAt: -1 });
 
 // For deduplication check (especially for likes)
 notificationSchema.index({ recipient: 1, sender: 1, type: 1, post: 1 });

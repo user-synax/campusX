@@ -3,23 +3,29 @@ import connectDB from '@/lib/db'
 import User from '@/models/User'
 import { FOUNDER_USERNAME, isFounder } from '@/lib/founder'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
+import { withCache, deleteCache } from '@/lib/cache'
 
 export async function GET() {
   try {
-    await connectDB()
+    const data = await withCache('founder_roadmap', 60, async () => {
+      await connectDB()
 
-    if (!FOUNDER_USERNAME) {
-      return NextResponse.json({ roadmap: [] })
-    }
+      if (!FOUNDER_USERNAME) {
+        return { roadmap: [] }
+      }
 
-    const founderQuery = { username: { $regex: new RegExp(`^${FOUNDER_USERNAME}$`, 'i') } };
-    const founder = await User.findOne(founderQuery)
-      .select('founderData.roadmap')
+      const founderQuery = { username: { $regex: new RegExp(`^${FOUNDER_USERNAME}$`, 'i') } };
+      const founder = await User.findOne(founderQuery)
+        .select('founderData.roadmap')
+        .lean()
 
-    const roadmap = founder?.founderData?.roadmap || []
-    const sortedRoadmap = [...roadmap].sort((a, b) => (a.order || 0) - (b.order || 0))
+      const roadmap = founder?.founderData?.roadmap || []
+      const sortedRoadmap = [...roadmap].sort((a, b) => (a.order || 0) - (b.order || 0))
 
-    return NextResponse.json({ roadmap: sortedRoadmap })
+      return { roadmap: sortedRoadmap }
+    });
+
+    return NextResponse.json(data)
   } catch (error) {
     console.error('Roadmap GET error:', error)
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
@@ -28,6 +34,15 @@ export async function GET() {
 
 export async function PATCH(request) {
   try {
+    // Rate limit founder roadmap - 5 per hour per IP
+    const { blocked, response: rateLimitResponse } = applyRateLimit(
+      request,
+      'founder_roadmap',
+      5,
+      60 * 60 * 1000
+    );
+    if (blocked) return rateLimitResponse;
+
     await connectDB()
 
     // Auth check
@@ -92,6 +107,9 @@ export async function PATCH(request) {
     if (!updatedFounder) {
       return NextResponse.json({ message: 'User not found' }, { status: 404 })
     }
+
+    // Invalidate cache
+    deleteCache('founder_roadmap')
 
     const roadmapResult = updatedFounder.founderData?.roadmap || []
     return NextResponse.json({ roadmap: roadmapResult })

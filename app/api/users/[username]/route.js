@@ -18,64 +18,52 @@ export async function GET(request, { params }) {
     await connectDB();
     console.log('Fetching profile for:', username);
 
+    const currentUser = await getCurrentUser(request);
     const escapedUsername = username.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const userQuery = User.findOne({ 
-      username: { $regex: new RegExp(`^${escapedUsername}$`, 'i') } 
-    });
 
-    // Always populate pinnedPost for profiles if it exists
-    userQuery.populate({
+    const userResult = await User.findOne({ 
+      username: { $regex: new RegExp(`^${escapedUsername}$`, 'i') } 
+    }).populate({
       path: 'pinnedPost',
       populate: {
         path: 'author',
         select: 'name username avatar image'
       }
-    });
+    }).lean();
 
-    const user = await userQuery.exec();
-
-    console.log('GET User result for:', username, 'Found:', !!user);
-
-    if (!user) {
+    if (!userResult) {
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
 
-    let postCount = 0;
-    try {
-      postCount = await Post.countDocuments({ author: user._id, isAnonymous: false });
-    } catch (e) {
-      console.error('Post count error:', e);
-    }
+    const [postCountResult, followersCount, followingCount] = await Promise.all([
+      Post.countDocuments({ author: userResult._id, isAnonymous: false }),
+      Promise.resolve(userResult.followers?.length || 0),
+      Promise.resolve(userResult.following?.length || 0)
+    ]);
 
-    const currentUser = await getCurrentUser(request);
-    console.log('Current user:', currentUser?.username);
-    
     // Robust checks for following/me
-    const isFollowing = currentUser ? (user.followers || []).some(id => id.toString() === currentUser._id.toString()) : false;
-    const isMe = currentUser ? currentUser._id.toString() === user._id.toString() : false;
+    const isFollowing = currentUser ? (userResult.followers || []).some(id => id.toString() === currentUser._id.toString()) : false;
+    const isMe = currentUser ? currentUser._id.toString() === userResult._id.toString() : false;
 
-    console.log('Is following:', isFollowing, 'Is me:', isMe);
-
-    const userSafe = typeof user.toSafeObject === 'function' ? user.toSafeObject() : user;
-    
     // Create a plain response object
     const responseData = {
-      ...(userSafe.toObject && typeof userSafe.toObject === 'function' ? userSafe.toObject() : userSafe),
-      postCount,
-      followersCount: (user.followers || []).length,
-      followingCount: (user.following || []).length,
+      ...userResult,
+      postCount: postCountResult,
+      followersCount,
+      followingCount,
       isFollowing,
       isMe,
-      isFounder: isFounder(user.username),
-      pinnedPost: user.pinnedPost,
-      founderData: user.founderData
+      isFounder: isFounder(userResult.username),
+      pinnedPost: userResult.pinnedPost,
+      founderData: userResult.founderData
     };
 
-    // Remove sensitive fields just in case
+    // Remove sensitive fields
     delete responseData.password;
     delete responseData.__v;
-
-    console.log('Response data keys:', Object.keys(responseData));
+    delete responseData.email; // Privacy
+    delete responseData.blockedUsers;
+    delete responseData.blockedBy;
 
     return NextResponse.json(responseData);
   } catch (error) {

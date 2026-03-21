@@ -5,6 +5,7 @@ import Comment from '@/models/Comment';
 import { getCurrentUser } from '@/lib/auth';
 import { validateObjectId, sanitizeString } from '@/utils/validators';
 import { createNotification } from '@/lib/notifications';
+import { applyRateLimit } from '@/lib/rate-limit';
 
 // GET /api/posts/[postId]/comments
 export async function GET(request, { params }) {
@@ -32,6 +33,15 @@ export async function GET(request, { params }) {
 // POST /api/posts/[postId]/comments
 export async function POST(request, { params }) {
   try {
+    // Rate limit comments - 20 comments per 10 minutes per IP
+    const { blocked, response: rateLimitResponse } = applyRateLimit(
+      request,
+      'post_comment',
+      20,
+      10 * 60 * 1000
+    );
+    if (blocked) return rateLimitResponse;
+
     const currentUser = await getCurrentUser(request);
     if (!currentUser) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });

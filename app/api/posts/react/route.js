@@ -5,9 +5,19 @@ import { getCurrentUser } from '@/lib/auth';
 import { validateObjectId } from '@/utils/validators';
 import { createNotification, deleteNotification } from '@/lib/notifications';
 import { REACTION_KEYS, computeReactionSummary } from '@/lib/reaction-utils';
+import { applyRateLimit } from '@/lib/rate-limit';
 
 export async function POST(request) {
   try {
+    // Rate limit reactions - 60 reactions per minute per IP
+    const { blocked, response: rateLimitResponse } = applyRateLimit(
+      request,
+      'post_react',
+      60,
+      60 * 1000
+    );
+    if (blocked) return rateLimitResponse;
+
     const currentUser = await getCurrentUser(request);
     if (!currentUser) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });

@@ -6,9 +6,20 @@ import { sanitizeString } from '@/utils/validators';
 import { extractHashtags } from '@/utils/hashtags';
 import { indexHashtags } from '@/lib/hashtag-utils';
 import { awardXP } from '@/lib/xp';
+import { deleteCachePattern } from '@/lib/cache';
+import { applyRateLimit } from '@/lib/rate-limit';
 
 export async function POST(request) {
   try {
+    // Rate limit post creation - 10 posts per hour per IP
+    const { blocked, response: rateLimitResponse } = applyRateLimit(
+      request,
+      'post_create',
+      10,
+      60 * 60 * 1000
+    );
+    if (blocked) return rateLimitResponse;
+
     const currentUser = await getCurrentUser(request);
     if (!currentUser) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
@@ -70,6 +81,9 @@ export async function POST(request) {
     });
 
     await post.populate('author', 'name username avatar college');
+
+    // Invalidate community-related caches
+    deleteCachePattern('communities_');
 
     // Index hashtags in background
     indexHashtags(hashtags).catch(err => console.error('Background hashtag indexing error:', err));

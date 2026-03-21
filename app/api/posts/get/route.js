@@ -23,7 +23,9 @@ export async function GET(request) {
     }
 
     if (username) {
-      const user = await User.findOne({ username }).lean();
+      const user = await User.findOne({ username })
+        .select('_id')
+        .lean();
       if (user) {
         query.author = user._id;
       } else {

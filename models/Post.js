@@ -63,16 +63,24 @@ const postSchema = new mongoose.Schema({
     type: String, 
     lowercase: true, 
     trim: true 
-  }]
+  }],
+  studyGroup: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'StudyGroup'
+  }
 }, { 
   timestamps: true,toJSON: { virtuals: true },
   toObject: { virtuals: true },
 });
 
 postSchema.index({ createdAt: -1 });
-postSchema.index({ community: 1 });
-postSchema.index({ author: 1 });
+postSchema.index({ author: 1, createdAt: -1 });
+postSchema.index({ community: 1, createdAt: -1 });
+postSchema.index({ hashtags: 1, createdAt: -1 });
+postSchema.index({ studyGroup: 1, createdAt: -1 });
+postSchema.index({ likes: 1 });
 postSchema.index({ content: 'text' });
+postSchema.index({ author: 1, isAnonymous: 1, createdAt: -1 });
 postSchema.index({ 'reactions.user': 1 });
 
 postSchema.virtual('likesCount').get(function () {

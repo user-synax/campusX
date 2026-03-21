@@ -3,9 +3,19 @@ import connectDB from '@/lib/db';
 import Post from '@/models/Post';
 import { getCurrentUser } from '@/lib/auth';
 import { computeReactionSummary, getUserReaction } from '@/lib/reaction-utils';
+import { applyRateLimit } from '@/lib/rate-limit';
 
 export async function GET(request) {
   try {
+    // Rate limit search - 30 searches per minute per IP
+    const { blocked, response: rateLimitResponse } = applyRateLimit(
+      request,
+      'search_posts',
+      30,
+      60 * 1000
+    );
+    if (blocked) return rateLimitResponse;
+
     const currentUser = await getCurrentUser(request);
     const { searchParams } = new URL(request.url);
     let q = searchParams.get('q') || '';
@@ -31,32 +41,33 @@ export async function GET(request) {
 
     await connectDB();
 
-    // Strategy A: MongoDB $text search
-    let posts = await Post.find(
-      { $text: { $search: sanitizedQuery } },
-      { score: { $meta: 'textScore' } }
-    )
-    .sort({ score: { $meta: 'textScore' } })
-    .populate('author', 'name username avatar college')
-    .skip(skip)
-    .limit(limit)
-    .lean();
-
+    let posts = [];
     let total = 0;
-    if (posts.length > 0) {
-      total = await Post.countDocuments({ $text: { $search: sanitizedQuery } });
-    } else {
+
+    // Strategy A: MongoDB $text search
+    const textQuery = { $text: { $search: sanitizedQuery } };
+    [posts, total] = await Promise.all([
+      Post.find(textQuery, { score: { $meta: 'textScore' } })
+        .sort({ score: { $meta: 'textScore' } })
+        .populate('author', 'name username avatar college')
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Post.countDocuments(textQuery)
+    ]);
+
+    if (posts.length === 0) {
       // Strategy B: Fallback regex
-      posts = await Post.find({ 
-        content: { $regex: sanitizedQuery, $options: 'i' } 
-      })
-      .sort({ createdAt: -1 })
-      .populate('author', 'name username avatar college')
-      .skip(skip)
-      .limit(limit)
-      .lean();
-      
-      total = await Post.countDocuments({ content: { $regex: sanitizedQuery, $options: 'i' } });
+      const regexQuery = { content: { $regex: sanitizedQuery, $options: 'i' } };
+      [posts, total] = await Promise.all([
+        Post.find(regexQuery)
+          .sort({ createdAt: -1 })
+          .populate('author', 'name username avatar college')
+          .skip(skip)
+          .limit(limit)
+          .lean(),
+        Post.countDocuments(regexQuery)
+      ]);
     }
 
     // Add reaction summary and user reaction status

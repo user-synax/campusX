@@ -3,10 +3,20 @@ import connectDB from '@/lib/db';
 import Post from '@/models/Post';
 import { getCurrentUser } from '@/lib/auth';
 import { validateObjectId } from '@/utils/validators';
+import { applyRateLimit } from '@/lib/rate-limit';
 
 // POST /api/posts/[postId]/vote
 export async function POST(request, { params }) {
   try {
+    // Rate limit poll voting - 20 per hour per IP
+    const { blocked, response: rateLimitResponse } = applyRateLimit(
+      request,
+      'poll_vote',
+      20,
+      60 * 60 * 1000
+    );
+    if (blocked) return rateLimitResponse;
+
     const currentUser = await getCurrentUser(request);
     if (!currentUser) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });

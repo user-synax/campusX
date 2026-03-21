@@ -3,46 +3,39 @@ import connectDB from '@/lib/db'
 import User from '@/models/User'
 import { FOUNDER_USERNAME, isFounder } from '@/lib/founder'
 import { getCurrentUser } from '@/lib/auth'
+import { withCache, deleteCache } from '@/lib/cache'
 
 export async function GET() {
   try {
-    await connectDB()
+    const data = await withCache('founder_broadcast', 60, async () => {
+      await connectDB()
 
-    if (!FOUNDER_USERNAME) {
-      console.log('FOUNDER_USERNAME not set in broadcast GET')
-      return NextResponse.json({ broadcast: null })
-    }
-
-    const founder = await User.findOne({ 
-      username: { $regex: new RegExp(`^${FOUNDER_USERNAME}$`, 'i') } 
-    }).lean()
-
-    console.log('Broadcast check for:', FOUNDER_USERNAME, 'Found:', !!founder, 'Active:', founder?.founderData?.broadcastActive)
-
-    if (!founder || !founder.founderData?.broadcastActive) {
-      return NextResponse.json({ broadcast: null }, {
-        headers: {
-          'Cache-Control': 'no-store, max-age=0'
-        }
-      })
-    }
-
-    const broadcastData = {
-      message: founder.founderData.broadcastMessage,
-      id: founder.founderData.broadcastId,
-      createdAt: founder.founderData.broadcastCreatedAt
-    }
-
-    console.log('Returning broadcast data:', broadcastData)
-
-    return NextResponse.json({
-      broadcast: broadcastData
-    }, {
-      headers: {
-        'Cache-Control': 'no-store, max-age=0'
+      if (!FOUNDER_USERNAME) {
+        console.log('FOUNDER_USERNAME not set in broadcast GET')
+        return { broadcast: null }
       }
-    })
-  } catch (error) {
+
+      const founder = await User.findOne({ 
+        username: { $regex: new RegExp(`^${FOUNDER_USERNAME}$`, 'i') } 
+      }).lean()
+
+      if (!founder || !founder.founderData?.broadcastActive) {
+        return { broadcast: null }
+      }
+
+      return {
+        broadcast: {
+          message: founder.founderData.broadcastMessage,
+          id: founder.founderData.broadcastId,
+          createdAt: founder.founderData.broadcastCreatedAt
+        }
+      }
+    });
+
+    const response = NextResponse.json(data);
+    response.headers.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=30');
+    return response;
+  } catch (error) { 
     console.error('Broadcast GET error:', error)
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }
@@ -50,8 +43,17 @@ export async function GET() {
 
 export async function POST(request) {
   try {
-    await connectDB()
-    const currentUser = await getCurrentUser(request)
+    // Rate limit founder broadcast - 5 per hour per IP
+    const { blocked, response: rateLimitResponse } = applyRateLimit(
+      request,
+      'founder_broadcast',
+      5,
+      60 * 60 * 1000
+    );
+    if (blocked) return rateLimitResponse;
+
+    await connectDB();
+    const currentUser = await getCurrentUser(request);
 
     if (!currentUser || !isFounder(currentUser.username)) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
@@ -60,6 +62,7 @@ export async function POST(request) {
     const body = await request.json()
     const { message, active } = body
 
+    let updatedUser;
     if (active) {
       if (!message || message.trim().length === 0) {
         return NextResponse.json({ message: 'Message is required when activating broadcast' }, { status: 400 })
@@ -71,7 +74,7 @@ export async function POST(request) {
       const uniqueId = Date.now().toString(36) + Math.random().toString(36).slice(2)
       console.log('Activating broadcast for:', FOUNDER_USERNAME, 'with message:', message)
       
-      const updatedUser = await User.findOneAndUpdate(
+      updatedUser = await User.findOneAndUpdate(
         { username: { $regex: new RegExp(`^${FOUNDER_USERNAME}$`, 'i') } },
         {
           $set: {
@@ -83,13 +86,9 @@ export async function POST(request) {
         },
         { new: true }
       ).select('founderData')
-
-      console.log('Update success:', !!updatedUser, 'Active now:', updatedUser?.founderData?.broadcastActive)
-
-      return NextResponse.json({ success: true, broadcast: updatedUser.founderData })
     } else {
       console.log('Deactivating broadcast for:', FOUNDER_USERNAME)
-      const updatedUser = await User.findOneAndUpdate(
+      updatedUser = await User.findOneAndUpdate(
         { username: { $regex: new RegExp(`^${FOUNDER_USERNAME}$`, 'i') } },
         {
           $set: {
@@ -98,11 +97,12 @@ export async function POST(request) {
         },
         { new: true }
       ).select('founderData')
-
-      console.log('Deactivate success:', !!updatedUser, 'Active now:', updatedUser?.founderData?.broadcastActive)
-
-      return NextResponse.json({ success: true, broadcast: updatedUser.founderData })
     }
+
+    // Invalidate cache
+    deleteCache('founder_broadcast')
+
+    return NextResponse.json({ success: true, broadcast: updatedUser?.founderData })
   } catch (error) {
     console.error('Broadcast POST error:', error)
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 })

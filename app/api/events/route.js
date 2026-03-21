@@ -3,6 +3,7 @@ import connectDB from '@/lib/db';
 import Event from '@/models/Event';
 import { getCurrentUser } from '@/lib/auth';
 import { sanitizeString } from '@/utils/validators';
+import { applyRateLimit } from '@/lib/rate-limit';
 
 // GET /api/events - List events
 export async function GET(request) {
@@ -46,11 +47,14 @@ export async function GET(request) {
       isPast: new Date(event.eventDate) < new Date()
     }));
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       events: formattedEvents,
       hasMore: skip + events.length < total,
       total
     });
+
+    response.headers.set('Cache-Control', 'public, max-age=120, stale-while-revalidate=60');
+    return response;
   } catch (error) {
     console.error('Fetch events error:', error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
@@ -60,6 +64,15 @@ export async function GET(request) {
 // POST /api/events - Create event
 export async function POST(request) {
   try {
+    // Rate limit event creation - 5 per hour per IP
+    const { blocked, response: rateLimitResponse } = applyRateLimit(
+      request,
+      'event_create',
+      5,
+      60 * 60 * 1000
+    );
+    if (blocked) return rateLimitResponse;
+
     const currentUser = await getCurrentUser(request);
     if (!currentUser) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });

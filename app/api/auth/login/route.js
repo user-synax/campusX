@@ -1,14 +1,19 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import User from '@/models/User';
-import { signToken, setAuthCookie, checkRateLimit } from '@/lib/auth';
+import { signToken, setAuthCookie } from '@/lib/auth';
+import { applyRateLimit, rateLimit } from '@/lib/rate-limit';
 
 export async function POST(request) {
   try {
-    const ip = request.headers.get('x-forwarded-for') || '127.0.0.1';
-    if (!checkRateLimit(ip)) {
-      return NextResponse.json({ message: 'Too many attempts' }, { status: 429 });
-    }
+    // Rate limit login - 10 requests per 15 minutes per IP
+    const { blocked, response: rateLimitResponse } = applyRateLimit(
+      request,
+      'auth_login_ip',
+      10,
+      15 * 60 * 1000
+    );
+    if (blocked) return rateLimitResponse;
 
     let body;
     try {
@@ -18,6 +23,21 @@ export async function POST(request) {
     }
 
     const { email, password } = body;
+
+    // Rate limit login by email - 5 attempts per 15 minutes per email
+    const emailKey = `login_email_${email?.toLowerCase()}`;
+    const emailResult = rateLimit(emailKey, 5, 15 * 60 * 1000);
+    if (!emailResult.allowed) {
+      return NextResponse.json(
+        { message: `Too many login attempts for this account. Try again in ${emailResult.retryAfter} seconds.` },
+        { 
+          status: 429,
+          headers: {
+            'Retry-After': String(emailResult.retryAfter)
+          }
+        }
+      );
+    }
 
     await connectDB();
 

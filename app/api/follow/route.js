@@ -5,9 +5,19 @@ import { getCurrentUser } from '@/lib/auth';
 import { validateObjectId } from '@/utils/validators';
 import { createNotification } from '@/lib/notifications';
 import { awardXP } from '@/lib/xp';
+import { applyRateLimit } from '@/lib/rate-limit';
 
 export async function POST(request) {
   try {
+    // Rate limit follows - 30 follows per hour per IP
+    const { blocked, response: rateLimitResponse } = applyRateLimit(
+      request,
+      'user_follow',
+      30,
+      60 * 60 * 1000
+    );
+    if (blocked) return rateLimitResponse;
+
     const currentUserInfo = await getCurrentUser(request);
     if (!currentUserInfo) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });

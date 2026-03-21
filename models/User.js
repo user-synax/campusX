@@ -98,6 +98,14 @@ const userSchema = new mongoose.Schema({
     type: Number,
     default: 1,
   },
+  totalXP: {
+    type: Number,
+    default: 0,
+  },
+  weeklyXP: {
+    type: Number,
+    default: 0,
+  },
   isVerified: {
     type: Boolean,
     default: true
@@ -116,7 +124,15 @@ userSchema.methods.toSafeObject = function () {
   return userObject;
 };
 
-userSchema.index({ name: 'text', username: 'text', college: 'text' });
+userSchema.index({ username: 1 }, { unique: true });
+userSchema.index({ email: 1 }, { unique: true });
+userSchema.index({ college: 1 });
+userSchema.index({ followers: 1 });
+userSchema.index({ following: 1 });
+userSchema.index({ name: 'text', username: 'text' });
+userSchema.index({ totalXP: -1 });
+userSchema.index({ weeklyXP: -1 });
+userSchema.index({ college: 1, weeklyXP: -1 });
 
 const User = mongoose.models.User || mongoose.model('User', userSchema);
 

@@ -1,9 +1,19 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import User from '@/models/User';
+import { applyRateLimit } from '@/lib/rate-limit';
 
 export async function GET(request) {
   try {
+    // Rate limit search - 30 searches per minute per IP
+    const { blocked, response: rateLimitResponse } = applyRateLimit(
+      request,
+      'search_users',
+      30,
+      60 * 1000
+    );
+    if (blocked) return rateLimitResponse;
+
     const { searchParams } = new URL(request.url);
     let q = searchParams.get('q') || '';
     const page = parseInt(searchParams.get('page')) || 1;
@@ -25,53 +35,51 @@ export async function GET(request) {
 
     if (q.startsWith('@')) {
       const sanitizedUsername = q.substring(1).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      users = await User.find({ 
+      const query = { 
         username: { $regex: `^${sanitizedUsername}`, $options: 'i' } 
-      })
-      .select('name username avatar college bio followers following')
-      .skip(skip)
-      .limit(limit)
-      .lean();
-      
-      total = await User.countDocuments({ 
-        username: { $regex: `^${sanitizedUsername}`, $options: 'i' } 
-      });
+      };
+
+      [users, total] = await Promise.all([
+        User.find(query)
+          .select('name username avatar college bio followers following')
+          .skip(skip)
+          .limit(limit)
+          .lean(),
+        User.countDocuments(query)
+      ]);
     } else {
       const sanitizedQuery = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       
       // Strategy A: MongoDB $text search
-      users = await User.find(
-        { $text: { $search: sanitizedQuery } },
-        { score: { $meta: 'textScore' } }
-      )
-      .sort({ score: { $meta: 'textScore' } })
-      .select('name username avatar college bio followers following')
-      .skip(skip)
-      .limit(limit)
-      .lean();
+      const textQuery = { $text: { $search: sanitizedQuery } };
+      [users, total] = await Promise.all([
+        User.find(textQuery, { score: { $meta: 'textScore' } })
+          .sort({ score: { $meta: 'textScore' } })
+          .select('name username avatar college bio followers following')
+          .skip(skip)
+          .limit(limit)
+          .lean(),
+        User.countDocuments(textQuery)
+      ]);
 
-      if (users.length > 0) {
-        total = await User.countDocuments({ $text: { $search: sanitizedQuery } });
-      } else {
+      if (users.length === 0) {
         // Strategy B: Fallback regex on name or username
         const regexQuery = { $regex: sanitizedQuery, $options: 'i' };
-        users = await User.find({
+        const fallbackQuery = {
           $or: [
             { name: regexQuery },
             { username: regexQuery }
           ]
-        })
-        .select('name username avatar college bio followers following')
-        .skip(skip)
-        .limit(limit)
-        .lean();
-        
-        total = await User.countDocuments({
-          $or: [
-            { name: regexQuery },
-            { username: regexQuery }
-          ]
-        });
+        };
+
+        [users, total] = await Promise.all([
+          User.find(fallbackQuery)
+            .select('name username avatar college bio followers following')
+            .skip(skip)
+            .limit(limit)
+            .lean(),
+          User.countDocuments(fallbackQuery)
+        ]);
       }
     }
 

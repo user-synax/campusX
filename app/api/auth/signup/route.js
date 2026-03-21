@@ -4,9 +4,19 @@ import User from '@/models/User';
 import bcrypt from 'bcryptjs';
 import { signToken, setAuthCookie } from '@/lib/auth';
 import { validateEmail, validateUsername, validatePassword } from '@/utils/validators';
+import { applyRateLimit } from '@/lib/rate-limit';
 
 export async function POST(request) {
   try {
+    // Rate limit signup - 3 requests per hour per IP
+    const { blocked, response: rateLimitResponse } = applyRateLimit(
+      request,
+      'auth_signup',
+      3,
+      60 * 60 * 1000
+    );
+    if (blocked) return rateLimitResponse;
+
     let body;
     try {
       body = await request.json();
