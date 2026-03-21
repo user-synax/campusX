@@ -18,12 +18,14 @@ import EmptyState from "@/components/shared/EmptyState"
 import useUser from "@/hooks/useUser"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { useDebounce } from "@/hooks/useDebounce"
 
 export default function EventsPage() {
   const { user: currentUser } = useUser()
   const [events, setEvents] = useState([])
   const [filter, setFilter] = useState('upcoming')
   const [college, setCollege] = useState('')
+  const debouncedCollege = useDebounce(college, 400)
   const [loading, setLoading] = useState(true)
   const [hasMore, setHasMore] = useState(false)
   const [page, setPage] = useState(1)
@@ -49,12 +51,12 @@ export default function EventsPage() {
 
   useEffect(() => {
     fetchEvents()
-  }, [filter, college, page])
+  }, [filter, debouncedCollege, page])
 
   const fetchEvents = async () => {
     try {
       setLoading(true)
-      const res = await fetch(`/api/events?filter=${filter}&college=${encodeURIComponent(college)}&page=${page}&limit=10`)
+      const res = await fetch(`/api/events?filter=${filter}&college=${encodeURIComponent(debouncedCollege)}&page=${page}&limit=10`)
       const data = await res.json()
       
       if (res.ok) {

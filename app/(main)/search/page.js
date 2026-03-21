@@ -15,10 +15,12 @@ import { slugifyCollege } from "@/utils/formatters"
 import { cn } from "@/lib/utils"
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll"
 import InfiniteScrollSentinel from "@/components/shared/InfiniteScrollSentinel"
+import { useDebounce } from "@/hooks/useDebounce"
 
 export default function SearchPage() {
   const { user: currentUser } = useUser()
   const [query, setQuery] = useState('')
+  const debouncedQuery = useDebounce(query, 300)
   const [activeTab, setActiveTab] = useState('posts')
   const [postResults, setPostResults] = useState([])
   const [userResults, setUserResults] = useState([])
@@ -29,8 +31,8 @@ export default function SearchPage() {
   const [hasMore, setHasMore] = useState(false)
   const [page, setPage] = useState(1)
 
-  const performSearch = useCallback(async (pageNum = 1, append = false) => {
-    if (!query.trim()) return
+  const performSearch = useCallback(async (q, pageNum = 1, append = false) => {
+    if (!q.trim()) return
     
     setLoading(true)
     setError(null)
@@ -39,7 +41,7 @@ export default function SearchPage() {
     try {
       // For people search, we don't do infinite scroll yet in this simplified version
       // but we could if needed. Focusing on posts as per prompt.
-      const postsRes = await fetch(`/api/search/posts?q=${encodeURIComponent(query)}&page=${pageNum}&limit=20`)
+      const postsRes = await fetch(`/api/search/posts?q=${encodeURIComponent(q)}&page=${pageNum}&limit=20`)
       const postsData = await postsRes.json()
 
       if (postsRes.ok) {
@@ -49,7 +51,7 @@ export default function SearchPage() {
           setPostResults(postsData.posts || [])
           
           // Also fetch users on initial search
-          const usersRes = await fetch(`/api/search/users?q=${encodeURIComponent(query)}&limit=10`)
+          const usersRes = await fetch(`/api/search/users?q=${encodeURIComponent(q)}&limit=10`)
           const usersData = await usersRes.json()
           if (usersRes.ok) setUserResults(usersData.users || [])
         }
@@ -64,29 +66,25 @@ export default function SearchPage() {
     } finally {
       setLoading(false)
     }
-  }, [query])
+  }, [])
 
   // Debounce logic for search
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (query.trim().length >= 2) {
-        setPage(1) // Reset page on new query
-        performSearch(1, false)
-      } else if (query.trim().length === 0 && hasSearched) {
-        setPostResults([])
-        setUserResults([])
-        setHasSearched(false)
-        setHasMore(false)
-      }
-    }, 300)
-
-    return () => clearTimeout(timer)
-  }, [query, performSearch])
+    if (debouncedQuery.trim().length >= 2) {
+      setPage(1) // Reset page on new query
+      performSearch(debouncedQuery, 1, false)
+    } else if (debouncedQuery.trim().length === 0 && hasSearched) {
+      setPostResults([])
+      setUserResults([])
+      setHasSearched(false)
+      setHasMore(false)
+    }
+  }, [debouncedQuery, performSearch, hasSearched])
 
   const loadMore = useCallback(() => {
     if (!hasMore || loading || activeTab !== 'posts') return
-    performSearch(page + 1, true)
-  }, [page, hasMore, loading, activeTab, performSearch])
+    performSearch(debouncedQuery, page + 1, true)
+  }, [page, hasMore, loading, activeTab, performSearch, debouncedQuery])
 
   const { sentinelRef } = useInfiniteScroll({
     fetchMore: loadMore,

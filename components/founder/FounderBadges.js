@@ -1,8 +1,9 @@
 "use client"
 
+import { memo } from 'react'
 import { FOUNDER_BADGES } from '@/lib/founder' 
 
-export default function FounderBadges({ size = 'sm' }) {
+const FounderBadges = memo(function FounderBadges({ size = 'sm' }) {
   return (
     <div className="flex items-center gap-1 flex-wrap"> 
       {FOUNDER_BADGES.map(badge => ( 
@@ -29,4 +30,6 @@ export default function FounderBadges({ size = 'sm' }) {
       ))} 
     </div> 
   )
-}
+})
+
+export default FounderBadges

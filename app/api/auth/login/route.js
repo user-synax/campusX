@@ -27,6 +27,8 @@ export async function POST(request) {
     const cleanBody = sanitizeMongoInput(body);
     const { email, password } = cleanBody;
 
+    console.log('Login attempt for:', email);
+
     // Rate limit login by email - 5 attempts per 15 minutes per email
     const emailKey = `login_email_${email?.toString().toLowerCase()}`;
     const emailResult = rateLimit(emailKey, 5, 15 * 60 * 1000);

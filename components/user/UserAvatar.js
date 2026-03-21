@@ -1,10 +1,11 @@
 "use client"
 
+import { memo } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { User as UserIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-export default function UserAvatar({ user, size = 'md', className }) {
+const UserAvatar = memo(function UserAvatar({ user, size = 'md', className }) {
   const sizeClasses = {
     sm: 'w-8 h-8',
     md: 'w-10 h-10',
@@ -31,4 +32,6 @@ export default function UserAvatar({ user, size = 'md', className }) {
       </AvatarFallback>
     </Avatar>
   )
-}
+})
+
+export default UserAvatar

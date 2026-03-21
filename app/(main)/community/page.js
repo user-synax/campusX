@@ -9,11 +9,13 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import EmptyState from "@/components/shared/EmptyState"
 import CreateCommunityDialog from "@/components/post/CreateCommunityDialog"
+import { useDebounce } from "@/hooks/useDebounce"
 
 export default function CommunitiesPage() {
   const [communities, setCommunities] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const debouncedSearch = useDebounce(search, 400)
 
   const fetchCommunities = async () => {
     try {
@@ -34,7 +36,7 @@ export default function CommunitiesPage() {
   }, [])
 
   const filteredCommunities = communities.filter(c => 
-    c.name.toLowerCase().includes(search.toLowerCase())
+    c.name.toLowerCase().includes(debouncedSearch.toLowerCase())
   )
 
   return (

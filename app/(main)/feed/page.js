@@ -1,7 +1,8 @@
 "use client"
 
 import { FileText } from "lucide-react"
-import PostComposer from "@/components/post/PostComposer"
+import { useCallback } from "react"
+import dynamic from 'next/dynamic'
 import PostCard from "@/components/post/PostCard"
 import PostSkeleton from "@/components/post/PostSkeleton"
 import EmptyState from "@/components/shared/EmptyState"
@@ -9,6 +10,22 @@ import { usePosts } from "@/hooks/usePosts"
 import useUser from "@/hooks/useUser"
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll"
 import InfiniteScrollSentinel from "@/components/shared/InfiniteScrollSentinel"
+
+// Lazy load heavy components
+const PostComposer = dynamic( 
+  () => import('@/components/post/PostComposer'), 
+  { 
+    ssr: false,
+    loading: () => ( 
+      <div className="border-b border-border p-4 animate-pulse"> 
+        <div className="flex gap-3"> 
+          <div className="w-10 h-10 rounded-full bg-accent" /> 
+          <div className="flex-1 h-10 bg-accent rounded-lg" /> 
+        </div> 
+      </div> 
+    ) 
+  } 
+)
 
 export default function FeedPage() {
   const { user: currentUser, refetch: refetchCurrentUser } = useUser()
@@ -29,14 +46,22 @@ export default function FeedPage() {
     loading
   })
 
-  const handlePostCreated = (newPost) => {
+  const handlePostCreated = useCallback((newPost) => {
     addPost(newPost)
     if (newPost.xpAwarded) {
       refetchCurrentUser()
       // Dispatch update event for sidebar/mobile XP bars
       window.dispatchEvent(new CustomEvent('cx-xp-updated'))
     }
-  }
+  }, [addPost, refetchCurrentUser])
+
+  const handleDeletePost = useCallback((postId) => {
+    removePost(postId)
+  }, [removePost])
+
+  const handleLikePost = useCallback((postId, isLiked) => {
+    updatePostLike(postId, isLiked)
+  }, [updatePostLike])
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -68,8 +93,8 @@ export default function FeedPage() {
                   key={post._id} 
                   post={post} 
                   currentUserId={currentUser?._id} 
-                  onDelete={removePost} 
-                  onLike={updatePostLike} 
+                  onDelete={handleDeletePost} 
+                  onLike={handleLikePost} 
                 />
               ))}
             </div>

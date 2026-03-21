@@ -18,11 +18,13 @@ import { usePosts } from "@/hooks/usePosts"
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll"
 import InfiniteScrollSentinel from "@/components/shared/InfiniteScrollSentinel"
 import { isFounder } from "@/lib/founder"
-import FounderProfileHeader from "@/components/founder/FounderProfileHeader"
-import RoadmapWidget from '@/components/founder/RoadmapWidget' 
-import BroadcastManager from '@/components/founder/BroadcastManager' 
-import FollowListModal from "@/components/user/FollowListModal"
-import EditProfileDrawer from "@/components/user/EditProfileDrawer"
+import dynamic from 'next/dynamic'
+
+const FounderProfileHeader = dynamic(() => import('@/components/founder/FounderProfileHeader'), { ssr: false })
+const RoadmapWidget = dynamic(() => import('@/components/founder/RoadmapWidget'), { ssr: false })
+const BroadcastManager = dynamic(() => import('@/components/founder/BroadcastManager'), { ssr: false })
+const FollowListModal = dynamic(() => import('@/components/user/FollowListModal'), { ssr: false })
+const EditProfileDrawer = dynamic(() => import('@/components/user/EditProfileDrawer'), { ssr: false })
 
 export default function ProfilePage() {
   const params = useParams()

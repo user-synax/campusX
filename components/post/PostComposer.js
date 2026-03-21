@@ -1,18 +1,20 @@
 "use client"
 
-import { useState } from 'react'
-import { MapPin, X, BarChart2 } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import { MapPin, X, BarChart2, Link2, Loader2, ExternalLink } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
+import { Card } from "@/components/ui/card"
 import { toast } from "sonner"
 import UserAvatar from "@/components/user/UserAvatar"
 import PollCreator from "@/components/post/PollCreator"
 import { cn } from "@/lib/utils"
 import useUser from "@/hooks/useUser"
+import { useDebounce } from "@/hooks/useDebounce"
 
 export default function PostComposer({ onPostCreated, defaultCommunity, noBorder = false }) {
   const { user: currentUser } = useUser()
@@ -23,6 +25,39 @@ export default function PostComposer({ onPostCreated, defaultCommunity, noBorder
   const [manualCommunity, setManualCommunity] = useState('')
   const [showPoll, setShowPoll] = useState(false)
   const [pollOptions, setPollOptions] = useState(['', ''])
+
+  // Link preview state
+  const [linkPreview, setLinkPreview] = useState(null)
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false)
+  const debouncedContent = useDebounce(content, 800)
+
+  // Detect and fetch link preview
+  useEffect(() => {
+    const urlRegex = /(https?:\/\/[^\s]+)/g
+    const match = debouncedContent.match(urlRegex)
+    const url = match ? match[0] : null
+
+    if (url && (!linkPreview || linkPreview.originalUrl !== url)) {
+      fetchPreview(url)
+    } else if (!url) {
+      setLinkPreview(null)
+    }
+  }, [debouncedContent])
+
+  const fetchPreview = async (url) => {
+    setIsPreviewLoading(true)
+    try {
+      const res = await fetch(`/api/posts/preview?url=${encodeURIComponent(url)}`)
+      const data = await res.json()
+      if (res.ok) {
+        setLinkPreview({ ...data, originalUrl: url })
+      }
+    } catch (error) {
+      console.error('Failed to fetch preview:', error)
+    } finally {
+      setIsPreviewLoading(false)
+    }
+  }
 
   const handleSubmit = async () => {
     if (!content.trim() || content.length > 500) return
@@ -64,6 +99,7 @@ export default function PostComposer({ onPostCreated, defaultCommunity, noBorder
       setShowTagInput(false)
       setShowPoll(false)
       setPollOptions(['', ''])
+      setLinkPreview(null)
       if (onPostCreated) onPostCreated(newPost)
       
       toast.success("Posted!", {
@@ -93,6 +129,47 @@ export default function PostComposer({ onPostCreated, defaultCommunity, noBorder
             onChange={(e) => setContent(e.target.value)}
             maxLength={500}
           />
+
+          {/* Link Preview */}
+          {isPreviewLoading && (
+            <div className="mt-2 p-3 border border-border rounded-xl flex items-center gap-3 bg-accent/10 animate-pulse">
+              <Loader2 className="w-4 h-4 animate-spin text-primary" />
+              <span className="text-xs text-muted-foreground">Fetching link preview...</span>
+            </div>
+          )}
+
+          {linkPreview && !isPreviewLoading && (
+            <Card className="mt-2 overflow-hidden border-border bg-accent/10 group relative">
+              <button 
+                onClick={() => setLinkPreview(null)}
+                className="absolute top-2 right-2 z-10 p-1 rounded-full bg-background/80 hover:bg-background text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <X className="w-3 h-3" />
+              </button>
+              <div className="flex flex-col sm:flex-row gap-3">
+                {linkPreview.image && (
+                  <div className="w-full sm:w-32 h-32 sm:h-auto shrink-0 bg-secondary">
+                    <img 
+                      src={linkPreview.image} 
+                      alt="" 
+                      className="w-full h-full object-cover"
+                      onError={(e) => e.target.style.display = 'none'}
+                    />
+                  </div>
+                )}
+                <div className="p-3 flex-1 min-w-0 flex flex-col justify-center">
+                  <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-1">
+                    <Link2 className="w-3 h-3" />
+                    <span className="truncate">{linkPreview.siteName || new URL(linkPreview.url).hostname}</span>
+                  </div>
+                  <h4 className="font-bold text-sm line-clamp-1 mb-1">{linkPreview.title}</h4>
+                  <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                    {linkPreview.description}
+                  </p>
+                </div>
+              </div>
+            </Card>
+          )}
 
           {/* Manual Tag Input */}
           {showTagInput && !defaultCommunity && (

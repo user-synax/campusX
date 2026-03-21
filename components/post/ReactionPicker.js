@@ -1,15 +1,13 @@
 "use client"
 
 import { useEffect, useRef } from "react"
+import { REACTIONS as REACTION_EMOJIS } from "@/lib/reaction-utils"
 
-export const REACTIONS = [ 
-  { type: 'like', emoji: '❤️', label: 'Like' }, 
-  { type: 'funny', emoji: '😂', label: 'Funny' }, 
-  { type: 'wow', emoji: '😮', label: 'Wow' }, 
-  { type: 'sad', emoji: '😢', label: 'Sad' }, 
-  { type: 'respect', emoji: '👏', label: 'Respect' }, 
-  { type: 'fire', emoji: '🔥', label: 'Fire' }, 
-]
+const REACTION_LIST = Object.entries(REACTION_EMOJIS).map(([type, emoji]) => ({
+  type,
+  emoji,
+  label: type.charAt(0).toUpperCase() + type.slice(1)
+}))
 
 export default function ReactionPicker({ onSelect, currentReaction, onClose }) {
   const pickerRef = useRef(null)
@@ -42,22 +40,19 @@ export default function ReactionPicker({ onSelect, currentReaction, onClose }) {
       className="absolute bottom-full left-0 mb-2 z-50 bg-card border border-border rounded-full px-2 py-1.5 flex gap-1 shadow-lg animate-in fade-in-0 zoom-in-95"
       onClick={(e) => e.stopPropagation()}
     > 
-      {REACTIONS.map(r => ( 
+      {REACTION_LIST.map(r => ( 
         <button 
           key={r.type} 
           onClick={(e) => {
             e.preventDefault()
             e.stopPropagation()
             onSelect(r.type)
-            onClose()
-          }} 
-          title={r.label} 
-          className={`text-xl hover:scale-125 transition-transform px-1 rounded-full ${ 
-            currentReaction === r.type ? 'bg-accent scale-110' : 'hover:bg-accent/50' 
-          }`} 
-        > 
-          {r.emoji} 
-        </button> 
+          }}
+          className={`text-xl hover:scale-125 transition-transform p-1.5 rounded-full ${currentReaction === r.type ? 'bg-accent' : 'hover:bg-accent/50'}`}
+          title={r.label}
+        >
+          {r.emoji}
+        </button>
       ))} 
     </div>
   )

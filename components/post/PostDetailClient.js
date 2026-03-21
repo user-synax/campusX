@@ -9,11 +9,13 @@ import {
   MessageCircle, 
   Share2, 
   FileX, 
-  Loader2
+  Loader2,
+  ExternalLink
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import { Card } from "@/components/ui/card"
 import { toast } from "sonner"
 import UserAvatar from "@/components/user/UserAvatar"
 import PollDisplay from "@/components/post/PollDisplay"
@@ -293,6 +295,46 @@ export default function PostDetailClient({ postId }) {
             )
           ))}
         </div>
+
+        {post.linkPreview && (
+          <div className="mb-6">
+            <a 
+              href={post.linkPreview.url} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="block group/link"
+            >
+              <Card className="overflow-hidden border-border bg-accent/5 hover:bg-accent/10 transition-colors">
+                <div className="flex flex-col sm:flex-row gap-4">
+                  {post.linkPreview.image && (
+                    <div className="w-full sm:w-40 h-40 sm:h-auto shrink-0 bg-secondary">
+                      <img 
+                        src={post.linkPreview.image} 
+                        alt="" 
+                        className="w-full h-full object-cover"
+                        onError={(e) => { e.currentTarget.style.display = 'none' }}
+                      />
+                    </div>
+                  )}
+                  <div className="p-4 flex-1 min-w-0 flex flex-col justify-center">
+                    <h4 className="font-bold text-lg line-clamp-2 group-hover/link:text-primary transition-colors">
+                      {post.linkPreview.title}
+                    </h4>
+                    {post.linkPreview.description && (
+                      <p className="text-sm text-muted-foreground line-clamp-3 mt-2 leading-relaxed">
+                        {post.linkPreview.description}
+                      </p>
+                    )}
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-4">
+                      <ExternalLink className="w-4 h-4" />
+                      <span className="truncate">{new URL(post.linkPreview.url).hostname}</span>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            </a>
+          </div>
+        )}
 
         {/* Poll */}
         {post.poll?.options?.length > 0 && (

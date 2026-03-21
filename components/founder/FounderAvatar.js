@@ -1,6 +1,8 @@
 "use client"
 
-export default function FounderAvatar({ user, size = 'md' }) {
+import { memo } from 'react'
+
+const FounderAvatar = memo(function FounderAvatar({ user, size = 'md' }) {
   const sizeMap = { 
     sm: 'w-9 h-9', 
     md: 'w-11 h-11', 
@@ -23,4 +25,6 @@ export default function FounderAvatar({ user, size = 'md' }) {
       </div> 
     </div> 
   )
-}
+})
+
+export default FounderAvatar

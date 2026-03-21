@@ -1,8 +1,9 @@
 "use client"
 
+import { memo } from 'react'
 import { Skeleton } from "@/components/ui/skeleton"
 
-export default function PostSkeleton() {
+const PostSkeleton = memo(function PostSkeleton() {
   return (
     <div className="border-b border-border p-4">
       <div className="flex gap-3">
@@ -22,4 +23,6 @@ export default function PostSkeleton() {
       </div>
     </div>
   )
-}
+})
+
+export default PostSkeleton

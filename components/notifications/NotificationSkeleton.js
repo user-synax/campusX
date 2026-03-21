@@ -1,6 +1,7 @@
+import { memo } from 'react'
 import { Skeleton } from "@/components/ui/skeleton"
 
-export default function NotificationSkeleton() {
+const NotificationSkeleton = memo(function NotificationSkeleton() {
   return (
     <div className="flex gap-3 p-4 border-b border-border animate-pulse">
       <Skeleton className="w-10 h-10 rounded-full bg-secondary" />
@@ -14,4 +15,6 @@ export default function NotificationSkeleton() {
       <Skeleton className="w-4 h-4 bg-secondary" />
     </div>
   )
-}
+})
+
+export default NotificationSkeleton

@@ -1,10 +1,11 @@
 "use client"
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, memo, useCallback } from 'react'
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Heart, MessageCircle, Trash2, Bookmark, MoreHorizontal, Pin } from "lucide-react"
+import { Heart, MessageCircle, Trash2, Bookmark, MoreHorizontal, Pin, ExternalLink } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { Card } from "@/components/ui/card"
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -13,10 +14,14 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu"
 import { toast } from "sonner"
+import dynamic from 'next/dynamic'
 import UserAvatar from "@/components/user/UserAvatar"
-import CommentSection from "@/components/post/CommentSection"
-import PollDisplay from "@/components/post/PollDisplay"
-import ReactionPicker, { REACTIONS } from "@/components/post/ReactionPicker"
+
+// Lazy load heavy dialogs/modals
+const CommentSection = dynamic(() => import('@/components/post/CommentSection'), { ssr: false })
+const PollDisplay = dynamic(() => import('@/components/post/PollDisplay'), { ssr: false })
+const ReactionPicker = dynamic(() => import('@/components/post/ReactionPicker'), { ssr: false })
+
 import { formatRelativeTime } from "@/utils/formatters"
 import { renderContentWithHashtags } from "@/utils/hashtags"
 import { cn } from "@/lib/utils"
@@ -25,7 +30,9 @@ import { isFounder } from "@/lib/founder"
 import FounderAvatar from "@/components/founder/FounderAvatar"
 import FounderBadges from "@/components/founder/FounderBadges"
 
-export default function PostCard({ post, currentUserId, onDelete, onLike, onBookmark, isPinned = false }) {
+import { REACTIONS as REACTION_EMOJIS } from "@/lib/reaction-utils"
+
+const PostCard = memo(function PostCard({ post, currentUserId, onDelete, onLike, onBookmark, isPinned = false }) {
   const router = useRouter()
   const { user: currentUser } = useUser()
   const [userReaction, setUserReaction] = useState(post._userReaction || null)
@@ -36,10 +43,10 @@ export default function PostCard({ post, currentUserId, onDelete, onLike, onBook
   const [showComments, setShowComments] = useState(false)
   const [isBookmarked, setIsBookmarked] = useState(false);
 
-  const formatCount = (count) => {
+  const formatCount = useCallback((count) => {
     if (count >= 1000) return (count / 1000).toFixed(1) + 'k'
     return count
-  }
+  }, [])
 
   useEffect(() => {
     if (!currentUser) return;
@@ -57,7 +64,7 @@ export default function PostCard({ post, currentUserId, onDelete, onLike, onBook
     checkBookmark();
   }, [currentUser, post._id]);
 
-  const handleReact = async (reactionType) => {
+  const handleReact = useCallback(async (reactionType) => {
     if (!currentUser) {
       toast.error("Please login to react")
       return
@@ -92,9 +99,6 @@ export default function PostCard({ post, currentUserId, onDelete, onLike, onBook
       .sort((a, b) => nextSummary.byType[b] - nextSummary.byType[a])
       .slice(0, 3);
     
-    const REACTION_EMOJIS = {
-      like: '❤️', funny: '😂', wow: '😮', sad: '😢', respect: '👏', fire: '🔥'
-    }
     nextSummary.topEmojis = sortedTypes.map(type => REACTION_EMOJIS[type])
 
     setUserReaction(nextReaction)
@@ -123,9 +127,9 @@ export default function PostCard({ post, currentUserId, onDelete, onLike, onBook
         description: error.message,
       })
     }
-  }
+  }, [currentUser, post._id, reactionSummary, userReaction])
 
-  const handleBookmark = async (e) => {
+  const handleBookmark = useCallback(async (e) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -149,9 +153,9 @@ export default function PostCard({ post, currentUserId, onDelete, onLike, onBook
       setIsBookmarked(wasBookmarked);
       toast.error(error.message || 'Failed to update bookmark');
     }
-  };
+  }, [isBookmarked, onBookmark, post._id])
 
-  const handleDelete = async (e) => {
+  const handleDelete = useCallback(async (e) => {
     e.preventDefault()
     e.stopPropagation()
 
@@ -176,9 +180,9 @@ export default function PostCard({ post, currentUserId, onDelete, onLike, onBook
         variant: "destructive",
       })
     }
-  }
+  }, [onDelete, post._id])
 
-  const handlePin = async (e) => {
+  const handlePin = useCallback(async (e) => {
     e.preventDefault()
     e.stopPropagation()
 
@@ -198,9 +202,9 @@ export default function PostCard({ post, currentUserId, onDelete, onLike, onBook
       // Force refresh current profile view if needed
       window.location.reload()
     } catch (error) {
-      toast.error(error.message || "Failed to update pin")
+      toast.error("Failed to pin post")
     }
-  }
+  }, [isPinned, post._id])
 
   const isPostFounder = !post.isAnonymous && post.author && typeof post.author === 'object' && isFounder(post.author.username)
 
@@ -320,7 +324,7 @@ export default function PostCard({ post, currentUserId, onDelete, onLike, onBook
                 > 
                   {userReaction ? ( 
                     <span className="text-base leading-none"> 
-                      {REACTIONS.find(r => r.type === userReaction)?.emoji} 
+                      {REACTION_EMOJIS[userReaction]} 
                     </span> 
                   ) : ( 
                     <Heart className="w-4 h-4" /> 
@@ -408,4 +412,6 @@ export default function PostCard({ post, currentUserId, onDelete, onLike, onBook
       </div>
     </div>
   )
-}
+})
+
+export default PostCard
