@@ -21,6 +21,7 @@
     "@radix-ui/react-switch": "^1.2.6",
     "@tailwindcss/postcss": "^4.2.2",
     "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.0.0",
     "autoprefixer": "^10.4.27",
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
