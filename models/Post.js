@@ -67,6 +67,12 @@ const postSchema = new mongoose.Schema({
   studyGroup: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'StudyGroup'
+  },
+  linkPreview: {
+    title: String,
+    description: String,
+    image: String,
+    url: String
   }
 }, { 
   timestamps: true,toJSON: { virtuals: true },

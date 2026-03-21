@@ -33,7 +33,7 @@ export async function POST(request) {
       return NextResponse.json({ message: 'Invalid request body' }, { status: 400 });
     }
 
-    const { content, community, isAnonymous, poll } = body;
+    const { content, community, isAnonymous, poll, linkPreview } = body;
 
     await connectDB();
 
@@ -78,7 +78,13 @@ export async function POST(request) {
       community: sanitizeText(community) || '',
       isAnonymous: isAnonymous || false,
       poll: pollData,
-      hashtags
+      hashtags,
+      linkPreview: linkPreview ? {
+        title: sanitizeText(linkPreview.title),
+        description: sanitizeText(linkPreview.description),
+        image: linkPreview.image, // URL doesn't need text sanitization but validateURL could be used
+        url: linkPreview.url
+      } : null
     });
 
     await post.populate('author', 'name username avatar college');

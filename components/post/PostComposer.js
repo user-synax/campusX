@@ -76,7 +76,13 @@ export default function PostComposer({ onPostCreated, defaultCommunity, noBorder
       content,
       community: defaultCommunity || manualCommunity,
       isAnonymous,
-      poll: showPoll ? pollOptions.filter(o => o.trim()) : null
+      poll: showPoll ? pollOptions.filter(o => o.trim()) : null,
+      linkPreview: linkPreview ? {
+        title: linkPreview.title,
+        description: linkPreview.description,
+        image: linkPreview.image,
+        url: linkPreview.url
+      } : null
     };
 
     setIsLoading(true)
