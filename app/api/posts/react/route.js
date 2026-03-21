@@ -6,6 +6,7 @@ import { validateObjectId } from '@/utils/validators';
 import { createNotification, deleteNotification } from '@/lib/notifications';
 import { REACTION_KEYS, computeReactionSummary } from '@/lib/reaction-utils';
 import { applyRateLimit } from '@/lib/rate-limit';
+import { sanitizeMongoInput } from '@/lib/sanitize';
 
 export async function POST(request) {
   try {
@@ -30,7 +31,8 @@ export async function POST(request) {
       return NextResponse.json({ message: 'Invalid request body' }, { status: 400 });
     }
 
-    const { postId, reactionType } = body;
+    const cleanBody = sanitizeMongoInput(body);
+    const { postId, reactionType } = cleanBody;
 
     if (!validateObjectId(postId)) {
       return NextResponse.json({ message: 'Invalid Post ID' }, { status: 400 });

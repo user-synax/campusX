@@ -1,15 +1,16 @@
 import { NextResponse } from 'next/server'
 import connectDB from '@/lib/db'
 import User from '@/models/User'
+import { sanitizeMongoInput } from '@/lib/sanitize'
 
 export async function GET(request, { params }) {
   try {
-    const { username } = await params
+    const { username } = sanitizeMongoInput(await params)
 
     await connectDB()
 
     const user = await User.findOne({ 
-      username: { $regex: new RegExp(`^${username.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } 
+      username: { $regex: new RegExp(`^${username.toString().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } 
     }).select('followers following').lean()
 
     if (!user) {

@@ -3,6 +3,7 @@ import connectDB from '@/lib/db';
 import User from '@/models/User';
 import { signToken, setAuthCookie } from '@/lib/auth';
 import { applyRateLimit, rateLimit } from '@/lib/rate-limit';
+import { sanitizeUser, sanitizeMongoInput } from '@/lib/sanitize';
 
 export async function POST(request) {
   try {
@@ -22,10 +23,12 @@ export async function POST(request) {
       return NextResponse.json({ message: 'Invalid request body' }, { status: 400 });
     }
 
-    const { email, password } = body;
+    // Sanitize against MongoDB Injection
+    const cleanBody = sanitizeMongoInput(body);
+    const { email, password } = cleanBody;
 
     // Rate limit login by email - 5 attempts per 15 minutes per email
-    const emailKey = `login_email_${email?.toLowerCase()}`;
+    const emailKey = `login_email_${email?.toString().toLowerCase()}`;
     const emailResult = rateLimit(emailKey, 5, 15 * 60 * 1000);
     if (!emailResult.allowed) {
       return NextResponse.json(
@@ -59,7 +62,7 @@ export async function POST(request) {
 
     const token = signToken({ userId: user._id, username: user.username });
 
-    const response = NextResponse.json({ success: true, user: user.toSafeObject() });
+    const response = NextResponse.json({ success: true, user: sanitizeUser(user) });
 
     setAuthCookie(response, token);
 

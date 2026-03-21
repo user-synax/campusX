@@ -3,6 +3,7 @@ import connectDB from '@/lib/db';
 import User from '@/models/User';
 import { getCurrentUser } from '@/lib/auth';
 import { validateObjectId } from '@/utils/validators';
+import { sanitizeMongoInput } from '@/lib/sanitize';
 
 // GET /api/bookmarks/check?postId=xxx
 export async function GET(request) {
@@ -13,7 +14,7 @@ export async function GET(request) {
     }
 
     const { searchParams } = new URL(request.url);
-    const postId = searchParams.get('postId');
+    const postId = sanitizeMongoInput(searchParams.get('postId'));
 
     if (!postId || !validateObjectId(postId)) {
       return NextResponse.json({ message: 'Invalid Post ID' }, { status: 400 });

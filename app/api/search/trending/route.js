@@ -3,6 +3,7 @@ import connectDB from '@/lib/db';
 import Post from '@/models/Post';
 import User from '@/models/User';
 import { withCache } from '@/lib/cache';
+import { sanitizeUser } from '@/lib/sanitize';
 
 export async function GET(request) {
   try {
@@ -60,7 +61,7 @@ export async function GET(request) {
       ]);
 
       const activeUsers = activeUsersRaw.map(item => ({
-        ...item.user,
+        ...sanitizeUser(item.user),
         postCount: item.count
       }));
 

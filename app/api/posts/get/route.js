@@ -4,6 +4,7 @@ import Post from '@/models/Post';
 import User from '@/models/User';
 import { getCurrentUser } from '@/lib/auth';
 import { computeReactionSummary, getUserReaction } from '@/lib/reaction-utils';
+import { sanitizeMongoInput, sanitizeUser } from '@/lib/sanitize';
 
 export async function GET(request) {
   try {
@@ -11,19 +12,19 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page')) || 1;
     const limit = Math.min(parseInt(searchParams.get('limit')) || 20, 50);
-    const community = searchParams.get('community');
-    const username = searchParams.get('username');
+    const community = sanitizeMongoInput(searchParams.get('community'));
+    const username = sanitizeMongoInput(searchParams.get('username'));
 
     await connectDB();
 
     const query = {};
     if (community) {
-      const escapedCommunity = community.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const escapedCommunity = community.toString().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       query.community = { $regex: new RegExp(`^${escapedCommunity}$`, 'i') };
     }
 
     if (username) {
-      const user = await User.findOne({ username })
+      const user = await User.findOne({ username: username.toString() })
         .select('_id')
         .lean();
       if (user) {
@@ -51,10 +52,11 @@ export async function GET(request) {
       const userReaction = currentUser ? getUserReaction(post.reactions, currentUser._id, post.likes) : null;
       
       // Remove raw reactions and likes for privacy/payload size
-      const { reactions, likes, ...postData } = post;
+      const { reactions, likes, author, ...postData } = post;
       
       return {
         ...postData,
+        author: sanitizeUser(author),
         _reactionSummary: summary,
         _userReaction: userReaction
       };

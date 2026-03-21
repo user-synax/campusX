@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
+import { sanitizeUser } from '@/lib/sanitize';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,7 +12,7 @@ export async function GET(request) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    return NextResponse.json({ success: true, user });
+    return NextResponse.json({ success: true, user: sanitizeUser(user) });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });

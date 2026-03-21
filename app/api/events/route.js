@@ -4,6 +4,7 @@ import Event from '@/models/Event';
 import { getCurrentUser } from '@/lib/auth';
 import { sanitizeString } from '@/utils/validators';
 import { applyRateLimit } from '@/lib/rate-limit';
+import { sanitizeText } from '@/lib/sanitize';
 
 // GET /api/events - List events
 export async function GET(request) {
@@ -131,11 +132,11 @@ export async function POST(request) {
     await connectDB();
 
     const event = await Event.create({
-      title: sanitizeString(title),
-      description: description ? description.substring(0, 1000) : '',
+      title: sanitizeText(title),
+      description: description ? sanitizeText(description).substring(0, 1000) : '',
       organizer: currentUser._id,
-      college: college.trim(),
-      location: sanitizeString(location),
+      college: sanitizeText(college),
+      location: sanitizeText(location),
       eventDate: date,
       capacity: eventCapacity,
       tags: eventTags,

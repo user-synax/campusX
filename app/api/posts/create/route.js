@@ -8,6 +8,7 @@ import { indexHashtags } from '@/lib/hashtag-utils';
 import { awardXP } from '@/lib/xp';
 import { deleteCachePattern } from '@/lib/cache';
 import { applyRateLimit } from '@/lib/rate-limit';
+import { sanitizeText } from '@/lib/sanitize';
 
 export async function POST(request) {
   try {
@@ -40,7 +41,7 @@ export async function POST(request) {
       return NextResponse.json({ message: 'Content is required' }, { status: 400 });
     }
 
-    const sanitizedContent = sanitizeString(content);
+    const sanitizedContent = sanitizeText(content);
     if (sanitizedContent.length > 500) {
       return NextResponse.json({ message: 'Post too long' }, { status: 400 });
     }
@@ -51,7 +52,7 @@ export async function POST(request) {
     let pollData = null;
     if (poll && Array.isArray(poll) && poll.length > 0) {
       const trimmedOptions = poll
-        .map(opt => typeof opt === 'string' ? opt.trim() : '')
+        .map(opt => typeof opt === 'string' ? sanitizeText(opt) : '')
         .filter(opt => opt.length > 0);
       
       const uniqueOptions = [...new Set(trimmedOptions)];
@@ -74,7 +75,7 @@ export async function POST(request) {
     const post = await Post.create({
       author: currentUser._id,
       content: sanitizedContent,
-      community: community || '',
+      community: sanitizeText(community) || '',
       isAnonymous: isAnonymous || false,
       poll: pollData,
       hashtags

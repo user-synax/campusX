@@ -3,6 +3,7 @@ import connectDB from '@/lib/db';
 import Event from '@/models/Event';
 import { getCurrentUser } from '@/lib/auth';
 import { validateObjectId } from '@/utils/validators';
+import { sanitizeMongoInput } from '@/lib/sanitize';
 
 // POST /api/events/[eventId]/rsvp - Toggle RSVP
 export async function POST(request, { params }) {
@@ -12,7 +13,7 @@ export async function POST(request, { params }) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    const { eventId } = await params;
+    const { eventId } = sanitizeMongoInput(await params);
     if (!validateObjectId(eventId)) {
       return NextResponse.json({ message: 'Invalid Event ID' }, { status: 400 });
     }

@@ -4,6 +4,7 @@ import Post from '@/models/Post';
 import { getCurrentUser } from '@/lib/auth';
 import { computeReactionSummary, getUserReaction } from '@/lib/reaction-utils';
 import { applyRateLimit } from '@/lib/rate-limit';
+import { sanitizeMongoInput, sanitizeUser } from '@/lib/sanitize';
 
 export async function GET(request) {
   try {
@@ -18,7 +19,7 @@ export async function GET(request) {
 
     const currentUser = await getCurrentUser(request);
     const { searchParams } = new URL(request.url);
-    let q = searchParams.get('q') || '';
+    let q = sanitizeMongoInput(searchParams.get('q') || '');
     const page = parseInt(searchParams.get('page')) || 1;
     const limit = Math.min(parseInt(searchParams.get('limit')) || 20, 50);
     const skip = (page - 1) * limit;
@@ -28,11 +29,11 @@ export async function GET(request) {
     }
 
     if (q.length > 100) {
-      q = q.substring(0, 100);
+      q = q.toString().substring(0, 100);
     }
 
     // Sanitize: remove special regex characters
-    let sanitizedQuery = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    let sanitizedQuery = q.toString().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     
     // Sanitize @ prefix
     if (sanitizedQuery.startsWith('@')) {
@@ -75,10 +76,11 @@ export async function GET(request) {
       const summary = computeReactionSummary(post.reactions, post.likes);
       const userReaction = currentUser ? getUserReaction(post.reactions, currentUser._id, post.likes) : null;
       
-      const { reactions, likes, ...postData } = post;
+      const { reactions, likes, author, ...postData } = post;
       
       return {
         ...postData,
+        author: sanitizeUser(author),
         _reactionSummary: summary,
         _userReaction: userReaction
       };

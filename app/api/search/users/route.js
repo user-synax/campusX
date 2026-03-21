@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import User from '@/models/User';
 import { applyRateLimit } from '@/lib/rate-limit';
+import { sanitizeMongoInput, sanitizeUser } from '@/lib/sanitize';
 
 export async function GET(request) {
   try {
@@ -15,7 +16,7 @@ export async function GET(request) {
     if (blocked) return rateLimitResponse;
 
     const { searchParams } = new URL(request.url);
-    let q = searchParams.get('q') || '';
+    let q = sanitizeMongoInput(searchParams.get('q') || '');
     const page = parseInt(searchParams.get('page')) || 1;
     const limit = Math.min(parseInt(searchParams.get('limit')) || 10, 30);
     const skip = (page - 1) * limit;
@@ -85,9 +86,9 @@ export async function GET(request) {
 
     // Clean user objects (ensure no sensitive data is returned)
     const cleanedUsers = users.map(user => {
-      const { password, ...safeUser } = user;
+      const sanitized = sanitizeUser(user);
       return {
-        ...safeUser,
+        ...sanitized,
         followersCount: user.followers?.length || 0,
         followingCount: user.following?.length || 0,
       };

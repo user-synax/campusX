@@ -5,6 +5,7 @@ import Post from '@/models/Post';
 import { getCurrentUser } from '@/lib/auth';
 import { validateObjectId } from '@/utils/validators';
 import { computeReactionSummary, getUserReaction } from '@/lib/reaction-utils';
+import { sanitizeMongoInput, sanitizeUser } from '@/lib/sanitize';
 
 // POST /api/bookmarks - Toggle bookmark
 export async function POST(request) {
@@ -21,7 +22,8 @@ export async function POST(request) {
       return NextResponse.json({ message: 'Invalid request body' }, { status: 400 });
     }
 
-    const { postId } = body;
+    const cleanBody = sanitizeMongoInput(body);
+    const { postId } = cleanBody;
 
     if (!postId || !validateObjectId(postId)) {
       return NextResponse.json({ message: 'Invalid Post ID' }, { status: 400 });
@@ -76,9 +78,6 @@ export async function GET(request) {
     const user = await User.findById(currentUserInfo._id).select('bookmarks').lean();
     
     // Sort bookmarks to have newest first (Mongoose push adds to end, so we reverse it)
-    // The instructions don't explicitly say newest first, but it's common for bookmarks.
-    // However, the instructions say "Sort by the ORDER they were bookmarked". 
-    // Usually that means newest first. Let's assume newest first (reversed bookmarks array).
     const allBookmarks = [...user.bookmarks].reverse();
     const total = allBookmarks.length;
     const paginatedIds = allBookmarks.slice(skip, skip + limit);
@@ -92,10 +91,12 @@ export async function GET(request) {
       .populate('author', 'name username avatar college')
       .lean();
 
-    // Filter out null results (posts that were deleted)
-    // Also, preserve the order of bookmarks
+    // Preserve the order of bookmarks and sanitize users
     const postsMap = posts.reduce((acc, post) => {
-      acc[post._id.toString()] = post;
+      acc[post._id.toString()] = {
+        ...post,
+        author: sanitizeUser(post.author)
+      };
       return acc;
     }, {});
 

@@ -8,6 +8,7 @@ import { validateObjectId } from '@/utils/validators';
 import { removeHashtags } from '@/lib/hashtag-utils';
 import { deletePostNotifications } from '@/lib/notifications';
 import { applyRateLimit } from '@/lib/rate-limit';
+import { sanitizeMongoInput } from '@/lib/sanitize';
 
 export async function DELETE(request) {
   try {
@@ -32,7 +33,8 @@ export async function DELETE(request) {
       return NextResponse.json({ message: 'Invalid request body' }, { status: 400 });
     }
 
-    const { postId } = body;
+    const cleanBody = sanitizeMongoInput(body);
+    const { postId } = cleanBody;
 
     if (!validateObjectId(postId)) {
       return NextResponse.json({ message: 'Invalid Post ID' }, { status: 400 });

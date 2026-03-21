@@ -3,9 +3,10 @@ import connectDB from '@/lib/db';
 import Post from '@/models/Post';
 import Comment from '@/models/Comment';
 import { getCurrentUser } from '@/lib/auth';
-import { validateObjectId, sanitizeString } from '@/utils/validators';
+import { validateObjectId } from '@/utils/validators';
 import { createNotification } from '@/lib/notifications';
 import { applyRateLimit } from '@/lib/rate-limit';
+import { sanitizeText } from '@/lib/sanitize';
 
 // GET /api/posts/[postId]/comments
 export async function GET(request, { params }) {
@@ -33,6 +34,11 @@ export async function GET(request, { params }) {
 // POST /api/posts/[postId]/comments
 export async function POST(request, { params }) {
   try {
+    const { postId } = await params;
+    if (!validateObjectId(postId)) {
+      return NextResponse.json({ message: 'Invalid Post ID' }, { status: 400 });
+    }
+
     // Rate limit comments - 20 comments per 10 minutes per IP
     const { blocked, response: rateLimitResponse } = applyRateLimit(
       request,
@@ -47,11 +53,6 @@ export async function POST(request, { params }) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    const { postId } = await params;
-    if (!validateObjectId(postId)) {
-      return NextResponse.json({ message: 'Invalid Post ID' }, { status: 400 });
-    }
-
     let body;
     try {
       body = await request.json();
@@ -64,7 +65,7 @@ export async function POST(request, { params }) {
       return NextResponse.json({ message: 'Comment content is required' }, { status: 400 });
     }
 
-    const sanitizedContent = sanitizeString(content);
+    const sanitizedContent = sanitizeText(content);
     if (sanitizedContent.length > 280) {
       return NextResponse.json({ message: 'Comment too long' }, { status: 400 });
     }

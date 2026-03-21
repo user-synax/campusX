@@ -3,6 +3,7 @@ import connectDB from '@/lib/db';
 import Event from '@/models/Event';
 import { getCurrentUser } from '@/lib/auth';
 import { validateObjectId } from '@/utils/validators';
+import { sanitizeMongoInput } from '@/lib/sanitize';
 
 // GET /api/events/[eventId]/rsvp-status - Check if current user has RSVPed
 export async function GET(request, { params }) {
@@ -12,7 +13,7 @@ export async function GET(request, { params }) {
       return NextResponse.json({ rsvped: false });
     }
 
-    const { eventId } = await params;
+    const { eventId } = sanitizeMongoInput(await params);
     if (!validateObjectId(eventId)) {
       return NextResponse.json({ message: 'Invalid Event ID' }, { status: 400 });
     }

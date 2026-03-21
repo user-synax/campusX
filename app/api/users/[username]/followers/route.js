@@ -2,19 +2,20 @@ import { NextResponse } from 'next/server'
 import connectDB from '@/lib/db'
 import User from '@/models/User'
 import { getCurrentUser } from '@/lib/auth'
+import { sanitizeMongoInput, sanitizeUser } from '@/lib/sanitize'
 
 export async function GET(request, { params }) {
   try {
-    const { username } = await params
+    const { username } = sanitizeMongoInput(await params)
     const { searchParams } = new URL(request.url)
-    const page = parseInt(searchParams.get('page')) || 1
-    const limit = parseInt(searchParams.get('limit')) || 20
+    const page = parseInt(searchParams.get('page')) || 1;
+    const limit = parseInt(searchParams.get('limit')) || 20;
 
     await connectDB()
 
     // 1. Find user by username 
     const user = await User.findOne({ 
-      username: { $regex: new RegExp(`^${username.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } 
+      username: { $regex: new RegExp(`^${username.toString().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } 
     }).select('followers').lean()
 
     if (!user) {
@@ -44,7 +45,7 @@ export async function GET(request, { params }) {
         : false
       
       return {
-        ...follower,
+        ...sanitizeUser(follower),
         followersCount: (follower.followers || []).length,
         isFollowedByCurrentUser
       }

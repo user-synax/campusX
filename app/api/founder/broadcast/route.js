@@ -2,8 +2,9 @@ import { NextResponse } from 'next/server'
 import connectDB from '@/lib/db'
 import User from '@/models/User'
 import { FOUNDER_USERNAME, isFounder } from '@/lib/founder'
-import { getCurrentUser } from '@/lib/auth'
+import { getTokenFromRequest, verifyToken, getCurrentUser } from '@/lib/auth'
 import { withCache, deleteCache } from '@/lib/cache'
+import { sanitizeText } from '@/lib/sanitize'
 
 export async function GET() {
   try {
@@ -72,13 +73,14 @@ export async function POST(request) {
       }
 
       const uniqueId = Date.now().toString(36) + Math.random().toString(36).slice(2)
-      console.log('Activating broadcast for:', FOUNDER_USERNAME, 'with message:', message)
+      const sanitizedMessage = sanitizeText(message);
+      console.log('Activating broadcast for:', FOUNDER_USERNAME, 'with message:', sanitizedMessage)
       
       updatedUser = await User.findOneAndUpdate(
         { username: { $regex: new RegExp(`^${FOUNDER_USERNAME}$`, 'i') } },
         {
           $set: {
-            'founderData.broadcastMessage': message,
+            'founderData.broadcastMessage': sanitizedMessage,
             'founderData.broadcastId': uniqueId,
             'founderData.broadcastActive': true,
             'founderData.broadcastCreatedAt': new Date()

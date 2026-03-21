@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Notification from '@/models/Notification';
 import { getCurrentUser } from '@/lib/auth';
+import { sanitizeUser } from '@/lib/sanitize';
 
 // GET /api/notifications
 export async function GET(request) {
@@ -40,8 +41,14 @@ export async function GET(request) {
       Notification.countDocuments({ recipient: currentUser._id, read: false })
     ]);
 
+    // Sanitize sender in notifications
+    const sanitizedNotifications = notifications.map(notification => ({
+      ...notification,
+      sender: sanitizeUser(notification.sender)
+    }));
+
     return NextResponse.json({
-      notifications,
+      notifications: sanitizedNotifications,
       unreadCount,
       hasMore: skip + notifications.length < total,
       total

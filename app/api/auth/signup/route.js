@@ -5,6 +5,7 @@ import bcrypt from 'bcryptjs';
 import { signToken, setAuthCookie } from '@/lib/auth';
 import { validateEmail, validateUsername, validatePassword } from '@/utils/validators';
 import { applyRateLimit } from '@/lib/rate-limit';
+import { sanitizeText, sanitizeUsername, sanitizeUser } from '@/lib/sanitize';
 
 export async function POST(request) {
   try {
@@ -32,11 +33,14 @@ export async function POST(request) {
       return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
     }
 
-    if (!validateEmail(email)) {
+    const sanitizedUsername = sanitizeUsername(username);
+    const sanitizedEmail = email.toLowerCase().trim();
+
+    if (!validateEmail(sanitizedEmail)) {
       return NextResponse.json({ message: 'Invalid email format' }, { status: 400 });
     }
 
-    if (!validateUsername(username)) {
+    if (!validateUsername(sanitizedUsername)) {
       return NextResponse.json({ message: 'Invalid username format' }, { status: 400 });
     }
 
@@ -45,12 +49,12 @@ export async function POST(request) {
       return NextResponse.json({ message: passwordValidation.message }, { status: 400 });
     }
 
-    const existingEmail = await User.findOne({ email });
+    const existingEmail = await User.findOne({ email: sanitizedEmail });
     if (existingEmail) {
       return NextResponse.json({ message: 'Email already registered' }, { status: 409 });
     }
 
-    const existingUsername = await User.findOne({ username });
+    const existingUsername = await User.findOne({ username: sanitizedUsername });
     if (existingUsername) {
       return NextResponse.json({ message: 'Username already taken' }, { status: 409 });
     }
@@ -58,13 +62,13 @@ export async function POST(request) {
     const hashedPassword = await bcrypt.hash(password, 12);
 
     const user = await User.create({
-      name,
-      username,
-      email,
+      name: sanitizeText(name),
+      username: sanitizedUsername,
+      email: sanitizedEmail,
       password: hashedPassword,
-      college,
-      course,
-      year,
+      college: sanitizeText(college),
+      course: sanitizeText(course),
+      year: parseInt(year) || 1,
     });
 
     // Auto-follow founder 
@@ -91,7 +95,7 @@ export async function POST(request) {
     const token = signToken({ userId: user._id, username: user.username });
 
     const response = NextResponse.json(
-      { success: true, user: user.toSafeObject() },
+      { success: true, user: sanitizeUser(user) },
       { status: 201 }
     );
 

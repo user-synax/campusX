@@ -4,6 +4,8 @@ import User from '@/models/User'
 import { FOUNDER_USERNAME, isFounder } from '@/lib/founder'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 import { withCache, deleteCache } from '@/lib/cache'
+import { sanitizeText, sanitizeMongoInput } from '@/lib/sanitize'
+import { applyRateLimit } from '@/lib/rate-limit'
 
 export async function GET() {
   try {
@@ -69,7 +71,7 @@ export async function PATCH(request) {
       return NextResponse.json({ message: 'Invalid request body' }, { status: 400 })
     }
 
-    const { roadmap } = body
+    const { roadmap } = sanitizeMongoInput(body)
     if (!Array.isArray(roadmap)) {
       return NextResponse.json({ message: 'Roadmap must be an array' }, { status: 400 })
     }
@@ -90,9 +92,9 @@ export async function PATCH(request) {
       }
 
       return {
-        title: title.trim(),
+        title: sanitizeText(title),
         status,
-        emoji: (emoji && typeof emoji === 'string') ? emoji.substring(0, 4) : '📌',
+        emoji: (emoji && typeof emoji === 'string') ? sanitizeText(emoji).substring(0, 4) : '📌',
         order: typeof order === 'number' ? order : index
       }
     })

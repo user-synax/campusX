@@ -3,11 +3,12 @@ import connectDB from '@/lib/db';
 import Post from '@/models/Post';
 import { getCurrentUser } from '@/lib/auth';
 import { computeReactionSummary, getUserReaction } from '@/lib/reaction-utils';
+import { sanitizeMongoInput } from '@/lib/sanitize';
 
 export async function GET(request, { params }) {
   try {
     const currentUser = await getCurrentUser(request);
-    const { tag: rawTag } = await params;
+    const { tag: rawTag } = sanitizeMongoInput(await params);
     const tag = decodeURIComponent(rawTag).toLowerCase();
     
     const { searchParams } = new URL(request.url);

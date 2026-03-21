@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Post from '@/models/Post';
 import { validateObjectId } from '@/utils/validators';
+import { sanitizeUser, sanitizeMongoInput } from '@/lib/sanitize';
 
 /**
  * GET /api/posts/[postId]
@@ -9,7 +10,7 @@ import { validateObjectId } from '@/utils/validators';
  */
 export async function GET(request, { params }) {
   try {
-    const { postId } = await params;
+    const { postId } = sanitizeMongoInput(await params);
 
     // Validate postId is valid ObjectId
     if (!validateObjectId(postId)) {
@@ -27,6 +28,9 @@ export async function GET(request, { params }) {
     if (!post) {
       return NextResponse.json({ message: 'Post not found' }, { status: 404 });
     }
+
+    // Sanitize author
+    post.author = sanitizeUser(post.author);
 
     return NextResponse.json(post);
   } catch (error) {

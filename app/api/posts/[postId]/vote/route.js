@@ -4,6 +4,7 @@ import Post from '@/models/Post';
 import { getCurrentUser } from '@/lib/auth';
 import { validateObjectId } from '@/utils/validators';
 import { applyRateLimit } from '@/lib/rate-limit';
+import { sanitizeMongoInput } from '@/lib/sanitize';
 
 // POST /api/posts/[postId]/vote
 export async function POST(request, { params }) {
@@ -34,7 +35,9 @@ export async function POST(request, { params }) {
       return NextResponse.json({ message: 'Invalid request body' }, { status: 400 });
     }
 
-    const { optionId } = body;
+    const cleanBody = sanitizeMongoInput(body);
+    const { optionId } = cleanBody;
+
     if (!validateObjectId(optionId)) {
       return NextResponse.json({ message: 'Invalid Option ID' }, { status: 400 });
     }

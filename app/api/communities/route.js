@@ -4,17 +4,18 @@ import Post from '@/models/Post';
 import User from '@/models/User';
 import { slugifyCollege } from '@/utils/formatters';
 import { withCache } from '@/lib/cache';
+import { sanitizeMongoInput } from '@/lib/sanitize';
 
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
-    const specificName = searchParams.get('name');
+    const specificName = sanitizeMongoInput(searchParams.get('name'));
 
     await connectDB();
 
     // If requesting stats for a specific community
     if (specificName) {
-      const escapedName = specificName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const escapedName = specificName.toString().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const query = { community: { $regex: new RegExp(`^${escapedName}$`, 'i') } };
       const cacheKey = `community_stats_${escapedName.toLowerCase()}`;
       

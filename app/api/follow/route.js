@@ -6,6 +6,7 @@ import { validateObjectId } from '@/utils/validators';
 import { createNotification } from '@/lib/notifications';
 import { awardXP } from '@/lib/xp';
 import { applyRateLimit } from '@/lib/rate-limit';
+import { sanitizeMongoInput } from '@/lib/sanitize';
 
 export async function POST(request) {
   try {
@@ -30,7 +31,8 @@ export async function POST(request) {
       return NextResponse.json({ message: 'Invalid request body' }, { status: 400 });
     }
 
-    const { targetUserId } = body;
+    const cleanBody = sanitizeMongoInput(body);
+    const { targetUserId } = cleanBody;
 
     if (!validateObjectId(targetUserId)) {
       return NextResponse.json({ message: 'Invalid User ID' }, { status: 400 });

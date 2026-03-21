@@ -3,6 +3,7 @@ import connectDB from '@/lib/db';
 import Notification from '@/models/Notification';
 import { getCurrentUser } from '@/lib/auth';
 import { validateObjectId } from '@/utils/validators';
+import { sanitizeMongoInput } from '@/lib/sanitize';
 
 // POST /api/notifications/read
 export async function POST(request) {
@@ -19,7 +20,8 @@ export async function POST(request) {
       body = {};
     }
 
-    const { notificationId } = body;
+    const cleanBody = sanitizeMongoInput(body);
+    const { notificationId } = cleanBody;
 
     await connectDB();
 

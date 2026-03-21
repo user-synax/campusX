@@ -2,13 +2,14 @@ import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Event from '@/models/Event';
 import { getCurrentUser } from '@/lib/auth';
-import { validateObjectId, sanitizeString } from '@/utils/validators';
+import { validateObjectId } from '@/utils/validators';
 import { createNotification } from '@/lib/notifications';
+import { sanitizeText, sanitizeMongoInput } from '@/lib/sanitize';
 
 // GET /api/events/[eventId] - Get event details
 export async function GET(request, { params }) {
   try {
-    const { eventId } = await params;
+    const { eventId } = sanitizeMongoInput(await params);
     if (!validateObjectId(eventId)) {
       return NextResponse.json({ message: 'Invalid Event ID' }, { status: 400 });
     }
@@ -50,7 +51,7 @@ export async function PATCH(request, { params }) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    const { eventId } = await params;
+    const { eventId } = sanitizeMongoInput(await params);
     if (!validateObjectId(eventId)) {
       return NextResponse.json({ message: 'Invalid Event ID' }, { status: 400 });
     }
@@ -78,16 +79,16 @@ export async function PATCH(request, { params }) {
 
     if (title !== undefined) {
       if (title.trim().length === 0) return NextResponse.json({ message: 'Title cannot be empty' }, { status: 400 });
-      updates.title = sanitizeString(title).substring(0, 100);
+      updates.title = sanitizeText(title).substring(0, 100);
     }
 
     if (description !== undefined) {
-      updates.description = description.substring(0, 1000);
+      updates.description = sanitizeText(description).substring(0, 1000);
     }
 
     if (location !== undefined) {
       if (location.trim().length === 0) return NextResponse.json({ message: 'Location cannot be empty' }, { status: 400 });
-      updates.location = sanitizeString(location).substring(0, 200);
+      updates.location = sanitizeText(location).substring(0, 200);
     }
 
     if (eventDate !== undefined) {

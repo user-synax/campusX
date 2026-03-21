@@ -4,6 +4,8 @@ import User from '@/models/User'
 import Post from '@/models/Post'
 import { FOUNDER_USERNAME, isFounder } from '@/lib/founder'
 import { getCurrentUser } from '@/lib/auth'
+import { validateObjectId } from '@/utils/validators'
+import { sanitizeMongoInput } from '@/lib/sanitize'
 
 export async function POST(request) {
   try {
@@ -14,8 +16,15 @@ export async function POST(request) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
     }
 
-    const body = await request.json()
-    const { postId } = body
+    let body;
+    try {
+      body = await request.json()
+    } catch (e) {
+      return NextResponse.json({ message: 'Invalid request body' }, { status: 400 })
+    }
+
+    const cleanBody = sanitizeMongoInput(body);
+    const { postId } = cleanBody;
 
     if (!postId) {
       // Unpin
@@ -24,6 +33,11 @@ export async function POST(request) {
         { $set: { pinnedPost: null } }
       )
       return NextResponse.json({ success: true, pinnedPost: null })
+    }
+
+    // Validate postId
+    if (!validateObjectId(postId)) {
+      return NextResponse.json({ message: 'Invalid Post ID' }, { status: 400 })
     }
 
     // Pin
