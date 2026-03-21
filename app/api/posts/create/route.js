@@ -10,6 +10,8 @@ import { deleteCachePattern } from '@/lib/cache';
 import { applyRateLimit } from '@/lib/rate-limit';
 import { sanitizeText } from '@/lib/sanitize';
 
+import { broadcastEvent } from '@/lib/notificationStream';
+
 export async function POST(request) {
   try {
     // Rate limit post creation - 10 posts per hour per IP
@@ -97,6 +99,14 @@ export async function POST(request) {
 
     // Award XP for posting
     const xpResult = await awardXP(currentUser._id, 'post');
+
+    // Broadcast new post event
+    broadcastEvent({ 
+      type: 'new_post', 
+      postId: post._id, 
+      community: post.community,
+      author: post.isAnonymous ? 'Anonymous' : post.author.name
+    });
 
     return NextResponse.json({
       ...post.toObject(),

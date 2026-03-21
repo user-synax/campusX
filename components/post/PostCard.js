@@ -43,28 +43,14 @@ const PostCard = memo(function PostCard({ post, currentUserId, onDelete, onLike,
   const pickerTimerRef = useRef(null)
   const [commentsCount, setCommentsCount] = useState(post.commentsCount || 0)
   const [showComments, setShowComments] = useState(false)
-  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(post._isBookmarked || false);
 
   const formatCount = useCallback((count) => {
     if (count >= 1000) return (count / 1000).toFixed(1) + 'k'
     return count
   }, [])
 
-  useEffect(() => {
-    if (!currentUser) return;
-    const checkBookmark = async () => {
-      try {
-        const res = await fetch(`/api/bookmarks/check?postId=${post._id}`);
-        const data = await res.json();
-        if (res.ok) {
-          setIsBookmarked(data.bookmarked);
-        }
-      } catch (error) {
-        console.error('Failed to check bookmark status', error);
-      }
-    };
-    checkBookmark();
-  }, [currentUser, post._id]);
+  // useEffect for bookmark checking removed (handled by API)
 
   const handleReact = useCallback(async (reactionType) => {
     if (!currentUser) {

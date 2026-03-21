@@ -3,6 +3,7 @@
 import Sidebar from "@/components/layout/Sidebar"
 import RightPanel from "@/components/layout/RightPanel"
 import MobileNav from "@/components/layout/MobileNav"
+import MobileFAB from "@/components/layout/MobileFAB"
 import { Toaster } from "@/components/ui/sonner"
 import BroadcastBanner from "@/components/founder/BroadcastBanner"
 import useUser from "@/hooks/useUser"
@@ -32,6 +33,9 @@ export default function MainLayout({ children }) {
 
       {/* Mobile Bottom Navigation */}
       <MobileNav />
+      
+      {/* Mobile Floating Action Button */}
+      <MobileFAB />
 
       {/* Toast Notifications */}
       <Toaster position="bottom-center" />

@@ -4,6 +4,38 @@ import withBundleAnalyzer from '@next/bundle-analyzer';
 const nextConfig = {
   /* config options here */
   reactCompiler: true,
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'avatar.vercel.sh',
+      },
+      {
+        protocol: 'https',
+        hostname: 'media*.giphy.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'giphy.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i.ytimg.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+      },
+    ],
+  },
   async headers() { 
     return [ 
       { 
@@ -31,7 +63,7 @@ const nextConfig = {
               "default-src 'self'", 
               "script-src 'self' 'unsafe-eval' 'unsafe-inline'",  // Next.js needs unsafe-eval 
               "style-src 'self' 'unsafe-inline'", 
-              "img-src 'self' data: https: blob:",  // allow external images (avatars, OG) 
+              "img-src 'self' data: https: blob: res.cloudinary.com *.giphy.com i.ytimg.com *.googleusercontent.com",  // allow external images (avatars, OG) 
               "connect-src 'self' https://api.anthropic.com", 
               "font-src 'self'", 
               "frame-src 'none'", 

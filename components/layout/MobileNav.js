@@ -3,8 +3,9 @@
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, GraduationCap, PlusSquare, User, Bell, Bookmark, LogOut, Menu, Search, Calendar, Settings } from "lucide-react"
+import { Home, GraduationCap, PlusSquare, User, Bell, Bookmark, LogOut, Menu, Search, Calendar, Trophy, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Progress } from "@/components/ui/progress"
 import {
   Sheet,
   SheetContent,
@@ -36,7 +37,7 @@ export default function MobileNav() {
 
   const navItems = [
     { href: "/feed", icon: Home, label: "Home" },
-    { href: "/search", icon: Search, label: "Search" },
+    { href: "/leaderboard", icon: Trophy, label: "Leaderboard" },
     { href: "#", icon: PlusSquare, label: "Post", isAction: true },
     { href: "/notifications", icon: Bell, label: "Notifications", badge: count },
   ]
@@ -117,6 +118,16 @@ export default function MobileNav() {
                   </div>
                 </Link>
               )}
+              {/* XP Progress Bar */}
+              {!loading && user && (
+                <div className="px-2 pt-4 pb-2 space-y-1.5 border-t mt-4">
+                  <div className="flex justify-between items-end">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Level {user.level || 1}</span>
+                    <span className="text-[10px] font-medium text-muted-foreground">{(user.xp || 0) % 1000} / 1000 XP</span>
+                  </div>
+                  <Progress value={((user.xp || 0) % 1000) / 10} className="h-1.5" />
+                </div>
+              )}
             </div>
 
             <nav className="p-2 space-y-1">
@@ -130,6 +141,30 @@ export default function MobileNav() {
                 >
                   <User className="w-5 h-5" />
                   <span className="text-base font-medium">Profile</span>
+                </Button>
+              </Link>
+              <Link href="/search" onClick={() => setOpen(false)}>
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-start gap-4 h-12 px-3",
+                    pathname === "/search" ? "bg-accent text-accent-foreground" : "text-muted-foreground"
+                  )}
+                >
+                  <Search className="w-5 h-5" />
+                  <span className="text-base font-medium">Search</span>
+                </Button>
+              </Link>
+              <Link href="/leaderboard" onClick={() => setOpen(false)}>
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-start gap-4 h-12 px-3",
+                    pathname === "/leaderboard" ? "bg-accent text-accent-foreground" : "text-muted-foreground"
+                  )}
+                >
+                  <Trophy className="w-5 h-5" />
+                  <span className="text-base font-medium">Leaderboard</span>
                 </Button>
               </Link>
               <Link href="/bookmarks" onClick={() => setOpen(false)}>

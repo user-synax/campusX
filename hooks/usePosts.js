@@ -70,6 +70,7 @@ export function usePosts(queryParams = {}, initialPosts = []) {
     error, 
     hasMore, 
     loadMore, 
+    refresh: () => fetchPosts(1, false),
     addPost: (post) => setPosts(prev => [post, ...prev]),
     removePost: (id) => setPosts(prev => prev.filter(p => p._id !== id)),
     updatePostLike: async (postId) => {

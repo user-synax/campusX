@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from 'react'
+import Image from 'next/image'
 import { MapPin, X, BarChart2, Link2, Loader2, ExternalLink } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -161,12 +162,13 @@ export default function PostComposer({ onPostCreated, defaultCommunity, noBorder
               </button>
               <div className="flex flex-col sm:flex-row gap-3">
                 {linkPreview.image && (
-                  <div className="w-full sm:w-32 h-32 sm:h-auto shrink-0 bg-secondary">
-                    <img 
+                  <div className="w-full sm:w-32 h-32 sm:h-auto shrink-0 bg-secondary relative">
+                    <Image 
                       src={linkPreview.image} 
                       alt="" 
-                      className="w-full h-full object-cover"
-                      onError={(e) => e.target.style.display = 'none'}
+                      fill
+                      className="object-cover"
+                      unoptimized={linkPreview.image.startsWith('data:')}
                     />
                   </div>
                 )}
