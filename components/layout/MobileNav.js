@@ -1,8 +1,9 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, GraduationCap, PlusSquare, User, Bell, Bookmark, LogOut, Menu, Search, Calendar } from "lucide-react"
+import { Home, GraduationCap, PlusSquare, User, Bell, Bookmark, LogOut, Menu, Search, Calendar, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Sheet,
@@ -22,6 +23,7 @@ export default function MobileNav() {
   const pathname = usePathname()
   const { user, loading } = useUser()
   const { count } = useNotificationCount()
+  const [open, setOpen] = useState(false)
 
   const handleLogout = async () => {
     try {
@@ -37,11 +39,10 @@ export default function MobileNav() {
     { href: "/search", icon: Search, label: "Search" },
     { href: "#", icon: PlusSquare, label: "Post", isAction: true },
     { href: "/notifications", icon: Bell, label: "Notifications", badge: count },
-    { href: "#", icon: LogOut, label: "Logout", isLogout: true },
   ]
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-background border-t border-border flex items-center justify-around px-4 z-50">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-background border-t border-border flex items-center justify-around px-2 z-50">
       {navItems.map((item) => {
         const Icon = item.icon
         const isActive = pathname === item.href
@@ -63,20 +64,6 @@ export default function MobileNav() {
           )
         }
 
-        if (item.isLogout) {
-          return (
-            <Button
-              key={item.label}
-              variant="ghost"
-              size="icon"
-              onClick={handleLogout}
-              className="w-10 h-10 text-destructive"
-            >
-              <Icon className="w-6 h-6" />
-            </Button>
-          )
-        }
-
         return (
           <Link key={item.href} href={item.href}>
             <Button
@@ -95,27 +82,31 @@ export default function MobileNav() {
         )
       })}
 
-      <Sheet>
+      <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>
           <Button
             variant="ghost"
             size="icon"
-            className="w-12 h-12 text-muted-foreground"
+            className="w-10 h-10 text-muted-foreground"
           >
             <Menu className="w-6 h-6" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="right" className="w-[280px] p-0">
+        <SheetContent side="right" className="w-[280px] p-0 flex flex-col">
           <SheetHeader className="p-6 border-b text-left">
             <SheetTitle>
               <Logo size="sm" />
             </SheetTitle>
           </SheetHeader>
           
-          <div className="flex flex-col h-full">
+          <div className="flex flex-col flex-1 overflow-y-auto">
             <div className="p-4 border-b">
               {!loading && user && (
-                <div className="flex items-center gap-3">
+                <Link 
+                  href={`/profile/${user?.username}`}
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-3 hover:bg-accent/50 p-2 rounded-lg transition-colors"
+                >
                   <Avatar className="w-10 h-10 border border-border">
                     <AvatarImage src={user.avatar} alt={user.name} />
                     <AvatarFallback className="bg-secondary">{user.name?.[0]}</AvatarFallback>
@@ -124,24 +115,24 @@ export default function MobileNav() {
                     <p className="text-sm font-semibold truncate">{user.name}</p>
                     <p className="text-xs text-muted-foreground truncate">@{user.username}</p>
                   </div>
-                </div>
+                </Link>
               )}
             </div>
 
-            <nav className="flex-1 p-2 space-y-1">
-              <Link href={`/profile/${user?.username}`}>
+            <nav className="p-2 space-y-1">
+              <Link href={`/profile/${user?.username}`} onClick={() => setOpen(false)}>
                 <Button
                   variant="ghost"
                   className={cn(
                     "w-full justify-start gap-4 h-12 px-3",
-                    pathname.startsWith("/profile") ? "bg-accent text-accent-foreground" : "text-muted-foreground"
+                    pathname === `/profile/${user?.username}` ? "bg-accent text-accent-foreground" : "text-muted-foreground"
                   )}
                 >
                   <User className="w-5 h-5" />
                   <span className="text-base font-medium">Profile</span>
                 </Button>
               </Link>
-              <Link href="/bookmarks">
+              <Link href="/bookmarks" onClick={() => setOpen(false)}>
                 <Button
                   variant="ghost"
                   className={cn(
@@ -153,24 +144,24 @@ export default function MobileNav() {
                   <span className="text-base font-medium">Bookmarks</span>
                 </Button>
               </Link>
-              <Link href="/community">
+              <Link href="/community" onClick={() => setOpen(false)}>
                 <Button
                   variant="ghost"
                   className={cn(
                     "w-full justify-start gap-4 h-12 px-3",
-                    pathname.startsWith("/community") ? "bg-accent text-accent-foreground" : "text-muted-foreground"
+                    pathname === "/community" ? "bg-accent text-accent-foreground" : "text-muted-foreground"
                   )}
                 >
                   <GraduationCap className="w-5 h-5" />
                   <span className="text-base font-medium">Communities</span>
                 </Button>
               </Link>
-              <Link href="/events">
+              <Link href="/events" onClick={() => setOpen(false)}>
                 <Button
                   variant="ghost"
                   className={cn(
                     "w-full justify-start gap-4 h-12 px-3",
-                    pathname.startsWith("/events") ? "bg-accent text-accent-foreground" : "text-muted-foreground"
+                    pathname === "/events" ? "bg-accent text-accent-foreground" : "text-muted-foreground"
                   )}
                 >
                   <Calendar className="w-5 h-5" />
@@ -178,17 +169,17 @@ export default function MobileNav() {
                 </Button>
               </Link>
             </nav>
+          </div>
 
-            <div className="p-4 border-t mb-8">
-              <Button
-                variant="ghost"
-                onClick={handleLogout}
-                className="w-full justify-start gap-4 h-10 px-3 text-destructive hover:text-destructive hover:bg-destructive/10"
-              >
-                <LogOut className="w-5 h-5" />
-                <span className="text-sm font-medium">Log out</span>
-              </Button>
-            </div>
+          <div className="p-4 border-t mt-auto">
+            <Button
+              variant="ghost"
+              onClick={handleLogout}
+              className="w-full justify-start gap-4 h-12 px-3 text-destructive hover:text-destructive hover:bg-destructive/10"
+            >
+              <LogOut className="w-5 h-5" />
+              <span className="text-base font-medium">Log out</span>
+            </Button>
           </div>
         </SheetContent>
       </Sheet>

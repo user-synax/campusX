@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server'
-import { JSDOM } from 'jsdom'
 
 export async function GET(req) {
   const { searchParams } = new URL(req.url)
@@ -27,20 +26,25 @@ export async function GET(req) {
     }
 
     const html = await response.text()
-    const dom = new JSDOM(html)
-    const doc = dom.window.document
+    
+    // Use lightweight regex instead of JSDOM for production stability
+    const getMeta = (html, property) => {
+      const regex = new RegExp(`<meta\\s+(?:property|name)=["']${property}["']\\s+content=["']([^"']*)["']`, 'i')
+      const match = html.match(regex)
+      return match ? match[1] : null
+    }
 
-    const getMeta = (property) => {
-      const element = doc.querySelector(`meta[property="${property}"], meta[name="${property}"]`)
-      return element ? element.getAttribute('content') : null
+    const getTitle = (html) => {
+      const match = html.match(/<title>([^<]*)<\/title>/i)
+      return match ? match[1] : ''
     }
 
     const metadata = {
-      title: getMeta('og:title') || doc.title || '',
-      description: getMeta('og:description') || getMeta('description') || '',
-      image: getMeta('og:image') || '',
-      url: getMeta('og:url') || url,
-      siteName: getMeta('og:site_name') || parsedUrl.hostname
+      title: getMeta(html, 'og:title') || getTitle(html) || '',
+      description: getMeta(html, 'og:description') || getMeta(html, 'description') || '',
+      image: getMeta(html, 'og:image') || '',
+      url: getMeta(html, 'og:url') || url,
+      siteName: getMeta(html, 'og:site_name') || parsedUrl.hostname
     }
 
     return NextResponse.json(metadata)
