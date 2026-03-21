@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft, GraduationCap } from 'lucide-react'
 import { Button } from "@/components/ui/button"
@@ -38,6 +38,14 @@ export default function CollegeCommunityPage() {
     hasMore,
     loading: postsLoading
   })
+
+  const handleDeletePost = useCallback((postId) => {
+    removePost(postId)
+  }, [removePost])
+
+  const handleLikePost = useCallback(async (postId) => {
+    return await updatePostLike(postId)
+  }, [updatePostLike])
 
   const [stats, setStats] = useState({ postCount: 0, memberCount: 0 })
   const [statsLoading, setStatsLoading] = useState(true)
@@ -106,8 +114,8 @@ export default function CollegeCommunityPage() {
                   key={post._id} 
                   post={post} 
                   currentUserId={currentUser?._id} 
-                  onDelete={removePost} 
-                  onLike={updatePostLike} 
+                  onDelete={handleDeletePost} 
+                  onLike={handleLikePost} 
                 />
               ))}
             </div>

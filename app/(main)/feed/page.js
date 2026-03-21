@@ -59,8 +59,8 @@ export default function FeedPage() {
     removePost(postId)
   }, [removePost])
 
-  const handleLikePost = useCallback((postId, isLiked) => {
-    updatePostLike(postId, isLiked)
+  const handleLikePost = useCallback(async (postId) => {
+    return await updatePostLike(postId)
   }, [updatePostLike])
 
   return (

@@ -82,6 +82,36 @@ export default function BookmarksPage() {
     setTotal(prev => Math.max(0, prev - 1))
   }
 
+  const handleLikePost = useCallback(async (postId) => {
+    try {
+      const res = await fetch('/api/posts/like', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ postId }),
+      })
+
+      if (!res.ok) throw new Error('Failed to like post')
+      
+      const data = await res.json()
+      
+      setPosts(prev => prev.map(p => {
+        if (p._id === postId) {
+          return {
+            ...p,
+            likesCount: data.likesCount,
+            _isLiked: data.liked
+          }
+        }
+        return p
+      }))
+      
+      return data
+    } catch (err) {
+      console.error('Like error:', err)
+      throw err
+    }
+  }, [])
+
   return (
     <div className="flex-1 max-w-2xl border-r border-border min-h-screen">
       {/* Header */}
@@ -120,6 +150,7 @@ export default function BookmarksPage() {
                   currentUserId={currentUser?._id} 
                   onBookmarkToggle={handleBookmarkToggle}
                   onDelete={handleDeletePost}
+                  onLike={handleLikePost}
                 />
               ))}
             </div>

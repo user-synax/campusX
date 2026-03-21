@@ -93,9 +93,19 @@ export async function GET(request) {
 
     // Preserve the order of bookmarks and sanitize users
     const postsMap = posts.reduce((acc, post) => {
+      const summary = computeReactionSummary(post.reactions, post.likes);
+      const userReaction = currentUserInfo ? getUserReaction(post.reactions, currentUserInfo._id, post.likes) : null;
+      const isLiked = currentUserInfo ? post.likes?.some(id => id.toString() === currentUserInfo._id.toString()) : false;
+      
+      const { reactions, likes, author, ...postData } = post;
+      
       acc[post._id.toString()] = {
-        ...post,
-        author: sanitizeUser(post.author)
+        ...postData,
+        likesCount: post.likesCount ?? post.likes?.length ?? 0,
+        author: sanitizeUser(author),
+        _reactionSummary: summary,
+        _userReaction: userReaction,
+        _isLiked: isLiked
       };
       return acc;
     }, {});

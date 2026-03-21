@@ -72,16 +72,34 @@ export function usePosts(queryParams = {}, initialPosts = []) {
     loadMore, 
     addPost: (post) => setPosts(prev => [post, ...prev]),
     removePost: (id) => setPosts(prev => prev.filter(p => p._id !== id)),
-    updatePostLike: (postId, liked, count) => {
-      setPosts(prev => prev.map(p => {
-        if (p._id === postId) {
-          return {
-            ...p,
-            likesCount: count,
+    updatePostLike: async (postId) => {
+      try {
+        const res = await fetch('/api/posts/like', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ postId }),
+        })
+
+        if (!res.ok) throw new Error('Failed to like post')
+        
+        const data = await res.json()
+        
+        setPosts(prev => prev.map(p => {
+          if (p._id === postId) {
+            return {
+              ...p,
+              likesCount: data.likesCount,
+              _isLiked: data.liked
+            }
           }
-        }
-        return p
-      }))
+          return p
+        }))
+        
+        return data
+      } catch (err) {
+        console.error('Like error:', err)
+        throw err
+      }
     }
   }
 }

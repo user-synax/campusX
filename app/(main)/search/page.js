@@ -107,6 +107,36 @@ export default function SearchPage() {
     }
   }
 
+  const handleLikePost = useCallback(async (postId) => {
+    try {
+      const res = await fetch('/api/posts/like', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ postId }),
+      })
+
+      if (!res.ok) throw new Error('Failed to like post')
+      
+      const data = await res.json()
+      
+      setPostResults(prev => prev.map(p => {
+        if (p._id === postId) {
+          return {
+            ...p,
+            likesCount: data.likesCount,
+            _isLiked: data.liked
+          }
+        }
+        return p
+      }))
+      
+      return data
+    } catch (err) {
+      console.error('Like error:', err)
+      throw err
+    }
+  }, [])
+
   return (
     <div className="flex-1 max-w-2xl border-r border-border min-h-screen pb-20">
       {/* Sticky search header */}
@@ -184,6 +214,7 @@ export default function SearchPage() {
                       key={post._id} 
                       post={post} 
                       currentUserId={currentUser?._id} 
+                      onLike={handleLikePost} 
                     />
                   ))}
                 </div>

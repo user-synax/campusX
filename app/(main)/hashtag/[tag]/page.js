@@ -62,6 +62,36 @@ export default function HashtagPage({ params }) {
     fetchPosts(page + 1, true)
   }, [page, hasMore, loading, fetchPosts])
 
+  const handleLikePost = useCallback(async (postId) => {
+    try {
+      const res = await fetch('/api/posts/like', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ postId }),
+      })
+
+      if (!res.ok) throw new Error('Failed to like post')
+      
+      const data = await res.json()
+      
+      setPosts(prev => prev.map(p => {
+        if (p._id === postId) {
+          return {
+            ...p,
+            likesCount: data.likesCount,
+            _isLiked: data.liked
+          }
+        }
+        return p
+      }))
+      
+      return data
+    } catch (err) {
+      console.error('Like error:', err)
+      throw err
+    }
+  }, [])
+
   const { sentinelRef } = useInfiniteScroll({
     fetchMore: loadMore,
     hasMore,
@@ -105,6 +135,7 @@ export default function HashtagPage({ params }) {
                 key={post._id} 
                 post={post} 
                 currentUserId={currentUser?._id} 
+                onLike={handleLikePost} 
               />
             ))}
             

@@ -16,6 +16,7 @@ import {
 import { toast } from "sonner"
 import dynamic from 'next/dynamic'
 import UserAvatar from "@/components/user/UserAvatar"
+import LikeButton from './LikeButton'
 
 // Lazy load heavy dialogs/modals
 const CommentSection = dynamic(() => import('@/components/post/CommentSection'), { ssr: false })
@@ -286,6 +287,13 @@ const PostCard = memo(function PostCard({ post, currentUserId, onDelete, onLike,
           
           <div className="flex items-center justify-between mt-3 text-muted-foreground">
             <div className="flex items-center gap-4 sm:gap-6">
+              <LikeButton 
+                postId={post._id} 
+                initialLiked={post._isLiked} 
+                initialCount={post.likesCount || 0} 
+                onLike={onLike} 
+              />
+
               <div 
                 className="relative"
                 onMouseEnter={() => {
@@ -327,7 +335,7 @@ const PostCard = memo(function PostCard({ post, currentUserId, onDelete, onLike,
                       {REACTION_EMOJIS[userReaction]} 
                     </span> 
                   ) : ( 
-                    <Heart className="w-4 h-4" /> 
+                    <span className="text-base leading-none grayscale hover:grayscale-0 transition-all">😀</span>
                   )} 
                   
                   <div className="flex items-center gap-0.5 ml-0.5"> 

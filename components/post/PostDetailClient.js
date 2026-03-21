@@ -20,11 +20,16 @@ import { toast } from "sonner"
 import UserAvatar from "@/components/user/UserAvatar"
 import PollDisplay from "@/components/post/PollDisplay"
 import CommentItem from "@/components/post/CommentItem"
+import LikeButton from './LikeButton'
+import ReactionPicker from './ReactionPicker'
 import { renderContentWithHashtags } from "@/utils/hashtags"
 import useUser from "@/hooks/useUser"
 import { isFounder } from "@/lib/founder"
 import FounderAvatar from "@/components/founder/FounderAvatar"
 import FounderBadges from "@/components/founder/FounderBadges"
+import { REACTIONS as REACTION_EMOJIS } from "@/lib/reaction-utils"
+import { cn } from "@/lib/utils"
+import { useRef } from 'react'
 
 export default function PostDetailClient({ postId }) {
   const router = useRouter()
@@ -39,6 +44,10 @@ export default function PostDetailClient({ postId }) {
   // Post action states
   const [userReaction, setUserReaction] = useState(null)
   const [reactionSummary, setReactionSummary] = useState({ total: 0, byType: {}, topEmojis: [] })
+  const [isLiked, setIsLiked] = useState(false)
+  const [likesCount, setLikesCount] = useState(0)
+  const [showPicker, setShowPicker] = useState(false)
+  const pickerTimerRef = useRef(null)
 
   const fetchData = useCallback(async () => {
     setLoading(true)
@@ -61,6 +70,8 @@ export default function PostDetailClient({ postId }) {
         setPost(postData)
         setUserReaction(postData._userReaction || null)
         setReactionSummary(postData._reactionSummary || { total: 0, byType: {}, topEmojis: [] })
+        setIsLiked(postData._isLiked || false)
+        setLikesCount(postData.likesCount || 0)
       }
       
       if (commentsRes.ok) {
@@ -79,12 +90,33 @@ export default function PostDetailClient({ postId }) {
   }, [fetchData])
 
   const handleLike = async () => {
+    try {
+      const res = await fetch('/api/posts/like', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ postId }),
+      })
+
+      if (!res.ok) throw new Error('Failed to like post')
+      
+      const data = await res.json()
+      setIsLiked(data.liked)
+      setLikesCount(data.likesCount)
+      return data
+    } catch (err) {
+      console.error('Like error:', err)
+      toast.error("Failed to like post")
+      throw err
+    }
+  }
+
+  const handleReact = async (reactionType) => {
     if (!currentUser) {
       toast.error("Please login to react")
       return
     }
 
-    const reactionType = 'like'
+    // Optimistic update
     const prevReaction = userReaction
     const prevSummary = { ...reactionSummary }
     
@@ -92,10 +124,12 @@ export default function PostDetailClient({ postId }) {
     let nextSummary = { ...prevSummary }
 
     if (prevReaction === reactionType) {
+      // Toggle off
       nextReaction = null
       nextSummary.total--
       nextSummary.byType[reactionType]--
     } else {
+      // Toggle on or change
       nextReaction = reactionType
       if (prevReaction) {
         nextSummary.byType[prevReaction]--
@@ -105,14 +139,24 @@ export default function PostDetailClient({ postId }) {
       nextSummary.byType[reactionType] = (nextSummary.byType[reactionType] || 0) + 1
     }
 
+    // Update top emojis
+    const REACTION_KEYS = Object.keys(REACTION_EMOJIS);
+    const sortedTypes = REACTION_KEYS
+      .filter(key => nextSummary.byType[key] > 0)
+      .sort((a, b) => nextSummary.byType[b] - nextSummary.byType[a])
+      .slice(0, 3);
+    
+    nextSummary.topEmojis = sortedTypes.map(type => REACTION_EMOJIS[type])
+
     setUserReaction(nextReaction)
     setReactionSummary(nextSummary)
+    setShowPicker(false)
 
     try {
       const res = await fetch('/api/posts/react', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ postId, reactionType }),
+        body: JSON.stringify({ postId: post._id, reactionType }),
       })
 
       const data = await res.json()
@@ -123,20 +167,24 @@ export default function PostDetailClient({ postId }) {
     } catch (error) {
       setUserReaction(prevReaction)
       setReactionSummary(prevSummary)
-      toast.error("Couldn't update reaction")
+      toast.error("Couldn't update reaction", {
+        description: error.message,
+      })
     }
   }
 
   const handleShare = () => {
+    if (typeof window === 'undefined') return
+    
     const url = window.location.href
-    const title = post.isAnonymous ? 'CampusX Post' : `${post.author.name} on CampusX`
-    const text = post.content.slice(0, 100)
-
     if (navigator.share) {
-      navigator.share({ title, text, url }).catch(() => {})
+      navigator.share({
+        title: `Check out this post on CampusX`,
+        url
+      }).catch(() => {})
     } else {
       navigator.clipboard.writeText(url)
-      toast.success("Link copied to clipboard! 🔗")
+      toast.success('Link copied to clipboard')
     }
   }
 
@@ -224,7 +272,6 @@ export default function PostDetailClient({ postId }) {
   }
 
   const isPostFounder = !post.isAnonymous && post.author && isFounder(post.author.username)
-  const isLiked = userReaction === 'like'
 
   return (
     <div className="flex flex-col min-h-screen bg-background pb-20">
@@ -348,41 +395,89 @@ export default function PostDetailClient({ postId }) {
           </div>
         )}
 
-        {/* Stats */}
-        <div className="flex gap-6 py-4 border-t border-border text-sm text-muted-foreground">
-          <span><strong className="text-foreground">{reactionSummary.total}</strong> Reactions</span>
-          <span><strong className="text-foreground">{post.commentsCount || 0}</strong> Comments</span>
-          {post.community && (
-            <Badge variant="secondary" className="ml-auto bg-secondary/50">
-              🎓 {post.community}
-            </Badge>
-          )}
-        </div>
-
-        {/* Action bar */}
-        <div className="flex items-center gap-2 py-2 border-t border-border">
-          <button 
-            onClick={handleLike} 
-            className={`flex items-center gap-2 px-4 py-2 rounded-full hover:bg-accent transition-colors ${
-              isLiked ? 'text-red-500 bg-red-500/10' : 'text-muted-foreground'
-            }`}
-          >
-            <Heart className={`w-6 h-6 ${isLiked ? 'fill-current' : ''}`} />
-            <span className="font-medium">Like</span>
-          </button>
-
-          <div className="flex items-center gap-2 px-4 py-2 text-muted-foreground">
-            <MessageCircle className="w-6 h-6" />
-            <span className="font-medium">Comment</span>
+        {/* Stats and Actions */}
+        <div className="flex flex-col gap-4 py-4 border-t border-b border-border">
+          <div className="flex items-center gap-6 text-sm text-muted-foreground px-1">
+            <span className="flex items-center gap-1">
+              <strong className="text-foreground">{likesCount}</strong> Likes
+            </span>
+            <span className="flex items-center gap-1">
+              <strong className="text-foreground">{comments.length}</strong> Comments
+            </span>
+            {reactionSummary.total > 0 && (
+              <span className="flex items-center gap-1">
+                <strong className="text-foreground">{reactionSummary.total}</strong> Reactions
+              </span>
+            )}
+            {post.community && (
+              <Badge variant="secondary" className="ml-auto bg-secondary/50">
+                🎓 {post.community}
+              </Badge>
+            )}
           </div>
 
-          <button 
-            onClick={handleShare} 
-            className="flex items-center gap-2 px-4 py-2 rounded-full text-muted-foreground hover:bg-accent transition-colors ml-auto"
-          >
-            <Share2 className="w-6 h-6" />
-            <span className="font-medium">Share</span>
-          </button>
+          <div className="flex items-center justify-around">
+            <LikeButton 
+              postId={postId} 
+              initialLiked={isLiked} 
+              initialCount={likesCount} 
+              onLike={handleLike} 
+            />
+            
+            <div 
+              className="relative"
+              onMouseEnter={() => {
+                if (pickerTimerRef.current) clearTimeout(pickerTimerRef.current)
+                setShowPicker(true)
+              }} 
+              onMouseLeave={() => {
+                pickerTimerRef.current = setTimeout(() => {
+                  setShowPicker(false)
+                }, 300)
+              }}
+            >
+              {showPicker && ( 
+                <ReactionPicker 
+                  currentReaction={userReaction} 
+                  onSelect={handleReact} 
+                  onClose={() => setShowPicker(false)} 
+                /> 
+              )} 
+
+              <button 
+                onClick={() => { 
+                  if (userReaction) { 
+                    handleReact(userReaction) 
+                  } else { 
+                    setShowPicker(!showPicker) 
+                  } 
+                }} 
+                className={cn(
+                  "flex items-center gap-2 text-sm transition-colors p-2 px-4 rounded-lg hover:bg-accent",
+                  userReaction ? "text-primary bg-primary/10" : "text-muted-foreground"
+                )}
+              > 
+                {userReaction ? ( 
+                  <span className="text-lg leading-none"> 
+                    {REACTION_EMOJIS[userReaction]} 
+                  </span> 
+                ) : ( 
+                  <span className="text-lg leading-none grayscale hover:grayscale-0 transition-all">😀</span>
+                )} 
+                <span>React</span>
+              </button> 
+            </div>
+
+            <Button variant="ghost" className="flex items-center gap-2 text-muted-foreground hover:text-blue-400">
+              <MessageCircle className="w-5 h-5" />
+              <span>Comment</span>
+            </Button>
+            
+            <Button variant="ghost" onClick={handleShare} className="flex items-center gap-2 text-muted-foreground hover:text-green-400">
+              <Share2 className="w-5 h-5" />
+              <span>Share</span>
+            </Button>
+          </div>
         </div>
       </div>
 

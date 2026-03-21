@@ -50,15 +50,18 @@ export async function GET(request) {
     const postsWithReactions = posts.map(post => {
       const summary = computeReactionSummary(post.reactions, post.likes);
       const userReaction = currentUser ? getUserReaction(post.reactions, currentUser._id, post.likes) : null;
+      const isLiked = currentUser ? post.likes?.some(id => id.toString() === currentUser._id.toString()) : false;
       
       // Remove raw reactions and likes for privacy/payload size
       const { reactions, likes, author, ...postData } = post;
       
       return {
         ...postData,
+        likesCount: post.likesCount ?? post.likes?.length ?? 0,
         author: sanitizeUser(author),
         _reactionSummary: summary,
-        _userReaction: userReaction
+        _userReaction: userReaction,
+        _isLiked: isLiked
       };
     });
 

@@ -34,6 +34,11 @@ const postSchema = new mongoose.Schema({
     ref: 'User',
     default: [],
   }],
+  likesCount: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
   reactions: [{
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     type: { type: String, enum: ['like', 'funny', 'wow', 'sad', 'respect', 'fire'], required: true }
@@ -88,10 +93,6 @@ postSchema.index({ likes: 1 });
 postSchema.index({ content: 'text' });
 postSchema.index({ author: 1, isAnonymous: 1, createdAt: -1 });
 postSchema.index({ 'reactions.user': 1 });
-
-postSchema.virtual('likesCount').get(function () {
-  return this.likes.length;
-});
 
 postSchema.virtual('reactionCount').get(function () {
   return this.reactions.length;
