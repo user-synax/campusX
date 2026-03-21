@@ -59,8 +59,15 @@ export default function PostComposer({ onPostCreated, defaultCommunity, noBorder
     }
   }
 
+  const getCounterColor = (len) => { 
+    if (len > 2000) return 'text-destructive font-bold' 
+    if (len > 1900) return 'text-orange-400' 
+    if (len > 1600) return 'text-yellow-400' 
+    return 'text-muted-foreground' 
+  }
+
   const handleSubmit = async () => {
-    if (!content.trim() || content.length > 500) return
+    if (!content.trim() || content.length > 2000) return
 
     // Poll validation
     if (showPoll) {
@@ -133,7 +140,7 @@ export default function PostComposer({ onPostCreated, defaultCommunity, noBorder
             className="resize-none border-none bg-transparent text-lg focus-visible:ring-0 p-0 min-h-25"
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            maxLength={500}
+            maxLength={2000}
           />
 
           {/* Link Preview */}
@@ -262,12 +269,12 @@ export default function PostComposer({ onPostCreated, defaultCommunity, noBorder
             </div>
             
             <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto border-t sm:border-t-0 pt-2 sm:pt-0 border-border/50">
-              <span className={`text-[10px] sm:text-xs font-medium ${content.length > 450 ? 'text-destructive' : 'text-muted-foreground'}`}>
-                {content.length}/500
+              <span className={`text-[10px] sm:text-xs tabular-nums font-medium ${getCounterColor(content.length)}`}>
+                {content.length}/2000
               </span>
               <Button
                 onClick={handleSubmit}
-                disabled={!content.trim() || content.length > 500 || isLoading}
+                disabled={!content.trim() || content.length > 2000 || isLoading}
                 size="sm"
                 className="rounded-full px-4 sm:px-5 text-xs sm:text-sm h-8 sm:h-9"
               >

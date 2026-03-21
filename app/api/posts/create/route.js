@@ -42,8 +42,8 @@ export async function POST(request) {
     }
 
     const sanitizedContent = sanitizeText(content);
-    if (sanitizedContent.length > 500) {
-      return NextResponse.json({ message: 'Post too long' }, { status: 400 });
+    if (sanitizedContent.length > 2000) {
+      return NextResponse.json({ message: 'Post too long (max 2000 chars)' }, { status: 400 });
     }
 
     const hashtags = extractHashtags(sanitizedContent);

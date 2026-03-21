@@ -17,6 +17,7 @@ import { toast } from "sonner"
 import dynamic from 'next/dynamic'
 import UserAvatar from "@/components/user/UserAvatar"
 import LikeButton from './LikeButton'
+import PostContent from './PostContent'
 
 // Lazy load heavy dialogs/modals
 const CommentSection = dynamic(() => import('@/components/post/CommentSection'), { ssr: false })
@@ -257,22 +258,9 @@ const PostCard = memo(function PostCard({ post, currentUserId, onDelete, onLike,
             )}
           </div>
           
-          <p className="mt-1 text-[15px] leading-normal whitespace-pre-wrap wrap-break-words">
-            {renderContentWithHashtags(post.content || '').map((segment, i) => (
-              segment.type === 'hashtag' ? (
-                <Link 
-                  key={i} 
-                  href={`/hashtag/${segment.value}`}
-                  className="text-blue-400 hover:text-blue-300 hover:underline"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  #{segment.value}
-                </Link>
-              ) : (
-                <span key={i}>{segment.value}</span>
-              )
-            ))}
-          </p>
+          <div className="mt-1">
+            <PostContent content={post.content} />
+          </div>
 
           {post.poll?.options?.length > 0 && (
             <div onClick={(e) => e.stopPropagation()}>
