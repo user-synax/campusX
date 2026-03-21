@@ -37,8 +37,8 @@ export default function MobileNav() {
 
   const navItems = [
     { href: "/feed", icon: Home, label: "Home" },
-    { href: "/leaderboard", icon: Trophy, label: "Leaderboard" },
-    { href: "#", icon: PlusSquare, label: "Post", isAction: true },
+    { href: "/search", icon: Search, label: "Search" },
+    { href: `/profile/${user?.username}`, icon: User, label: "Profile" },
     { href: "/notifications", icon: Bell, label: "Notifications", badge: count },
   ]
 
@@ -93,7 +93,7 @@ export default function MobileNav() {
             <Menu className="w-6 h-6" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="right" className="w-[280px] p-0 flex flex-col">
+        <SheetContent side="right" className="w-70 p-0 flex flex-col">
           <SheetHeader className="p-6 border-b text-left">
             <SheetTitle>
               <Logo size="sm" />
@@ -143,7 +143,7 @@ export default function MobileNav() {
                   <span className="text-base font-medium">Profile</span>
                 </Button>
               </Link>
-              <Link href="/search" onClick={() => setOpen(false)}>
+              {/* <Link href="/search" onClick={() => setOpen(false)}>
                 <Button
                   variant="ghost"
                   className={cn(
@@ -154,7 +154,7 @@ export default function MobileNav() {
                   <Search className="w-5 h-5" />
                   <span className="text-base font-medium">Search</span>
                 </Button>
-              </Link>
+              </Link> */}
               <Link href="/leaderboard" onClick={() => setOpen(false)}>
                 <Button
                   variant="ghost"
