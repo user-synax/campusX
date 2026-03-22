@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, GraduationCap, PlusSquare, User, Bell, Bookmark, LogOut, Menu, Search, Calendar, Trophy, Settings, MessageSquare } from "lucide-react"
+import { Home, GraduationCap, PlusSquare, User, Bell, Bookmark, LogOut, Menu, Search, Calendar, Trophy, Settings, MessageSquare, Shield, BookOpen } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import {
@@ -20,6 +20,7 @@ import { useChatUnreadCount } from '@/hooks/useChatUnreadCount'
 import CreatePostDialog from "@/components/post/CreatePostDialog"
 import Logo from "@/components/shared/Logo"
 import { cn } from "@/lib/utils"
+import { isAdmin } from "@/lib/admin"
 
 export default function MobileNav() {
   const pathname = usePathname()
@@ -169,6 +170,18 @@ export default function MobileNav() {
                   <span className="text-base font-medium">Leaderboard</span>
                 </Button>
               </Link>
+              <Link href="/resources" onClick={() => setOpen(false)}>
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-start gap-4 h-12 px-3",
+                    pathname.startsWith("/resources") ? "bg-accent text-accent-foreground font-bold" : "text-muted-foreground"
+                  )}
+                >
+                  <BookOpen className="w-5 h-5" />
+                  <span className="text-base font-medium">Resources</span>
+                </Button>
+              </Link>
               <Link href="/bookmarks" onClick={() => setOpen(false)}>
                 <Button
                   variant="ghost"
@@ -205,6 +218,22 @@ export default function MobileNav() {
                   <span className="text-base font-medium">Events</span>
                 </Button>
               </Link>
+
+              {user && isAdmin(user) && (
+                <Link href="/admin/resources" onClick={() => setOpen(false)}>
+                  <Button
+                    variant="ghost"
+                    className={cn(
+                      "w-full justify-start gap-4 h-12 px-3 text-amber-500 hover:text-amber-600 hover:bg-amber-500/10",
+                      pathname === "/admin/resources" ? "bg-amber-500/10 font-bold" : ""
+                    )}
+                  >
+                    <Shield className="w-5 h-5" />
+                    <span className="text-base font-medium">Review Queue</span>
+                  </Button>
+                </Link>
+              )}
+
               <Link href={`/profile/${user?.username}`} onClick={() => setOpen(false)}>
                 <Button
                   variant="ghost"
