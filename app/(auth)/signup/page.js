@@ -21,6 +21,7 @@ export default function SignupPage() {
     college: '',
     course: '',
     year: '1',
+    gender: 'unspecified',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -31,6 +32,10 @@ export default function SignupPage() {
 
   const handleYearChange = (value) => {
     setFormData({ ...formData, year: value });
+  };
+
+  const handleGenderChange = (value) => {
+    setFormData({ ...formData, gender: value });
   };
 
   const handleSubmit = async (e) => {
@@ -110,21 +115,37 @@ export default function SignupPage() {
                   <Input id="course" name="course" value={formData.course} onChange={handleChange} />
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="year">Year of Study</Label>
-                <Select onValueChange={handleYearChange} defaultValue={formData.year}>
-                  <SelectTrigger className="h-10">
-                    <SelectValue placeholder="Select year" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1">1st Year</SelectItem>
-                    <SelectItem value="2">2nd Year</SelectItem>
-                    <SelectItem value="3">3rd Year</SelectItem>
-                    <SelectItem value="4">4th Year</SelectItem>
-                    <SelectItem value="5">5th Year</SelectItem>
-                    <SelectItem value="6">Postgraduate/Other</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="gender">Gender</Label>
+                  <Select onValueChange={handleGenderChange} defaultValue={formData.gender}>
+                    <SelectTrigger className="h-10">
+                      <SelectValue placeholder="Select gender" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="male">Male</SelectItem>
+                      <SelectItem value="female">Female</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                      <SelectItem value="unspecified">Prefer not to say</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="year">Year of Study</Label>
+                  <Select onValueChange={handleYearChange} defaultValue={formData.year}>
+                    <SelectTrigger className="h-10">
+                      <SelectValue placeholder="Select year" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1st Year</SelectItem>
+                      <SelectItem value="2">2nd Year</SelectItem>
+                      <SelectItem value="3">3rd Year</SelectItem>
+                      <SelectItem value="4">4th Year</SelectItem>
+                      <SelectItem value="5">5th Year</SelectItem>
+                      <SelectItem value="6">Postgraduate/Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               
               {error && (
