@@ -113,7 +113,7 @@ export async function POST(request, { params }) {
       return NextResponse.json({ message: 'Invalid request body' }, { status: 400 })
     }
 
-    const { content, type, imageUrl } = sanitizeMongoInput(body)
+    const { content, type, imageUrl, clientId } = sanitizeMongoInput(body)
 
     // 3. Validate content/type
     if (!['text', 'image'].includes(type)) {
@@ -142,10 +142,18 @@ export async function POST(request, { params }) {
       imageUrl: type === 'image' ? imageUrl : ''
     })
 
-    // 5. Populate sender
-    const populated = await GroupMessage.findById(message._id)
-      .populate('sender', 'name username avatar isVerified')
-      .lean()
+    // 5. Construct populated message for immediate return & Pusher
+    // We already have currentUser info, so we can avoid an extra findById + populate
+    const populated = {
+      ...message.toObject(),
+      sender: {
+        _id: currentUser._id,
+        name: currentUser.name,
+        username: currentUser.username,
+        avatar: currentUser.avatar,
+        isVerified: currentUser.isVerified || false
+      }
+    }
 
     // 6. Update group's lastMessage (fire and forget)
     GroupChat.findByIdAndUpdate(groupId, {
@@ -159,12 +167,14 @@ export async function POST(request, { params }) {
     }).catch(() => {})
 
     // 7. Trigger Pusher
+    // We await this to ensure delivery before function ends in serverless environment
     await triggerPusher(`private-group-${groupId}`, 'new-message', {
       ...populated,
+      clientId, 
       reactions: []
     })
 
-    return NextResponse.json(populated, { status: 201 })
+    return NextResponse.json({ ...populated, clientId }, { status: 201 })
 
   } catch (err) {
     console.error('[GroupMessages POST]', err.message)

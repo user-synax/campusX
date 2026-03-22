@@ -50,7 +50,8 @@ export default function MessageBubble({ message, isOwn, showAvatar, currentUserI
   }
 
   return (
-    <div className={`flex items-end gap-2 mb-1 ${isOwn ? 'flex-row-reverse' : 'flex-row'} group relative`}> 
+    <div className={`flex items-end gap-2 mb-1 ${isOwn ? 'flex-row-reverse' : 'flex-row'} group relative 
+                     ${message.isOptimistic ? 'opacity-70' : 'opacity-100'} transition-opacity`}> 
  
       {/* Avatar — show for other people only */} 
       {!isOwn && ( 
@@ -144,11 +145,16 @@ export default function MessageBubble({ message, isOwn, showAvatar, currentUserI
           )}
  
           {/* Timestamp */} 
-          <p className={`text-[10px] mt-1 ${isOwn ? 'text-primary-foreground/60' : 'text-muted-foreground'}`}> 
-            {new Date(message.createdAt).toLocaleTimeString('en-IN', { 
-              hour: '2-digit', minute: '2-digit', hour12: true 
-            })} 
-          </p> 
+          <div className="flex items-center gap-1 mt-1">
+            <p className={`text-[10px] ${isOwn ? 'text-primary-foreground/60' : 'text-muted-foreground'}`}> 
+              {new Date(message.createdAt).toLocaleTimeString('en-IN', { 
+                hour: '2-digit', minute: '2-digit', hour12: true 
+              })} 
+            </p> 
+            {isOwn && message.isOptimistic && (
+              <span className="text-[8px] animate-pulse text-primary-foreground/40">sending...</span>
+            )}
+          </div>
         </div> 
  
         {/* Reactions */} 

@@ -100,7 +100,17 @@ export default function ChatRoomPage({ params: paramsPromise }) {
   // ━━━ Real-time Handlers ━━━
   const onNewMessage = useCallback((message) => {
     setMessages(prev => {
-      // Avoid duplicates if sender already added it locally (though here we rely on Pusher)
+      // 1. If message has clientId, try to replace optimistic message
+      if (message.clientId) {
+        const index = prev.findIndex(m => m.clientId === message.clientId)
+        if (index !== -1) {
+          const next = [...prev]
+          next[index] = { ...message, isOptimistic: false }
+          return next
+        }
+      }
+
+      // 2. Avoid duplicates if already added
       if (prev.some(m => m._id === message._id)) return prev
       return [...prev, message]
     })
@@ -176,22 +186,48 @@ export default function ChatRoomPage({ params: paramsPromise }) {
 
   // ━━━ Actions ━━━
   const handleSend = async (content) => {
+    if (!content.trim()) return
+
+    const clientId = `client-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    
+    // Optimistic message
+    const optimisticMsg = {
+      _id: clientId,
+      clientId,
+      content,
+      type: 'text',
+      sender: {
+        _id: currentUser._id,
+        name: currentUser.name,
+        avatar: currentUser.avatar,
+        username: currentUser.username
+      },
+      createdAt: new Date().toISOString(),
+      isOptimistic: true,
+      reactions: []
+    }
+
+    // Add to UI immediately
+    setMessages(prev => [...prev, optimisticMsg])
+    setTimeout(scrollToBottom, 50)
+
     try {
-      setSending(true)
+      // We don't use setSending(true) here because we want the input to stay active for the next message
       const res = await fetch(`/api/groups/${groupId}/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content, type: 'text' })
+        body: JSON.stringify({ content, type: 'text', clientId })
       })
       
       if (!res.ok) {
         const data = await res.json()
         toast.error(data.message || "Failed to send message")
+        // Remove optimistic message on error
+        setMessages(prev => prev.filter(m => m.clientId !== clientId))
       }
     } catch (error) {
       toast.error("Network error")
-    } finally {
-      setSending(false)
+      setMessages(prev => prev.filter(m => m.clientId !== clientId))
     }
   }
 

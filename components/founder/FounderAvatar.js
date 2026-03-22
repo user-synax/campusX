@@ -11,7 +11,7 @@ const FounderAvatar = memo(function FounderAvatar({ user, size = 'md' }) {
   } 
 
   return (
-    <div className={`founder-ring ${sizeMap[size]} flex-shrink-0`}> 
+    <div className={`founder-ring ${sizeMap[size]} shrink-0`}> 
       <div className="founder-ring-inner w-full h-full"> 
         <div className="w-full h-full rounded-full overflow-hidden bg-accent flex items-center justify-center"> 
           {user?.avatar ? ( 
