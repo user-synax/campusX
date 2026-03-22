@@ -18,6 +18,8 @@ import { usePosts } from "@/hooks/usePosts"
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll"
 import InfiniteScrollSentinel from "@/components/shared/InfiniteScrollSentinel"
 import { isFounder } from "@/lib/founder"
+import { renderContentWithMentions } from "@/utils/hashtags"
+import UserMention from "@/components/shared/UserMention"
 import dynamic from 'next/dynamic'
 
 const FounderProfileHeader = dynamic(() => import('@/components/founder/FounderProfileHeader'), { ssr: false })
@@ -178,7 +180,27 @@ export default function ProfilePage() {
             </div>
             <p className="text-muted-foreground text-sm">@{profileUser.username}</p>
             
-            {profileUser.bio && <p className="mt-3 text-[15px]">{profileUser.bio}</p>}
+            {profileUser.bio && (
+              <p className="mt-3 text-[15px] whitespace-pre-wrap break-words">
+                {renderContentWithMentions(profileUser.bio).map((segment, i) => {
+                  if (segment.type === 'hashtag') {
+                    return (
+                      <Link 
+                        key={i} 
+                        href={`/hashtag/${segment.value}`}
+                        className="text-blue-400 hover:text-blue-300 hover:underline"
+                      >
+                        #{segment.value}
+                      </Link>
+                    )
+                  } else if (segment.type === 'mention') {
+                    return <UserMention key={i} username={segment.value} />
+                  } else {
+                    return <span key={i}>{segment.value}</span>
+                  }
+                })}
+              </p>
+            )}
             
             <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-sm text-muted-foreground">
               {profileUser.college && <span className="flex items-center gap-1">🎓 {profileUser.college}</span>}

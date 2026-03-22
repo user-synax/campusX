@@ -22,7 +22,8 @@ import PollDisplay from "@/components/post/PollDisplay"
 import CommentItem from "@/components/post/CommentItem"
 import LikeButton from './LikeButton'
 import ReactionPicker from './ReactionPicker'
-import { renderContentWithHashtags } from "@/utils/hashtags"
+import { renderContentWithMentions } from "@/utils/hashtags"
+import UserMention from "@/components/shared/UserMention"
 import useUser from "@/hooks/useUser"
 import { isFounder } from "@/lib/founder"
 import FounderAvatar from "@/components/founder/FounderAvatar"
@@ -327,20 +328,26 @@ export default function PostDetailClient({ postId }) {
         </div>
 
         {/* Content */}
-        <div className="text-xl leading-relaxed whitespace-pre-wrap break-words mb-6">
-          {renderContentWithHashtags(post.content || '').map((segment, i) => (
-            segment.type === 'hashtag' ? (
-              <Link 
-                key={i} 
-                href={`/hashtag/${segment.value}`}
-                className="text-blue-400 hover:text-blue-300 hover:underline"
-              >
-                #{segment.value}
-              </Link>
-            ) : (
-              <span key={i}>{segment.value}</span>
-            )
-          ))}
+        <div className="text-xl leading-relaxed whitespace-pre-wrap wrap-break-words mb-6">
+          {renderContentWithMentions(post.content || '').map((segment, i) => {
+            if (segment.type === 'hashtag') {
+              return (
+                <Link 
+                  key={i} 
+                  href={`/hashtag/${segment.value}`}
+                  className="text-blue-400 hover:text-blue-300 hover:underline"
+                >
+                  #{segment.value}
+                </Link>
+              )
+            } else if (segment.type === 'mention') {
+              return (
+                <UserMention key={i} username={segment.value} />
+              )
+            } else {
+              return <span key={i}>{segment.value}</span>
+            }
+          })}
         </div>
 
         {post.linkPreview && (

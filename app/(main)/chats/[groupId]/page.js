@@ -248,10 +248,10 @@ export default function ChatRoomPage({ params: paramsPromise }) {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-64px)] bg-background"> 
+    <div className="flex flex-col h-[calc(100dvh-64px)] bg-background overflow-hidden"> 
  
       {/* ━━━ Chat Header ━━━ */} 
-      <div className="sticky top-0 bg-background/80 backdrop-blur border-b border-border z-10"> 
+      <div className="flex-shrink-0 bg-background/80 backdrop-blur border-b border-border z-10"> 
         <div className="flex items-center gap-3 px-4 py-3"> 
           <Button variant="ghost" size="icon" onClick={() => router.push('/chats')} className="rounded-full"> 
             <ArrowLeft className="w-5 h-5" /> 
@@ -282,7 +282,7 @@ export default function ChatRoomPage({ params: paramsPromise }) {
       {/* ━━━ Messages Area ━━━ */} 
       <div 
         ref={messagesContainerRef} 
-        className="flex-1 overflow-y-auto px-4 py-3 space-y-1 custom-scrollbar" 
+        className="flex-1 overflow-y-auto px-4 py-3 space-y-1 custom-scrollbar min-h-0" 
       > 
         {hasMore && ( 
           <div className="text-center py-4"> 
@@ -324,12 +324,14 @@ export default function ChatRoomPage({ params: paramsPromise }) {
       </div> 
  
       {/* ━━━ Message Input ━━━ */} 
-      <MessageInput 
-        onSend={handleSend} 
-        onTyping={handleTyping} 
-        sending={sending} 
-        groupId={groupId} 
-      /> 
+      <div className="flex-shrink-0">
+        <MessageInput 
+          onSend={handleSend} 
+          onTyping={handleTyping} 
+          sending={sending} 
+          groupId={groupId} 
+        /> 
+      </div>
  
       {/* Group Info Sheet */}
       <GroupInfoSheet 

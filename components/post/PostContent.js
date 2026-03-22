@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { renderContentWithHashtags } from "@/utils/hashtags"
+import { renderContentWithMentions } from "@/utils/hashtags"
+import UserMention from "@/components/shared/UserMention"
 
 export default function PostContent({ content }) {
   const TRUNCATE_LENGTH = 300 // chars shown in feed before "read more"
@@ -18,20 +19,26 @@ export default function PostContent({ content }) {
   return (
     <div>
       <p className="whitespace-pre-wrap break-words text-[15px] leading-normal text-foreground">
-        {renderContentWithHashtags(displayContent).map((segment, i) => (
-          segment.type === 'hashtag' ? (
-            <Link 
-              key={i} 
-              href={`/hashtag/${segment.value}`}
-              className="text-blue-400 hover:text-blue-300 hover:underline"
-              onClick={(e) => e.stopPropagation()}
-            >
-              #{segment.value}
-            </Link>
-          ) : (
-            <span key={i}>{segment.value}</span>
-          )
-        ))}
+        {renderContentWithMentions(displayContent).map((segment, i) => {
+          if (segment.type === 'hashtag') {
+            return (
+              <Link 
+                key={i} 
+                href={`/hashtag/${segment.value}`}
+                className="text-blue-400 hover:text-blue-300 hover:underline"
+                onClick={(e) => e.stopPropagation()}
+              >
+                #{segment.value}
+              </Link>
+            )
+          } else if (segment.type === 'mention') {
+            return (
+              <UserMention key={i} username={segment.value} />
+            )
+          } else {
+            return <span key={i}>{segment.value}</span>
+          }
+        })}
         {!expanded && shouldTruncate && '...'}
       </p>
 

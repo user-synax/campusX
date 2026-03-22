@@ -5,6 +5,8 @@ import Link from 'next/link'
 import UserAvatar from "@/components/user/UserAvatar"
 import { Trash2 } from 'lucide-react'
 import ConfirmDeleteModal from './ConfirmDeleteModal'
+import { renderContentWithMentions } from "@/utils/hashtags"
+import UserMention from "@/components/shared/UserMention"
 
 export default function MessageBubble({ message, isOwn, showAvatar, currentUserId, onDelete, onReact }) {
   const [showReactionPicker, setShowReactionPicker] = useState(false)
@@ -93,7 +95,26 @@ export default function MessageBubble({ message, isOwn, showAvatar, currentUserI
           {/* Text content */} 
           {message.content && ( 
             <p className="whitespace-pre-wrap break-words"> 
-              {message.content} 
+              {renderContentWithMentions(message.content).map((segment, i) => {
+                if (segment.type === 'hashtag') {
+                  return (
+                    <Link 
+                      key={i} 
+                      href={`/hashtag/${segment.value}`}
+                      className="text-blue-400 hover:text-blue-300 hover:underline"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      #{segment.value}
+                    </Link>
+                  )
+                } else if (segment.type === 'mention') {
+                  return (
+                    <UserMention key={i} username={segment.value} />
+                  )
+                } else {
+                  return <span key={i}>{segment.value}</span>
+                }
+              })}
             </p> 
           )} 
  
@@ -128,14 +149,14 @@ export default function MessageBubble({ message, isOwn, showAvatar, currentUserI
         )} 
       </div> 
  
-      {/* Action buttons — visible on hover */} 
-      <div className={`opacity-0 group-hover:opacity-100 transition-opacity 
-                       flex flex-col gap-1 ${isOwn ? 'mr-1' : 'ml-1'}`}> 
+      {/* Action buttons — visible on hover (Desktop) and always (Mobile) */} 
+      <div className={`flex flex-col gap-1 ${isOwn ? 'mr-1' : 'ml-1'} 
+                       md:opacity-0 md:group-hover:opacity-100 transition-opacity`}> 
         {/* React */} 
         <button 
           onClick={() => setShowReactionPicker(!showReactionPicker)} 
-          className="w-6 h-6 rounded-full bg-accent border border-border 
-                     flex items-center justify-center text-xs hover:bg-accent/80" 
+          className="w-7 h-7 rounded-full bg-accent/50 border border-border 
+                     flex items-center justify-center text-sm hover:bg-accent active:scale-90 transition-transform" 
         > 
           😊 
         </button> 
@@ -143,10 +164,11 @@ export default function MessageBubble({ message, isOwn, showAvatar, currentUserI
         {isOwn && ( 
           <button 
             onClick={() => setShowDeleteModal(true)} 
-            className="w-6 h-6 rounded-full bg-accent border border-border 
-                       flex items-center justify-center hover:bg-destructive/10 hover:border-destructive" 
+            className="w-7 h-7 rounded-full bg-accent/50 border border-border 
+                       flex items-center justify-center hover:bg-destructive/10 hover:border-destructive 
+                       active:scale-90 transition-transform" 
           > 
-            <Trash2 className="w-3 h-3 text-muted-foreground hover:text-destructive" /> 
+            <Trash2 className="w-3.5 h-3.5 text-muted-foreground hover:text-destructive" /> 
           </button> 
         )} 
       </div> 

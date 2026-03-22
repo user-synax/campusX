@@ -52,16 +52,8 @@ export default function MessageInput({ onSend, onTyping, sending, groupId }) {
   }, [])
 
   return (
-    <div className="border-t border-border bg-background px-3 py-3"> 
-      <div className="flex items-end gap-2"> 
-    
-        {/* Image upload button (Placeholder for now) */} 
-        <button 
-          className="flex-shrink-0 w-9 h-9 rounded-full bg-accent 
-                     flex items-center justify-center hover:bg-accent/70 mb-0.5" 
-        > 
-          <ImageIcon className="w-4 h-4 text-muted-foreground" /> 
-        </button> 
+    <div className="border-t border-border bg-background px-3 py-3 w-full"> 
+      <div className="flex items-end gap-2 max-w-4xl mx-auto w-full"> 
     
         {/* Text input */} 
         <textarea 
@@ -78,8 +70,8 @@ export default function MessageInput({ onSend, onTyping, sending, groupId }) {
           rows={1} 
           maxLength={2000} 
           className="flex-1 bg-accent border border-border rounded-2xl px-4 py-2 
-                     text-sm resize-none outline-none focus:border-muted-foreground 
-                     min-h-[40px] max-h-[120px] overflow-y-auto" 
+                     text-sm resize-none outline-none focus:ring-1 focus:ring-primary/20 
+                     min-h-[40px] max-h-[120px] overflow-y-auto transition-all" 
           style={{ height: 'auto' }} 
         /> 
     
@@ -87,15 +79,15 @@ export default function MessageInput({ onSend, onTyping, sending, groupId }) {
         <button 
           onClick={handleSend} 
           disabled={!content.trim() || sending} 
-          className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center mb-0.5 
+          className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center mb-0.5 
                       transition-all ${content.trim() && !sending 
-                        ? 'bg-primary text-primary-foreground hover:opacity-90 active:scale-95' 
+                        ? 'bg-primary text-primary-foreground hover:opacity-90 active:scale-95 shadow-lg shadow-primary/20' 
                         : 'bg-accent text-muted-foreground cursor-not-allowed' 
                       }`} 
         > 
           {sending 
-            ? <Loader2 className="w-4 h-4 animate-spin" /> 
-            : <Send className="w-4 h-4" /> 
+            ? <Loader2 className="w-5 h-5 animate-spin" /> 
+            : <Send className="w-5 h-5" /> 
           } 
         </button> 
       </div> 

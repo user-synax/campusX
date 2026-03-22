@@ -6,6 +6,9 @@ import { Button } from '@/components/ui/button'
 import { cn } from "@/lib/utils"
 import { getDaysSinceLaunch, LAUNCH_DATE } from '@/lib/founder' 
 import { formatCount } from '@/utils/formatters'
+import { renderContentWithMentions } from "@/utils/hashtags"
+import UserMention from "@/components/shared/UserMention"
+import Link from 'next/link'
 import FounderAvatar from './FounderAvatar'
 import FounderBadges from './FounderBadges'
 import RoadmapWidget from './RoadmapWidget'
@@ -98,7 +101,27 @@ export default function FounderProfileHeader({ user, isOwnProfile, stats, onFoll
         </div> 
     
         {/* Bio */} 
-        {user.bio && <p className="mt-3 text-sm leading-relaxed">{user.bio}</p>} 
+        {user.bio && (
+          <p className="mt-3 text-sm leading-relaxed whitespace-pre-wrap break-words">
+            {renderContentWithMentions(user.bio).map((segment, i) => {
+              if (segment.type === 'hashtag') {
+                return (
+                  <Link 
+                    key={i} 
+                    href={`/hashtag/${segment.value}`}
+                    className="text-blue-400 hover:text-blue-300 hover:underline"
+                  >
+                    #{segment.value}
+                  </Link>
+                )
+              } else if (segment.type === 'mention') {
+                return <UserMention key={i} username={segment.value} />
+              } else {
+                return <span key={i}>{segment.value}</span>
+              }
+            })}
+          </p>
+        )} 
     
         {/* Meta row */} 
         <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-sm text-muted-foreground"> 

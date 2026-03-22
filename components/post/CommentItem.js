@@ -4,6 +4,8 @@ import Link from "next/link"
 import { X } from "lucide-react"
 import UserAvatar from "@/components/user/UserAvatar"
 import { formatRelativeTime } from "@/utils/formatters"
+import { renderContentWithMentions } from "@/utils/hashtags"
+import UserMention from "@/components/shared/UserMention"
 
 /**
  * Reusable CommentItem component.
@@ -33,7 +35,26 @@ export default function CommentItem({ comment, currentUserId, onDelete }) {
             </span>
           </div>
           <p className="text-sm break-words leading-relaxed text-foreground/90">
-            {comment.content}
+            {renderContentWithMentions(comment.content).map((segment, i) => {
+              if (segment.type === 'hashtag') {
+                return (
+                  <Link 
+                    key={i} 
+                    href={`/hashtag/${segment.value}`}
+                    className="text-blue-400 hover:text-blue-300 hover:underline"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    #{segment.value}
+                  </Link>
+                )
+              } else if (segment.type === 'mention') {
+                return (
+                  <UserMention key={i} username={segment.value} />
+                )
+              } else {
+                return <span key={i}>{segment.value}</span>
+              }
+            })}
           </p>
         </div>
       </div>
