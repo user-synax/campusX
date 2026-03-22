@@ -2,7 +2,23 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Home, User, GraduationCap, Bell, LogOut, Bookmark, Search, Calendar, Trophy, MessageSquare, Settings } from "lucide-react"
+import { 
+  Home, 
+  User, 
+  GraduationCap, 
+  Bell, 
+  LogOut, 
+  Bookmark, 
+  Search, 
+  Calendar, 
+  Trophy, 
+  MessageSquare, 
+  Settings, 
+  Shield,
+  BookOpen,
+  History,
+  Heart
+} from "lucide-react"
 import { useChatUnreadCount } from '@/hooks/useChatUnreadCount'
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
@@ -15,6 +31,7 @@ import { Music as MusicIcon } from 'lucide-react'
 import NotificationBell from '@/components/notifications/NotificationBell'
 import { cn } from "@/lib/utils"
 import { isFounder } from "@/lib/founder"
+import { isAdmin } from "@/lib/admin"
 import FounderAvatar from "@/components/founder/FounderAvatar"
 
 export default function Sidebar() {
@@ -28,6 +45,7 @@ export default function Sidebar() {
   const navItems = [
     { label: "Feed", href: "/feed", icon: Home },
     { label: "Search", href: "/search", icon: Search },
+    { label: "Resources", href: "/resources", icon: BookOpen },
     { label: "Notifications", href: "/notifications", icon: Bell, badge: unreadCount },
     { label: "Chats", href: "/chats", icon: MessageSquare, badge: chatUnread },
     { label: "Communities", href: "/community", icon: GraduationCap },
@@ -37,6 +55,16 @@ export default function Sidebar() {
     { label: "Settings", href: "/settings", icon: Settings },
     { label: "Profile", href: user?.username ? `/profile/${user.username}` : "/login", icon: User },
   ]
+
+  // Add Admin Review if user is admin
+  if (user && isAdmin(user)) {
+    navItems.splice(navItems.length - 1, 0, { 
+      label: "Review", 
+      href: "/admin/resources", 
+      icon: Shield,
+      className: "text-amber-500 hover:text-amber-600 hover:bg-amber-500/10"
+    })
+  }
 
   const handleLogout = async () => {
     try {
@@ -61,25 +89,50 @@ export default function Sidebar() {
           const Icon = item.icon
 
           return (
-            <Link key={item.href} href={item.href}>
-              <Button
-                variant="ghost"
-                className={cn(
-                  "w-full justify-start gap-4 h-12 px-3 relative transition-all duration-200",
-                  isActive ? "bg-accent text-accent-foreground font-bold" : "text-muted-foreground"
-                )}
-              >
-                <div className="relative">
-                  <Icon className="w-5 h-5 shrink-0" />
-                  {item.badge > 0 && (
-                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary text-[10px] text-white flex items-center justify-center rounded-full border-2 border-background animate-in zoom-in">
-                      {item.badge}
-                    </span>
+            <div key={item.href} className="space-y-0.5">
+              <Link href={item.href}>
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-start gap-4 h-12 px-3 relative transition-all duration-200",
+                    isActive ? "bg-accent text-accent-foreground font-bold" : "text-muted-foreground",
+                    item.className
                   )}
+                >
+                  <div className="relative">
+                    <Icon className="w-5 h-5 shrink-0" />
+                    {item.badge > 0 && (
+                      <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary text-[10px] text-white flex items-center justify-center rounded-full border-2 border-background animate-in zoom-in">
+                        {item.badge}
+                      </span>
+                    )}
+                  </div>
+                  <span className="hidden lg:block text-base font-medium">{item.label}</span>
+                </Button>
+              </Link>
+
+              {/* Resources Sub-links */}
+              {item.href === "/resources" && pathname.startsWith("/resources") && (
+                <div className="hidden lg:flex flex-col gap-0.5 pl-9 pr-3 py-1">
+                  {[
+                    { label: 'My Uploads', href: '/resources/my-uploads', icon: History },
+                    { label: 'Saved', href: '/resources/saved', icon: Heart }
+                  ].map(sub => (
+                    <Link key={sub.href} href={sub.href}>
+                      <button className={cn(
+                        "flex items-center gap-2 w-full px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all uppercase tracking-wider",
+                        pathname === sub.href 
+                          ? "bg-primary/10 text-primary" 
+                          : "text-muted-foreground/60 hover:text-foreground hover:bg-accent/50"
+                      )}>
+                        <sub.icon className="w-3 h-3" />
+                        {sub.label}
+                      </button>
+                    </Link>
+                  ))}
                 </div>
-                <span className="hidden lg:block text-base font-medium">{item.label}</span>
-              </Button>
-            </Link>
+              )}
+            </div>
           )
         })}
       </nav>
