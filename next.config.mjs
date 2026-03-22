@@ -46,8 +46,8 @@ const nextConfig = {
               "default-src 'self'", 
               "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.youtube.com",  // Next.js needs unsafe-eval 
               "style-src 'self' 'unsafe-inline'", 
-              "img-src 'self' data: https: http: blob:",  // allow all external images
-              "connect-src 'self' https://api.anthropic.com wss://*.pusher.com https://*.pusher.com https://www.googleapis.com", 
+              "img-src 'self' data: https: http: blob: https://utfs.io https://*.uploadthing.com https://*.ufs.sh",  // allow all external images
+              "connect-src 'self' https://api.anthropic.com wss://*.pusher.com https://*.pusher.com https://www.googleapis.com https://*.uploadthing.com https://*.ingest.uploadthing.com", 
               "font-src 'self'", 
               "frame-src 'self' https://www.youtube.com", 
             ].join('; ') 
