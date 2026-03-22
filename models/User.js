@@ -53,6 +53,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: '',
   },
+  gender: {
+    type: String,
+    enum: ['male', 'female', 'other', 'unspecified'],
+    default: 'unspecified',
+  },
   followers: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

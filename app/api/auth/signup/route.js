@@ -26,7 +26,7 @@ export async function POST(request) {
       return NextResponse.json({ message: 'Invalid request body' }, { status: 400 });
     }
 
-    const { name, username, email, password, college, course, year } = body;
+    const { name, username, email, password, college, course, year, gender } = body;
 
     await connectDB();
 
@@ -62,6 +62,17 @@ export async function POST(request) {
 
     const hashedPassword = await bcrypt.hash(password, 12);
 
+    // Generate random avatar based on gender using DiceBear
+    let avatar = '';
+    const seed = Math.random().toString(36).substring(7);
+    if (gender === 'male') {
+      avatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}&gender=male`;
+    } else if (gender === 'female') {
+      avatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}&gender=female`;
+    } else {
+      avatar = `https://api.dicebear.com/7.x/identicon/svg?seed=${seed}`;
+    }
+
     const user = await User.create({
       name: sanitizeText(name),
       username: sanitizedUsername,
@@ -70,6 +81,8 @@ export async function POST(request) {
       college: sanitizeText(college),
       course: sanitizeText(course),
       year: parseInt(year) || 1,
+      gender: gender || 'unspecified',
+      avatar: avatar
     });
 
     // Auto-follow founder 
