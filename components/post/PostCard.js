@@ -25,12 +25,13 @@ const PollDisplay = dynamic(() => import('@/components/post/PollDisplay'), { ssr
 const ReactionPicker = dynamic(() => import('@/components/post/ReactionPicker'), { ssr: false })
 
 import { formatRelativeTime } from "@/utils/formatters"
-import { renderContentWithHashtags } from "@/utils/hashtags"
+import { formatCount } from "@/utils/formatters"
 import { cn } from "@/lib/utils"
 import useUser from "@/hooks/useUser"
 import { isFounder } from "@/lib/founder"
 import FounderAvatar from "@/components/founder/FounderAvatar"
 import FounderBadges from "@/components/founder/FounderBadges"
+import FormattedTime from "@/components/shared/FormattedTime"
 
 import { REACTIONS as REACTION_EMOJIS } from "@/lib/reaction-utils"
 
@@ -235,7 +236,7 @@ const PostCard = memo(function PostCard({ post, currentUserId, onDelete, onLike,
               className="text-muted-foreground hover:underline"
               onClick={(e) => e.stopPropagation()}
             >
-              {formatRelativeTime(new Date(post.createdAt))}
+              <FormattedTime date={post.createdAt} />
             </Link>
             {post.community && (
               <Badge variant="outline" className="text-[10px] h-5 px-1.5 font-normal border-border bg-secondary/30">

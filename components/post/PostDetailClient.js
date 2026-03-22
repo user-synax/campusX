@@ -25,6 +25,7 @@ import ReactionPicker from './ReactionPicker'
 import { renderContentWithMentions, extractUrls } from "@/utils/hashtags"
 import UserMention from "@/components/shared/UserMention"
 import LinkPreview from "@/components/shared/LinkPreview"
+import FormattedTime from "@/components/shared/FormattedTime"
 import useUser from "@/hooks/useUser"
 import { isFounder } from "@/lib/founder"
 import FounderAvatar from "@/components/founder/FounderAvatar"
@@ -348,13 +349,7 @@ export default function PostDetailClient({ postId }) {
             </div>
             <p className="text-sm text-muted-foreground">
               {!post.isAnonymous && `@${post.author.username} · `}
-              {new Date(post.createdAt).toLocaleDateString('en-IN', { 
-                day: 'numeric', 
-                month: 'long', 
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-              })}
+              <FormattedTime date={post.createdAt} type="full" />
             </p>
           </div>
         </div>

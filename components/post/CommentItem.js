@@ -6,6 +6,7 @@ import UserAvatar from "@/components/user/UserAvatar"
 import { formatRelativeTime } from "@/utils/formatters"
 import { renderContentWithMentions } from "@/utils/hashtags"
 import UserMention from "@/components/shared/UserMention"
+import FormattedTime from "@/components/shared/FormattedTime"
 
 /**
  * Reusable CommentItem component.
@@ -30,9 +31,7 @@ export default function CommentItem({ comment, currentUserId, onDelete }) {
             >
               {comment.author?.name || 'User'}
             </Link>
-            <span className="text-[10px] text-muted-foreground">
-              {formatRelativeTime(new Date(comment.createdAt))}
-            </span>
+            <FormattedTime date={comment.createdAt} className="text-[10px] text-muted-foreground" />
           </div>
           <div className="text-sm break-words leading-relaxed text-foreground/90">
             {renderContentWithMentions(comment.content).map((segment, i) => {

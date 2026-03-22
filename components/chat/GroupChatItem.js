@@ -2,6 +2,7 @@
 
 import { formatRelativeTime } from '@/utils/formatters'
 import Image from 'next/image'
+import FormattedTime from '@/components/shared/FormattedTime'
 
 export default function GroupChatItem({ group, currentUserId, onClick }) {
   return (
@@ -24,13 +25,13 @@ export default function GroupChatItem({ group, currentUserId, onClick }) {
       {/* Content */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between">
-          <p className="font-semibold text-sm truncate">{group.name}</p>
-          <span className="text-[10px] text-muted-foreground shrink-0 ml-2">
-            {group.lastMessage?.sentAt 
-              ? formatRelativeTime(new Date(group.lastMessage.sentAt)) 
-              : '' 
-            }
-          </span>
+          <h3 className="text-sm font-bold truncate pr-2 group-hover:text-primary transition-colors">
+            {group.name}
+          </h3>
+          <FormattedTime 
+            date={group.lastMessage?.sentAt || group.updatedAt} 
+            className="text-[10px] text-muted-foreground whitespace-nowrap" 
+          />
         </div>
 
         <div className="flex items-center justify-between mt-0.5">

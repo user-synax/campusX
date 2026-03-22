@@ -8,6 +8,7 @@ import ConfirmDeleteModal from './ConfirmDeleteModal'
 import { renderContentWithMentions, extractUrls } from "@/utils/hashtags"
 import UserMention from "@/components/shared/UserMention"
 import LinkPreview from "@/components/shared/LinkPreview"
+import FormattedTime from "@/components/shared/FormattedTime"
 
 export default function MessageBubble({ message, isOwn, showAvatar, currentUserId, onDelete, onReact }) {
   const [showReactionPicker, setShowReactionPicker] = useState(false)
@@ -146,11 +147,11 @@ export default function MessageBubble({ message, isOwn, showAvatar, currentUserI
  
           {/* Timestamp */} 
           <div className="flex items-center gap-1 mt-1">
-            <p className={`text-[10px] ${isOwn ? 'text-primary-foreground/60' : 'text-muted-foreground'}`}> 
-              {new Date(message.createdAt).toLocaleTimeString('en-IN', { 
-                hour: '2-digit', minute: '2-digit', hour12: true 
-              })} 
-            </p> 
+            <FormattedTime 
+              date={message.createdAt} 
+              type="time" 
+              className={`text-[10px] ${isOwn ? 'text-primary-foreground/60' : 'text-muted-foreground'}`}
+            />
             {isOwn && message.isOptimistic && (
               <span className="text-[8px] animate-pulse text-primary-foreground/40">sending...</span>
             )}
