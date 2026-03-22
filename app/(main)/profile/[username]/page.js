@@ -21,6 +21,7 @@ import { isFounder } from "@/lib/founder"
 import { renderContentWithMentions } from "@/utils/hashtags"
 import UserMention from "@/components/shared/UserMention"
 import dynamic from 'next/dynamic'
+import Link from 'next/link'
 
 const FounderProfileHeader = dynamic(() => import('@/components/founder/FounderProfileHeader'), { ssr: false })
 const RoadmapWidget = dynamic(() => import('@/components/founder/RoadmapWidget'), { ssr: false })

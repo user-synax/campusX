@@ -248,7 +248,7 @@ export default function ChatRoomPage({ params: paramsPromise }) {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100dvh-64px)] bg-background overflow-hidden"> 
+    <div className="flex flex-col h-full bg-background overflow-hidden relative"> 
  
       {/* ━━━ Chat Header ━━━ */} 
       <div className="flex-shrink-0 bg-background/80 backdrop-blur border-b border-border z-10"> 
