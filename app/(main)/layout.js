@@ -9,10 +9,14 @@ import { Toaster } from "@/components/ui/sonner"
 import BroadcastBanner from "@/components/founder/BroadcastBanner"
 import useUser from "@/hooks/useUser"
 import { NotificationProvider } from "@/context/NotificationContext"
+import { usePushNotifications } from "@/hooks/usePushNotifications"
 
 export default function MainLayout({ children }) {
   const { user } = useUser()
   const pathname = usePathname()
+  
+  // Register service worker and handle push permissions
+  usePushNotifications()
   
   // Check if we are inside a specific chat room
   const isChatRoom = pathname.startsWith('/chats/') && pathname !== '/chats'

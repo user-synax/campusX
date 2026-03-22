@@ -10,7 +10,9 @@ import { usePosts } from "@/hooks/usePosts"
 import useUser from "@/hooks/useUser"
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll"
 import { useFeedUpdates } from "@/hooks/useFeedUpdates"
+import { useNotifications } from "@/hooks/useNotifications"
 import InfiniteScrollSentinel from "@/components/shared/InfiniteScrollSentinel"
+import PushPromptManager from "@/components/notifications/PushPromptManager"
 import { RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -45,6 +47,7 @@ export default function FeedPage() {
   } = usePosts()
 
   const { newPostsAvailable, resetNewPosts } = useFeedUpdates()
+  const { newNotification } = useNotifications()
 
   const handleRefreshFeed = useCallback(() => {
     refreshPosts()
@@ -86,6 +89,9 @@ export default function FeedPage() {
       
       {/* Post composer */}
       <PostComposer onPostCreated={handlePostCreated} />
+
+      {/* Push permission banner */}
+      <PushPromptManager newNotification={newNotification} />
 
       {/* New posts toast/button */}
       {newPostsAvailable > 0 && (

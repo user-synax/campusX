@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Home, User, GraduationCap, Bell, LogOut, Bookmark, Search, Calendar, Trophy, MessageSquare } from "lucide-react"
+import { Home, User, GraduationCap, Bell, LogOut, Bookmark, Search, Calendar, Trophy, MessageSquare, Settings } from "lucide-react"
 import { useChatUnreadCount } from '@/hooks/useChatUnreadCount'
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
@@ -31,6 +31,7 @@ export default function Sidebar() {
     { label: "Events", href: "/events", icon: Calendar },
     { label: "Leaderboard", href: "/leaderboard", icon: Trophy },
     { label: "Bookmarks", href: "/bookmarks", icon: Bookmark },
+    { label: "Settings", href: "/settings", icon: Settings },
     { label: "Profile", href: user?.username ? `/profile/${user.username}` : "/login", icon: User },
   ]
 

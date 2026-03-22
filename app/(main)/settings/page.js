@@ -13,12 +13,14 @@ import {
   LogOut, 
   ChevronRight,
   Loader2,
-  CheckCircle2
+  CheckCircle2,
+  AlertCircle
 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { toast } from "sonner"
 import useUser from "@/hooks/useUser"
+import PushSettings from '@/components/notifications/PushSettings'
 
 import ConfirmDeleteModal from '@/components/chat/ConfirmDeleteModal'
 import EditProfileDrawer from '@/components/user/EditProfileDrawer'
@@ -26,6 +28,7 @@ import EditProfileDrawer from '@/components/user/EditProfileDrawer'
 export default function SettingsPage() {
   const router = useRouter()
   const { user, loading: userLoading, refetch: refetchUser } = useUser()
+
   const [saving, setSaving] = useState(false)
   const [editDrawerOpen, setEditDrawerOpen] = useState(false)
   
@@ -149,17 +152,8 @@ export default function SettingsPage() {
             <Bell className="w-5 h-5" />
             <h2 className="font-bold uppercase tracking-wider text-xs">Notifications</h2>
           </div>
-          <div className="bg-card rounded-3xl border border-border overflow-hidden">
-            <div className="flex items-center justify-between p-4 hover:bg-accent/30 transition-colors">
-              <div className="flex flex-col">
-                <span className="font-semibold text-sm">Push Notifications</span>
-                <span className="text-xs text-muted-foreground">Receive alerts on your device</span>
-              </div>
-              <Switch 
-                checked={settings.pushNotifications} 
-                onCheckedChange={() => handleToggle('pushNotifications')}
-              />
-            </div>
+          <div className="bg-card rounded-3xl border border-border p-4">
+            <PushSettings />
           </div>
         </section>
 
