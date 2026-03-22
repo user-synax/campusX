@@ -2,15 +2,16 @@
 
 import { useEffect, useRef } from 'react'
 import { gsap, shouldAnimate } from '@/lib/gsap-config'
-import { Users, FileText, GraduationCap } from 'lucide-react'
+import { Users, FileText, GraduationCap, BookOpen } from 'lucide-react'
 
-export default function Stats({ users = 0, posts = 0, communities = 0 }) {
+export default function Stats({ users = 0, posts = 0, resources = 0, communities = 0 }) {
   const sectionRef = useRef(null)
   const numberRefs = useRef([])
 
   const STATS_CONFIG = [
     { label: 'Students', value: users, suffix: '+', icon: Users, color: 'from-blue-500/20 to-cyan-500/20' },
     { label: 'Posts Shared', value: posts, suffix: '+', icon: FileText, color: 'from-purple-500/20 to-pink-500/20' },
+    { label: 'Study Resources', value: resources, suffix: '+', icon: BookOpen, color: 'from-emerald-500/20 to-teal-500/20' },
     { label: 'Communities', value: communities, suffix: '', icon: GraduationCap, color: 'from-orange-500/20 to-yellow-500/20' }
   ]
 
@@ -18,7 +19,7 @@ export default function Stats({ users = 0, posts = 0, communities = 0 }) {
     if (!shouldAnimate()) {
       // No animation — just show values
       numberRefs.current.forEach((el, i) => {
-        if (el) el.textContent = STATS_CONFIG[i].value + STATS_CONFIG[i].suffix
+        if (el && STATS_CONFIG[i]) el.textContent = STATS_CONFIG[i].value + STATS_CONFIG[i].suffix
       })
       return
     }
@@ -48,16 +49,16 @@ export default function Stats({ users = 0, posts = 0, communities = 0 }) {
 
     if (sectionRef.current) observer.observe(sectionRef.current)
     return () => observer.disconnect()
-  }, [users, posts, communities])
+  }, [users, posts, resources, communities])
 
   return (
     <section className="py-24 px-4 relative overflow-hidden bg-[#0f0f0f]">
       {/* Decorative background elements */}
       <div className="absolute top-1/2 left-0 -translate-y-1/2 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl" />
-      <div className="absolute top-1/2 right-0 -translate-y-1/2 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl" />
+      <div className="absolute top-1/2 right-0 -translate-y-1/2 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl" />
 
-      <div className="max-w-6xl mx-auto relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8" ref={sectionRef}>
+      <div className="max-w-7xl mx-auto relative z-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8" ref={sectionRef}>
           {STATS_CONFIG.map((stat, i) => (
             <div 
               key={i} 
