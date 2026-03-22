@@ -12,7 +12,9 @@ import {
   Edit,  
   Save, 
   Plus, 
-  ShieldCheck 
+  ShieldCheck,
+  Search,
+  UserPlus
 } from 'lucide-react' 
 import {  
   Sheet,  
@@ -21,6 +23,13 @@ import {
   SheetTitle,  
   SheetDescription 
 } from "@/components/ui/sheet" 
+import {  
+  Dialog,  
+  DialogContent,  
+  DialogHeader,  
+  DialogTitle,  
+  DialogDescription 
+} from "@/components/ui/dialog" 
 import { Button } from "@/components/ui/button" 
 import { Input } from "@/components/ui/input" 
 import { Textarea } from "@/components/ui/textarea" 
@@ -36,6 +45,14 @@ export default function GroupInfoSheet({ group, currentUserId, isAdmin, onUpdate
   const [leaving, setLeaving] = useState(false) 
   const [deleting, setDeleting] = useState(false) 
   const [removingId, setRemovingId] = useState(null)
+  
+  // Member Search / Add states
+  const [addModalOpen, setAddModalOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState([])
+  const [searching, setSearching] = useState(false)
+  const [addingId, setAddingId] = useState(null)
+
   const router = useRouter() 
  
   const handleUpdate = async () => { 
@@ -130,8 +147,65 @@ export default function GroupInfoSheet({ group, currentUserId, isAdmin, onUpdate
       setRemovingId(null)
     }
   } 
+
+  const handleSearchUsers = async (q) => {
+    setSearchQuery(q)
+    if (q.trim().length < 2) {
+      setSearchResults([])
+      return
+    }
+    setSearching(true)
+    try {
+      const res = await fetch(`/api/search/users?q=${encodeURIComponent(q)}&limit=10`)
+      const data = await res.json()
+      if (res.ok) {
+        setSearchResults(data.users || [])
+      }
+    } catch (error) {
+      console.error("Search error:", error)
+    } finally {
+      setSearching(false)
+    }
+  }
+
+  const handleAddMember = async (user) => {
+    setAddingId(user._id)
+    try {
+      const res = await fetch(`/api/groups/${group._id}/members`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user._id })
+      })
+      const data = await res.json()
+      if (res.ok) {
+        toast.success(`${user.name} added to group`)
+        // Update local state via parent
+        const newMemberObj = {
+          userId: {
+            _id: user._id,
+            name: user.name,
+            username: user.username,
+            avatar: user.avatar,
+            isVerified: user.isVerified
+          },
+          role: 'member',
+          joinedAt: new Date().toISOString()
+        }
+        onUpdate({ ...group, members: [...group.members, newMemberObj] })
+        setSearchQuery('')
+        setSearchResults([])
+      } else {
+        toast.error(data.message || "Failed to add member")
+      }
+    } catch (error) {
+      toast.error("Error adding member")
+    } finally {
+      setAddingId(null)
+    }
+  }
  
   return ( 
+    <>
     <Sheet open={open} onOpenChange={onOpenChange}> 
       <SheetContent className="bg-card border-border overflow-y-auto custom-scrollbar sm:max-w-md"> 
         <SheetHeader className="mb-6"> 
@@ -202,7 +276,12 @@ export default function GroupInfoSheet({ group, currentUserId, isAdmin, onUpdate
             <div className="flex items-center justify-between border-b border-border/50 pb-2"> 
               <h3 className="font-bold text-sm">Members ({group?.members?.length})</h3> 
               {isAdmin && ( 
-                <Button variant="ghost" size="sm" className="h-7 text-[11px] font-bold text-primary hover:text-primary hover:bg-primary/10"> 
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setAddModalOpen(true)}
+                  className="h-7 text-[11px] font-bold text-primary hover:text-primary hover:bg-primary/10"
+                > 
                   <Plus className="w-3 h-3 mr-1" /> Add 
                 </Button> 
               )} 
@@ -270,6 +349,78 @@ export default function GroupInfoSheet({ group, currentUserId, isAdmin, onUpdate
           </div> 
         </div> 
       </SheetContent> 
-    </Sheet> 
+    </Sheet>
+
+    {/* Add Member Dialog */}
+    <Dialog open={addModalOpen} onOpenChange={setAddModalOpen}>
+      <DialogContent className="bg-card border-border sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Add Member</DialogTitle>
+          <DialogDescription>Search for users to add to this group</DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 pt-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input 
+              placeholder="Search by name or @username..."
+              value={searchQuery}
+              onChange={(e) => handleSearchUsers(e.target.value)}
+              className="pl-10 bg-accent/50 border-border"
+            />
+          </div>
+
+          <div className="space-y-2 max-h-[300px] overflow-y-auto custom-scrollbar">
+            {searching ? (
+              <div className="flex flex-col items-center justify-center py-10 gap-2">
+                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                <p className="text-xs text-muted-foreground">Searching users...</p>
+              </div>
+            ) : searchResults.length > 0 ? (
+              searchResults.map(user => {
+                const isMember = group?.members?.some(m => m.userId._id === user._id)
+                return (
+                  <div key={user._id} className="flex items-center justify-between p-2 rounded-xl hover:bg-accent/50 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <UserAvatar user={user} size="sm" />
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold truncate">{user.name}</p>
+                        <p className="text-xs text-muted-foreground truncate">@{user.username}</p>
+                      </div>
+                    </div>
+                    {isMember ? (
+                      <Badge variant="ghost" className="text-[10px] text-muted-foreground font-medium">Member</Badge>
+                    ) : (
+                      <Button 
+                        size="sm" 
+                        variant="ghost"
+                        onClick={() => handleAddMember(user)}
+                        disabled={addingId === user._id}
+                        className="h-8 w-8 p-0 text-primary hover:bg-primary/10 hover:text-primary"
+                      >
+                        {addingId === user._id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <UserPlus className="w-4 h-4" />
+                        )}
+                      </Button>
+                    )}
+                  </div>
+                )
+              })
+            ) : searchQuery.length >= 2 ? (
+              <div className="text-center py-10">
+                <p className="text-sm text-muted-foreground">No users found for &quot;{searchQuery}&quot;</p>
+              </div>
+            ) : (
+              <div className="text-center py-10">
+                <p className="text-sm text-muted-foreground italic">Type at least 2 characters to search</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+    </>
   ) 
 } 
