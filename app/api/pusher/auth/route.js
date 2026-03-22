@@ -10,12 +10,10 @@ export async function POST(request) {
     // Verify user is logged in 
     const currentUser = await getCurrentUser(request) 
     if (!currentUser) { 
-      console.warn('[PusherAuth] Unauthorized — no user found')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) 
     } 
 
     const contentType = request.headers.get('content-type') || ''
-    console.log(`[PusherAuth] Request received. Content-Type: ${contentType}`)
     let socketId, channelName
 
     if (contentType.includes('application/json')) {
@@ -29,10 +27,7 @@ export async function POST(request) {
       channelName = params.get('channel_name') 
     }
 
-    console.log(`[PusherAuth] Socket: ${socketId}, Channel: ${channelName}, User: ${currentUser.username}`)
-
     if (!socketId || !channelName) { 
-      console.warn('[PusherAuth] Missing socket_id or channel_name', { socketId, channelName })
       return NextResponse.json({ error: 'Missing socket_id or channel_name' }, { status: 400 }) 
     } 
 
@@ -41,7 +36,6 @@ export async function POST(request) {
       const groupId = channelName.replace('private-group-', '') 
 
       if (!validateObjectId(groupId)) {
-        console.warn('[PusherAuth] Invalid group ID in channel name:', channelName)
         return NextResponse.json({ error: 'Invalid group ID' }, { status: 400 })
       }
 
@@ -55,7 +49,6 @@ export async function POST(request) {
       }).lean() 
 
       if (!group) { 
-        console.warn(`[PusherAuth] User ${currentUser._id} is not a member of group ${groupId}`)
         return NextResponse.json( 
           { error: 'Not a member of this group or group inactive' }, 
           { status: 403 } 
@@ -69,7 +62,6 @@ export async function POST(request) {
 
       // Only allow subscribing to YOUR OWN notification channel
       if (channelUserId !== currentUser._id.toString()) {
-        console.warn(`[PusherAuth] User ${currentUser._id} attempted to subscribe to channel for user ${channelUserId}`)
         return NextResponse.json(
           { error: 'Cannot subscribe to another user\'s notifications' },
           { status: 403 }
@@ -82,7 +74,6 @@ export async function POST(request) {
     const pusher = getPusherServer() 
     const authResponse = pusher.authorizeChannel(socketId, channelName) 
 
-    console.log('[PusherAuth] Success for channel:', channelName)
     return NextResponse.json(authResponse) 
 
   } catch (err) { 

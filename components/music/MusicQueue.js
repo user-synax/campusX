@@ -10,9 +10,9 @@ export default function MusicQueue() {
   } = useMusic()
 
   return (
-    <div className="flex flex-col h-full overflow-hidden p-4 space-y-4">
+    <div className="flex flex-col h-full overflow-hidden p-3 sm:p-4 space-y-3 sm:space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between px-1">
         <h3 className="text-sm font-semibold flex items-center gap-2">
           <ListMusic className="w-4 h-4 text-primary" />
           Queue ({queue.length})
@@ -52,12 +52,12 @@ export default function MusicQueue() {
 
               {/* Info */}
               <div className="flex-1 min-w-0">
-                <p className={`text-sm font-medium truncate ${
+                <p className={`text-[13px] sm:text-sm font-bold truncate tracking-tight ${
                   currentSong?.videoId === song.videoId ? 'text-primary' : ''
                 }`}>
                   {song.title}
                 </p>
-                <p className="text-[10px] text-muted-foreground truncate">{song.channel}</p>
+                <p className="text-[10px] sm:text-[11px] text-muted-foreground truncate opacity-60 font-bold">{song.channel}</p>
               </div>
 
               {/* Actions */}

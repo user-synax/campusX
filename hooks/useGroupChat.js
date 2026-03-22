@@ -21,29 +21,20 @@ export function useGroupChat(groupId, handlers = {}) {
  
     // Subscribe to private channel for this group 
     const channelName = `private-group-${groupId}`
-    console.log(`[Pusher] Attempting to subscribe to ${channelName}`)
     const channel = pusher.subscribe(channelName) 
     channelRef.current = channel 
 
-    channel.bind('pusher:subscription_succeeded', () => {
-      console.log(`[Pusher] Successfully subscribed to ${channelName}`)
-    })
-
     channel.bind('pusher:subscription_error', (status) => {
-      console.error(`[Pusher] Subscription error for ${channelName}:`, status)
       if (status === 403 || status === 401) {
-        console.error('[Pusher] Auth failed. Check if you are a member of this group.')
+        console.error('[Pusher] Auth failed. Check membership.')
       }
     })
  
     // Bind all events with a wrapper that calls the current handler ref
     const bindEvent = (event, handlerKey) => {
       channel.bind(event, (data) => {
-        console.log(`[Pusher] Received event "${event}" on ${channelName}:`, data)
         if (handlersRef.current[handlerKey]) {
           handlersRef.current[handlerKey](data)
-        } else {
-          console.warn(`[Pusher] No handler found for key: ${handlerKey}`)
         }
       })
     }
