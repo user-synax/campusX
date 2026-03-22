@@ -64,7 +64,7 @@ const nextConfig = {
               "script-src 'self' 'unsafe-eval' 'unsafe-inline'",  // Next.js needs unsafe-eval 
               "style-src 'self' 'unsafe-inline'", 
               "img-src 'self' data: https: blob: res.cloudinary.com *.giphy.com i.ytimg.com *.googleusercontent.com",  // allow external images (avatars, OG) 
-              "connect-src 'self' https://api.anthropic.com", 
+              "connect-src 'self' https://api.anthropic.com wss://*.pusher.com https://*.pusher.com", 
               "font-src 'self'", 
               "frame-src 'none'", 
             ].join('; ') 

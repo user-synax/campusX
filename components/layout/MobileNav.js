@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, GraduationCap, PlusSquare, User, Bell, Bookmark, LogOut, Menu, Search, Calendar, Trophy, Settings } from "lucide-react"
+import { Home, GraduationCap, PlusSquare, User, Bell, Bookmark, LogOut, Menu, Search, Calendar, Trophy, Settings, MessageSquare } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import {
@@ -16,6 +16,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import useUser from "@/hooks/useUser"
 import useNotificationCount from "@/hooks/useNotificationCount"
+import { useChatUnreadCount } from '@/hooks/useChatUnreadCount'
 import CreatePostDialog from "@/components/post/CreatePostDialog"
 import Logo from "@/components/shared/Logo"
 import { cn } from "@/lib/utils"
@@ -24,6 +25,7 @@ export default function MobileNav() {
   const pathname = usePathname()
   const { user, loading } = useUser()
   const { count } = useNotificationCount()
+  const chatUnread = useChatUnreadCount()
   const [open, setOpen] = useState(false)
 
   const handleLogout = async () => {
@@ -38,7 +40,7 @@ export default function MobileNav() {
   const navItems = [
     { href: "/feed", icon: Home, label: "Home" },
     { href: "/search", icon: Search, label: "Search" },
-    { href: `/profile/${user?.username}`, icon: User, label: "Profile" },
+    { href: "/chats", icon: MessageSquare, label: "Chats", badge: chatUnread },
     { href: "/notifications", icon: Bell, label: "Notifications", badge: count },
   ]
 
@@ -201,6 +203,30 @@ export default function MobileNav() {
                 >
                   <Calendar className="w-5 h-5" />
                   <span className="text-base font-medium">Events</span>
+                </Button>
+              </Link>
+              <Link href={`/profile/${user?.username}`} onClick={() => setOpen(false)}>
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-start gap-4 h-12 px-3",
+                    pathname === `/profile/${user?.username}` ? "bg-accent text-accent-foreground" : "text-muted-foreground"
+                  )}
+                >
+                  <User className="w-5 h-5" />
+                  <span className="text-base font-medium">Profile</span>
+                </Button>
+              </Link>
+              <Link href="/settings" onClick={() => setOpen(false)}>
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-start gap-4 h-12 px-3",
+                    pathname === "/settings" ? "bg-accent text-accent-foreground" : "text-muted-foreground"
+                  )}
+                >
+                  <Settings className="w-5 h-5" />
+                  <span className="text-base font-medium">Settings</span>
                 </Button>
               </Link>
             </nav>

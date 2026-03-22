@@ -2,7 +2,8 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Home, User, GraduationCap, Bell, LogOut, Bookmark, Search, Calendar, Trophy } from "lucide-react"
+import { Home, User, GraduationCap, Bell, LogOut, Bookmark, Search, Calendar, Trophy, MessageSquare } from "lucide-react"
+import { useChatUnreadCount } from '@/hooks/useChatUnreadCount'
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -18,10 +19,12 @@ export default function Sidebar() {
   const router = useRouter()
   const { user, loading } = useUser()
   const { count } = useNotificationCount()
+  const chatUnread = useChatUnreadCount()
 
   const navItems = [
     { label: "Feed", href: "/feed", icon: Home },
     { label: "Search", href: "/search", icon: Search },
+    { label: "Chats", href: "/chats", icon: MessageSquare, badge: chatUnread },
     { label: "Bookmarks", href: "/bookmarks", icon: Bookmark },
     { label: "Profile", href: user?.username ? `/profile/${user.username}` : "/login", icon: User },
     { label: "Communities", href: "/community", icon: GraduationCap },
@@ -120,7 +123,7 @@ export default function Sidebar() {
           onClick={handleLogout}
           className="w-full justify-start gap-4 h-10 px-3 text-destructive hover:text-destructive hover:bg-destructive/10"
         >
-          <LogOut className="w-5 h-5 flex-shrink-0" />
+          <LogOut className="w-5 h-5 shrink-0" />
           <span className="hidden lg:block text-sm font-medium">Log out</span>
         </Button>
       </div>
