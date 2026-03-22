@@ -331,7 +331,7 @@ export default function PostDetailClient({ postId }) {
         </div>
 
         {/* Content */}
-        <div className="text-xl leading-relaxed whitespace-pre-wrap break-words mb-6">
+        <div className="text-xl leading-relaxed whitespace-pre-wrap word-break-words mb-6">
           {renderContentWithMentions(post.content || '').map((segment, i) => {
             if (segment.type === 'hashtag') {
               return (
@@ -352,7 +352,7 @@ export default function PostDetailClient({ postId }) {
                 <a 
                   key={i} 
                   href={segment.value}
-                  target="_blank"
+                  target="_blank" 
                   rel="noopener noreferrer"
                   className="text-primary hover:underline"
                   onClick={(e) => e.stopPropagation()}
@@ -366,54 +366,18 @@ export default function PostDetailClient({ postId }) {
           })}
         </div>
 
-        {/* Dynamic Link Previews */}
-        {urls.length > 0 && (
-          <div className="mb-6 space-y-4">
-            {urls.map((url, i) => (
+        {/* Link Previews */}
+        <div className="mb-6 space-y-4">
+          {urls.length > 0 ? (
+            // New rich previews for all links found in text
+            urls.map((url, i) => (
               <LinkPreview key={i} url={url} />
-            ))}
-          </div>
-        )}
-
-        {post.linkPreview && (
-          <div className="mb-6">
-            <a 
-              href={post.linkPreview.url} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="block group/link"
-            >
-              <Card className="overflow-hidden border-border bg-accent/5 hover:bg-accent/10 transition-colors">
-                <div className="flex flex-col sm:flex-row gap-4">
-                  {post.linkPreview.image && (
-                    <div className="w-full sm:w-40 h-40 sm:h-auto shrink-0 bg-secondary">
-                      <img 
-                        src={post.linkPreview.image} 
-                        alt="" 
-                        className="w-full h-full object-cover"
-                        onError={(e) => { e.currentTarget.style.display = 'none' }}
-                      />
-                    </div>
-                  )}
-                  <div className="p-4 flex-1 min-w-0 flex flex-col justify-center">
-                    <h4 className="font-bold text-lg line-clamp-2 group-hover/link:text-primary transition-colors">
-                      {post.linkPreview.title}
-                    </h4>
-                    {post.linkPreview.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-3 mt-2 leading-relaxed">
-                        {post.linkPreview.description}
-                      </p>
-                    )}
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-4">
-                      <ExternalLink className="w-4 h-4" />
-                      <span className="truncate">{new URL(post.linkPreview.url).hostname}</span>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            </a>
-          </div>
-        )}
+            ))
+          ) : post.linkPreview ? (
+            // Fallback to attached link preview if no links in text
+            <LinkPreview url={post.linkPreview.url} />
+          ) : null}
+        </div>
 
         {/* Poll */}
         {post.poll?.options?.length > 0 && (
