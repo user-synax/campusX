@@ -71,7 +71,8 @@ export async function PATCH(request) {
       return NextResponse.json({ message: 'Invalid request body' }, { status: 400 })
     }
 
-    const { roadmap } = sanitizeMongoInput(body)
+    const sanitizedBody = sanitizeMongoInput(body) || {}
+    const { roadmap } = sanitizedBody
     if (!Array.isArray(roadmap)) {
       return NextResponse.json({ message: 'Roadmap must be an array' }, { status: 400 })
     }

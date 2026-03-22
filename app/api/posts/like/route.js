@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Post from '@/models/Post';
+import AnonymousPost from '@/models/AnonymousPost';
+import { findPostById } from '@/lib/post-utils';
 import { getCurrentUser } from '@/lib/auth';
 import { validateObjectId } from '@/utils/validators';
 import { createNotification, deleteNotification } from '@/lib/notifications';
@@ -39,15 +41,9 @@ export async function POST(request) {
 
     await connectDB();
 
-    let post = await Post.findById(postId);
+    const { post, model: PostModel } = await findPostById(postId);
     if (!post) {
       return NextResponse.json({ message: 'Post not found' }, { status: 404 });
-    }
-
-    // Lazy initialization of likesCount for older posts
-    if (post.likesCount === undefined) {
-      post.likesCount = post.likes.length;
-      await post.save();
     }
 
     const currentUserIdStr = currentUser._id.toString();
@@ -56,7 +52,7 @@ export async function POST(request) {
     let updatedPost;
     if (isLiked) {
       // Unlike optimized: $pull and $inc -1
-      updatedPost = await Post.findOneAndUpdate(
+      updatedPost = await PostModel.findOneAndUpdate(
         { _id: postId },
         { 
           $pull: { likes: currentUser._id },
@@ -73,7 +69,7 @@ export async function POST(request) {
       }).catch(err => console.error('Notification error:', err));
     } else {
       // Like optimized: $addToSet and $inc +1
-      updatedPost = await Post.findOneAndUpdate(
+      updatedPost = await PostModel.findOneAndUpdate(
         { _id: postId },
         { 
           $addToSet: { likes: currentUser._id },
@@ -82,8 +78,8 @@ export async function POST(request) {
         { new: true }
       );
 
-      // Create notification
-      if (post.author.toString() !== currentUserIdStr) {
+      // Create notification - ONLY if it's not an anonymous post or if it has an author
+      if (!post.isAnonymous && post.author && post.author.toString() !== currentUserIdStr) {
         await createNotification({
           recipient: post.author,
           sender: currentUser._id,

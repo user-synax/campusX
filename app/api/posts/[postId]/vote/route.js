@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Post from '@/models/Post';
+import AnonymousPost from '@/models/AnonymousPost';
+import { findPostById } from '@/lib/post-utils';
 import { getCurrentUser } from '@/lib/auth';
 import { validateObjectId } from '@/utils/validators';
 import { applyRateLimit } from '@/lib/rate-limit';
@@ -44,7 +46,7 @@ export async function POST(request, { params }) {
 
     await connectDB();
 
-    const post = await Post.findById(postId);
+    const { post, model: PostModel } = await findPostById(postId);
     if (!post) {
       return NextResponse.json({ message: 'Post not found' }, { status: 404 });
     }
@@ -67,7 +69,7 @@ export async function POST(request, { params }) {
       return NextResponse.json({ message: 'Option not found' }, { status: 404 });
     }
 
-    const updatedPost = await Post.findOneAndUpdate(
+    const updatedPost = await PostModel.findOneAndUpdate(
       { _id: postId, 'poll.options._id': optionId },
       { $push: { 'poll.options.$.votes': currentUser._id } },
       { new: true }

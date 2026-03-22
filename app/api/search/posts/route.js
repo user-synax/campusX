@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Post from '@/models/Post';
+import AnonymousPost from '@/models/AnonymousPost';
 import { getCurrentUser } from '@/lib/auth';
 import { computeReactionSummary, getUserReaction } from '@/lib/reaction-utils';
 import { applyRateLimit } from '@/lib/rate-limit';
@@ -45,30 +46,44 @@ export async function GET(request) {
     let posts = [];
     let total = 0;
 
-    // Strategy A: MongoDB $text search
+    // Strategy A: MongoDB $text search in both collections
     const textQuery = { $text: { $search: sanitizedQuery } };
-    [posts, total] = await Promise.all([
-      Post.find(textQuery, { score: { $meta: 'textScore' } })
-        .sort({ score: { $meta: 'textScore' } })
-        .populate('author', 'name username avatar college')
-        .skip(skip)
-        .limit(limit)
-        .lean(),
-      Post.countDocuments(textQuery)
-    ]);
+    
+    // For search, we combine both collections using aggregation for better ranking
+    const pipeline = [
+      { $match: textQuery },
+      { $unionWith: { coll: 'anonymousposts', pipeline: [{ $match: textQuery }] } },
+      { $addFields: { score: { $meta: 'textScore' } } },
+      { $sort: { score: -1, createdAt: -1 } },
+      { $skip: skip },
+      { $limit: limit }
+    ];
+
+    posts = await Post.aggregate(pipeline);
+    posts = await Post.populate(posts, { path: 'author', select: 'name username avatar college' });
+    
+    const postCount = await Post.countDocuments(textQuery);
+    const anonCount = await AnonymousPost.countDocuments(textQuery);
+    total = postCount + anonCount;
 
     if (posts.length === 0) {
-      // Strategy B: Fallback regex
+      // Strategy B: Fallback regex in both collections
       const regexQuery = { content: { $regex: sanitizedQuery, $options: 'i' } };
-      [posts, total] = await Promise.all([
-        Post.find(regexQuery)
-          .sort({ createdAt: -1 })
-          .populate('author', 'name username avatar college')
-          .skip(skip)
-          .limit(limit)
-          .lean(),
-        Post.countDocuments(regexQuery)
-      ]);
+      
+      const regexPipeline = [
+        { $match: regexQuery },
+        { $unionWith: { coll: 'anonymousposts', pipeline: [{ $match: regexQuery }] } },
+        { $sort: { createdAt: -1 } },
+        { $skip: skip },
+        { $limit: limit }
+      ];
+
+      posts = await Post.aggregate(regexPipeline);
+      posts = await Post.populate(posts, { path: 'author', select: 'name username avatar college' });
+      
+      const regPostCount = await Post.countDocuments(regexQuery);
+      const regAnonCount = await AnonymousPost.countDocuments(regexQuery);
+      total = regPostCount + regAnonCount;
     }
 
     // Add reaction summary and user reaction status

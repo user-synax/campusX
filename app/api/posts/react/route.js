@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Post from '@/models/Post';
+import AnonymousPost from '@/models/AnonymousPost';
+import { findPostById } from '@/lib/post-utils';
 import { getCurrentUser } from '@/lib/auth';
 import { validateObjectId } from '@/utils/validators';
 import { createNotification, deleteNotification } from '@/lib/notifications';
@@ -44,7 +46,7 @@ export async function POST(request) {
 
     await connectDB();
 
-    const post = await Post.findById(postId);
+    const { post, model: PostModel } = await findPostById(postId);
     if (!post) {
       return NextResponse.json({ message: 'Post not found' }, { status: 404 });
     }
@@ -56,7 +58,7 @@ export async function POST(request) {
 
     // Backward compatibility: If user is in likes array, remove them first
     if (post.likes.includes(currentUser._id)) {
-      await Post.updateOne({ _id: postId }, { $pull: { likes: currentUser._id } });
+      await PostModel.updateOne({ _id: postId }, { $pull: { likes: currentUser._id } });
       // If they were just "liking", remove the like notification before potentially creating a new one
       await deleteNotification({
         sender: currentUser._id,
@@ -67,20 +69,22 @@ export async function POST(request) {
 
     if (!existingReaction) {
       // CASE A: No existing reaction - $push
-      updatedPost = await Post.findOneAndUpdate(
+      updatedPost = await PostModel.findOneAndUpdate(
         { _id: postId },
         { $push: { reactions: { user: currentUser._id, type: reactionType } } },
         { new: true }
       );
 
-      // Create notification for all reaction types
-      await createNotification({
-        recipient: post.author,
-        sender: currentUser._id,
-        type: 'reaction', // New notification type
-        reactionType: reactionType,
-        post: postId
-      });
+      // Create notification for all reaction types - ONLY if not anonymous
+      if (!post.isAnonymous && post.author && post.author.toString() !== currentUserIdStr) {
+        await createNotification({
+          recipient: post.author,
+          sender: currentUser._id,
+          type: 'reaction',
+          reactionType: reactionType,
+          post: postId
+        });
+      }
 
       return NextResponse.json({
         success: true,
@@ -89,7 +93,7 @@ export async function POST(request) {
       });
     } else if (existingReaction.type === reactionType) {
       // CASE B: Same reaction type - $pull (Toggle off)
-      updatedPost = await Post.findOneAndUpdate(
+      updatedPost = await PostModel.findOneAndUpdate(
         { _id: postId },
         { $pull: { reactions: { user: currentUser._id } } },
         { new: true }
@@ -103,7 +107,7 @@ export async function POST(request) {
       });
     } else {
       // CASE C: Different reaction type - $set (Update)
-      updatedPost = await Post.findOneAndUpdate(
+      updatedPost = await PostModel.findOneAndUpdate(
         { _id: postId, 'reactions.user': currentUser._id },
         { $set: { 'reactions.$.type': reactionType } },
         { new: true }

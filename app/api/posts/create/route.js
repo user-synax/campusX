@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Post from '@/models/Post';
+import AnonymousPost from '@/models/AnonymousPost';
 import { getCurrentUser } from '@/lib/auth';
 import { sanitizeString } from '@/utils/validators';
 import { extractHashtags } from '@/utils/hashtags';
@@ -74,22 +75,32 @@ export async function POST(request) {
       };
     }
 
-    const post = await Post.create({
-      author: currentUser._id,
+    const isAnon = isAnonymous === true;
+    const Model = isAnon ? AnonymousPost : Post;
+
+    const postData = {
       content: sanitizedContent,
       community: sanitizeText(community) || '',
-      isAnonymous: isAnonymous || false,
+      isAnonymous: isAnon,
       poll: pollData,
       hashtags,
       linkPreview: linkPreview ? {
         title: sanitizeText(linkPreview.title),
         description: sanitizeText(linkPreview.description),
-        image: linkPreview.image, // URL doesn't need text sanitization but validateURL could be used
+        image: linkPreview.image,
         url: linkPreview.url
       } : null
-    });
+    };
 
-    await post.populate('author', 'name username avatar college');
+    if (!isAnon) {
+      postData.author = currentUser._id;
+    }
+
+    const post = await Model.create(postData);
+
+    if (!isAnon) {
+      await post.populate('author', 'name username avatar college');
+    }
 
     // Invalidate community-related caches
     deleteCachePattern('communities_');

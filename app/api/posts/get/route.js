@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Post from '@/models/Post';
+import AnonymousPost from '@/models/AnonymousPost';
 import User from '@/models/User';
 import { getCurrentUser } from '@/lib/auth';
 import { computeReactionSummary, getUserReaction } from '@/lib/reaction-utils';
@@ -36,15 +37,51 @@ export async function GET(request) {
 
     const skip = (page - 1) * limit;
 
-    const [posts, total] = await Promise.all([
-      Post.find(query)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .populate('author', 'name username avatar college')
-        .lean(),
-      Post.countDocuments(query),
-    ]);
+    // Use aggregation to union Post and AnonymousPost collections
+    // Only union if not filtering by username (profile view)
+    let posts;
+    let total;
+
+    if (username) {
+      // Profile view: Only show regular posts
+      [posts, total] = await Promise.all([
+        Post.find(query)
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit)
+          .populate('author', 'name username avatar college')
+          .lean(),
+        Post.countDocuments(query),
+      ]);
+    } else {
+      // Global feed or community view: Show both regular and anonymous posts
+      // Use $unionWith for efficient merging and sorting
+      const pipeline = [
+        { $match: query },
+        {
+          $unionWith: {
+            coll: 'anonymousposts',
+            pipeline: [{ $match: query }]
+          }
+        },
+        { $sort: { createdAt: -1 } },
+        { $skip: skip },
+        { $limit: limit }
+      ];
+
+      posts = await Post.aggregate(pipeline);
+      
+      // Populate author for regular posts
+      posts = await Post.populate(posts, {
+        path: 'author',
+        select: 'name username avatar college'
+      });
+
+      // For total count
+      const postCount = await Post.countDocuments(query);
+      const anonCount = await AnonymousPost.countDocuments(query);
+      total = postCount + anonCount;
+    }
 
     // Add reaction summary and user reaction status
     const postsWithReactions = posts.map(post => {

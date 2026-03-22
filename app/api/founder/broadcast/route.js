@@ -5,6 +5,7 @@ import { FOUNDER_USERNAME, isFounder } from '@/lib/founder'
 import { getTokenFromRequest, verifyToken, getCurrentUser } from '@/lib/auth'
 import { withCache, deleteCache } from '@/lib/cache'
 import { sanitizeText } from '@/lib/sanitize'
+import { applyRateLimit } from '@/lib/rate-limit'
 
 export async function GET() {
   try {
@@ -60,8 +61,14 @@ export async function POST(request) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
     }
 
-    const body = await request.json()
-    const { message, active } = body
+    let body;
+    try {
+      body = await request.json()
+    } catch (e) {
+      return NextResponse.json({ message: 'Invalid request body' }, { status: 400 })
+    }
+
+    const { message, active } = body || {}
 
     let updatedUser;
     if (active) {

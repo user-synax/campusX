@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Post from '@/models/Post';
+import AnonymousPost from '@/models/AnonymousPost';
+import { findPostById } from '@/lib/post-utils';
 import { validateObjectId } from '@/utils/validators';
 import { sanitizeUser, sanitizeMongoInput } from '@/lib/sanitize';
 import { getCurrentUser } from '@/lib/auth';
@@ -22,28 +24,34 @@ export async function GET(request, { params }) {
 
     await connectDB();
 
-    // Find post and populate author details
-    const post = await Post.findById(postId)
-      .populate('author', 'name username avatar college')
-      .lean();
-
-    // If not found, return 404
+    // Find post from either collection and populate author if present
+    const { post, model: PostModel } = await findPostById(postId);
     if (!post) {
       return NextResponse.json({ message: 'Post not found' }, { status: 404 });
     }
 
+    let populatedPost = post;
+    if (PostModel === Post) {
+      populatedPost = await Post.findById(postId)
+        .populate('author', 'name username avatar college')
+        .lean();
+    } else {
+      // Anonymous post - no author to populate
+      populatedPost = post.toObject ? post.toObject() : post;
+    }
+
     // Add reaction summary and user status
-    const summary = computeReactionSummary(post.reactions, post.likes);
-    const userReaction = currentUser ? getUserReaction(post.reactions, currentUser._id, post.likes) : null;
-    const isLiked = currentUser ? post.likes?.some(id => id.toString() === currentUser._id.toString()) : false;
+    const summary = computeReactionSummary(populatedPost.reactions, populatedPost.likes);
+    const userReaction = currentUser ? getUserReaction(populatedPost.reactions, currentUser._id, populatedPost.likes) : null;
+    const isLiked = currentUser ? populatedPost.likes?.some(id => id.toString() === currentUser._id.toString()) : false;
 
     // Sanitize author and remove sensitive raw fields
-    const { reactions, likes, author, ...postData } = post;
+    const { reactions, likes, author, ...postData } = populatedPost;
     
     return NextResponse.json({
       ...postData,
-      likesCount: post.likesCount ?? post.likes?.length ?? 0,
-      author: sanitizeUser(author),
+      likesCount: populatedPost.likesCount ?? populatedPost.likes?.length ?? 0,
+      author: author ? sanitizeUser(author) : null,
       _reactionSummary: summary,
       _userReaction: userReaction,
       _isLiked: isLiked

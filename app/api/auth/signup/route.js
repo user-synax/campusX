@@ -3,6 +3,7 @@ import connectDB from '@/lib/db';
 import User from '@/models/User';
 import bcrypt from 'bcryptjs';
 import { signToken, setAuthCookie } from '@/lib/auth';
+import { notifyAdminNewUser } from '@/lib/admin-notify';
 import { validateEmail, validateUsername, validatePassword } from '@/utils/validators';
 import { applyRateLimit } from '@/lib/rate-limit';
 import { sanitizeText, sanitizeUsername, sanitizeUser } from '@/lib/sanitize';
@@ -100,6 +101,9 @@ export async function POST(request) {
     );
 
     await setAuthCookie(response, token);
+
+    // Fire-and-forget notification to admin
+    notifyAdminNewUser(user).catch(() => {});
 
     return response;
   } catch (error) {

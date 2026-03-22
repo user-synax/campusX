@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Post from '@/models/Post';
+import AnonymousPost from '@/models/AnonymousPost';
+import { findPostById } from '@/lib/post-utils';
 import Comment from '@/models/Comment';
 import { getCurrentUser } from '@/lib/auth';
 import { validateObjectId } from '@/utils/validators';
@@ -72,16 +74,21 @@ export async function POST(request, { params }) {
 
     await connectDB();
 
+    const { post, model: PostModel } = await findPostById(postId);
+    if (!post) {
+       return NextResponse.json({ message: 'Post not found' }, { status: 404 });
+    }
+
     const comment = await Comment.create({
       post: postId,
       author: currentUser._id,
       content: sanitizedContent,
     });
 
-    const post = await Post.findByIdAndUpdate(postId, { $inc: { commentsCount: 1 } });
+    await PostModel.findByIdAndUpdate(postId, { $inc: { commentsCount: 1 } });
 
-    // Notification
-    if (post && post.author) {
+    // Notification - ONLY if not anonymous
+    if (post && !post.isAnonymous && post.author && post.author.toString() !== currentUser._id.toString()) {
       await createNotification({
         recipient: post.author,
         sender: currentUser._id,
