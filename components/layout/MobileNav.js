@@ -131,7 +131,7 @@ export default function MobileNav() {
             </div>
 
             <nav className="p-2 space-y-1">
-              <Link href={`/profile/${user?.username}`} onClick={() => setOpen(false)}>
+              {/* <Link href={`/profile/${user?.username}`} onClick={() => setOpen(false)}>
                 <Button
                   variant="ghost"
                   className={cn(
@@ -142,7 +142,7 @@ export default function MobileNav() {
                   <User className="w-5 h-5" />
                   <span className="text-base font-medium">Profile</span>
                 </Button>
-              </Link>
+              </Link> */}
               {/* <Link href="/search" onClick={() => setOpen(false)}>
                 <Button
                   variant="ghost"
