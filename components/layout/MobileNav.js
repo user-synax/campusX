@@ -3,7 +3,8 @@
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, GraduationCap, PlusSquare, User, Bell, Bookmark, LogOut, Menu, Search, Calendar, Trophy, Settings, MessageSquare } from "lucide-react"
+import { Home, GraduationCap, PlusSquare, User, Bell, Bookmark, LogOut, Menu, Search, Calendar, Trophy, Settings, MessageSquare, Music } from "lucide-react"
+import { useMusic } from '@/contexts/MusicContext' 
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import {
@@ -26,6 +27,7 @@ export default function MobileNav() {
   const { user, loading } = useUser()
   const { unreadCount } = useNotifications()
   const chatUnread = useChatUnreadCount()
+  const { currentSong, openPlayer, isPlayerOpen } = useMusic()
   const [open, setOpen] = useState(false)
 
   const handleLogout = async () => {
@@ -45,7 +47,7 @@ export default function MobileNav() {
   ]
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-background border-t border-border flex items-center justify-around px-2 z-50">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-background/80 backdrop-blur-lg border-t border-border flex items-center justify-around px-2 z-50">
       {navItems.map((item) => {
         const Icon = item.icon
         const isActive = pathname === item.href

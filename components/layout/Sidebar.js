@@ -10,6 +10,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import Logo from "@/components/shared/Logo"
 import useUser from "@/hooks/useUser"
 import { useNotifications } from "@/hooks/useNotifications"
+import { useMusic } from '@/contexts/MusicContext' 
+import { Music as MusicIcon } from 'lucide-react'
 import NotificationBell from '@/components/notifications/NotificationBell'
 import { cn } from "@/lib/utils"
 import { isFounder } from "@/lib/founder"
@@ -21,6 +23,7 @@ export default function Sidebar() {
   const { user, loading } = useUser()
   const { unreadCount } = useNotifications()
   const chatUnread = useChatUnreadCount()
+  const { currentSong, isPlayerOpen, openPlayer, closePlayer } = useMusic()
 
   const navItems = [
     { label: "Feed", href: "/feed", icon: Home },
@@ -82,6 +85,25 @@ export default function Sidebar() {
       </nav>
 
       <div className="p-4 border-t border-border">
+        {/* Music button — at bottom of nav, above user card */} 
+        <button 
+          onClick={isPlayerOpen ? closePlayer : openPlayer} 
+          className={cn(
+            "flex items-center gap-4 w-full px-3 py-3 rounded-xl mb-4 transition-all duration-200 hover:bg-accent group",
+            isPlayerOpen ? "text-primary bg-primary/5" : "text-muted-foreground"
+          )}
+        > 
+          <div className="relative"> 
+            <MusicIcon className={cn("w-5 h-5 transition-transform duration-300", isPlayerOpen && "scale-110")} /> 
+            {currentSong && !isPlayerOpen && ( 
+              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-primary rounded-full border-2 border-background animate-pulse" /> 
+            )} 
+          </div> 
+          <span className="hidden lg:block text-sm font-bold tracking-tight"> 
+            {currentSong && isPlayerOpen ? 'Music ▶' : 'Music'} 
+          </span> 
+        </button>
+
         {!loading && user && user.username && (
           <div className="mb-4 space-y-4">
             {/* XP Progress Bar */}

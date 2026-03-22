@@ -44,12 +44,12 @@ const nextConfig = {
             key: 'Content-Security-Policy', 
             value: [ 
               "default-src 'self'", 
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline'",  // Next.js needs unsafe-eval 
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.youtube.com",  // Next.js needs unsafe-eval 
               "style-src 'self' 'unsafe-inline'", 
               "img-src 'self' data: https: http: blob:",  // allow all external images
-              "connect-src 'self' https://api.anthropic.com wss://*.pusher.com https://*.pusher.com", 
+              "connect-src 'self' https://api.anthropic.com wss://*.pusher.com https://*.pusher.com https://www.googleapis.com", 
               "font-src 'self'", 
-              "frame-src 'none'", 
+              "frame-src 'self' https://www.youtube.com", 
             ].join('; ') 
           } 
         ] 
