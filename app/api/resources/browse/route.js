@@ -108,11 +108,17 @@ export async function GET(request) {
       limit
     })
 
-    // Public cache: 60s max-age, 30s stale-while-revalidate
-    response.headers.set(
-      'Cache-Control',
-      'public, max-age=60, stale-while-revalidate=30'
-    )
+    // Conditional Cache Control
+    if (currentUserId) {
+      // Personalized for user — never cache publicly
+      response.headers.set('Cache-Control', 'private, max-age=0, no-cache, no-store, must-revalidate')
+    } else {
+      // Generic results for guests — public cache: 60s max-age, 30s stale-while-revalidate
+      response.headers.set(
+        'Cache-Control',
+        'public, max-age=60, stale-while-revalidate=30'
+      )
+    }
 
     return response
 
