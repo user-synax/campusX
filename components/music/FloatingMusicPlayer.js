@@ -119,9 +119,9 @@
    // Progress percentage 
    const progress = duration > 0 ? (currentTime / duration) * 100 : 0 
  
-   if (!isPlayerMounted || !isPlayerOpen) { 
-     return <MusicTriggerButton /> 
-   } 
+   if (!isPlayerMounted || !isPlayerOpen || isMobile) { 
+    return isMobile ? null : <MusicTriggerButton /> 
+  } 
 
    const expandedProps = {
      currentSong, isPlaying, isBuffering, progress, 

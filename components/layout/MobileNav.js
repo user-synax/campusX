@@ -3,8 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, GraduationCap, PlusSquare, User, Bell, Bookmark, LogOut, Menu, Search, Calendar, Trophy, Settings, MessageSquare, Music } from "lucide-react"
-import { useMusic } from '@/contexts/MusicContext' 
+import { Home, GraduationCap, PlusSquare, User, Bell, Bookmark, LogOut, Menu, Search, Calendar, Trophy, Settings, MessageSquare } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import {
@@ -27,7 +26,6 @@ export default function MobileNav() {
   const { user, loading } = useUser()
   const { unreadCount } = useNotifications()
   const chatUnread = useChatUnreadCount()
-  const { currentSong, openPlayer, isPlayerOpen } = useMusic()
   const [open, setOpen] = useState(false)
 
   const handleLogout = async () => {

@@ -14,7 +14,7 @@
    const { openPlayer, currentSong } = useMusic() 
  
    return ( 
-     <div className="fixed bottom-20 left-4 md:bottom-8 md:right-8 z-40 group">
+     <div className="hidden md:block fixed md:bottom-8 md:right-8 z-40 group">
        <button 
          onClick={openPlayer} 
          className=" 
