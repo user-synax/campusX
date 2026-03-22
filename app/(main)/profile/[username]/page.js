@@ -182,7 +182,7 @@ export default function ProfilePage() {
             <p className="text-muted-foreground text-sm">@{profileUser.username}</p>
             
             {profileUser.bio && (
-              <p className="mt-3 text-[15px] whitespace-pre-wrap break-words">
+              <div className="mt-3 text-[15px] whitespace-pre-wrap break-words">
                 {renderContentWithMentions(profileUser.bio).map((segment, i) => {
                   if (segment.type === 'hashtag') {
                     return (
@@ -200,7 +200,7 @@ export default function ProfilePage() {
                     return <span key={i}>{segment.value}</span>
                   }
                 })}
-              </p>
+              </div>
             )}
             
             <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-sm text-muted-foreground">

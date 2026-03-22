@@ -102,7 +102,7 @@ export default function FounderProfileHeader({ user, isOwnProfile, stats, onFoll
     
         {/* Bio */} 
         {user.bio && (
-          <p className="mt-3 text-sm leading-relaxed whitespace-pre-wrap break-words">
+          <div className="mt-3 text-sm leading-relaxed whitespace-pre-wrap break-words">
             {renderContentWithMentions(user.bio).map((segment, i) => {
               if (segment.type === 'hashtag') {
                 return (
@@ -120,7 +120,7 @@ export default function FounderProfileHeader({ user, isOwnProfile, stats, onFoll
                 return <span key={i}>{segment.value}</span>
               }
             })}
-          </p>
+          </div>
         )} 
     
         {/* Meta row */} 

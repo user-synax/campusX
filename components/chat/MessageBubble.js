@@ -5,8 +5,9 @@ import Link from 'next/link'
 import UserAvatar from "@/components/user/UserAvatar"
 import { Trash2 } from 'lucide-react'
 import ConfirmDeleteModal from './ConfirmDeleteModal'
-import { renderContentWithMentions } from "@/utils/hashtags"
+import { renderContentWithMentions, extractUrls } from "@/utils/hashtags"
 import UserMention from "@/components/shared/UserMention"
+import LinkPreview from "@/components/shared/LinkPreview"
 
 export default function MessageBubble({ message, isOwn, showAvatar, currentUserId, onDelete, onReact }) {
   const [showReactionPicker, setShowReactionPicker] = useState(false)
@@ -22,6 +23,8 @@ export default function MessageBubble({ message, isOwn, showAvatar, currentUserI
       setDeleting(false)
     }
   }
+
+  const urls = message.content ? extractUrls(message.content) : []
 
   // SYSTEM MESSAGE
   if (message.type === 'system') {
@@ -94,7 +97,7 @@ export default function MessageBubble({ message, isOwn, showAvatar, currentUserI
  
           {/* Text content */} 
           {message.content && ( 
-            <p className="whitespace-pre-wrap break-words"> 
+            <div className="whitespace-pre-wrap break-words"> 
               {renderContentWithMentions(message.content).map((segment, i) => {
                 if (segment.type === 'hashtag') {
                   return (
@@ -111,12 +114,34 @@ export default function MessageBubble({ message, isOwn, showAvatar, currentUserI
                   return (
                     <UserMention key={i} username={segment.value} />
                   )
+                } else if (segment.type === 'url') {
+                  return (
+                    <a 
+                      key={i} 
+                      href={segment.value}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`${isOwn ? 'text-white' : 'text-primary'} hover:underline underline-offset-2 opacity-90`}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {segment.value}
+                    </a>
+                  )
                 } else {
                   return <span key={i}>{segment.value}</span>
                 }
               })}
-            </p> 
+            </div>
           )} 
+
+          {/* Chat Link Preview */}
+          {urls.length > 0 && (
+            <div className="mt-2 space-y-2">
+              {urls.map((url, i) => (
+                <LinkPreview key={i} url={url} />
+              ))}
+            </div>
+          )}
  
           {/* Timestamp */} 
           <p className={`text-[10px] mt-1 ${isOwn ? 'text-primary-foreground/60' : 'text-muted-foreground'}`}> 

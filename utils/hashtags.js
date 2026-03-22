@@ -1,14 +1,16 @@
 /**
- * Renders content with hashtag and mention segments for clickable rendering.
+ * Renders content with hashtag, mention, and URL segments for clickable rendering.
  * @param {string} content - The raw content string.
- * @returns {Array<{type: 'text'|'hashtag'|'mention', value: string}>} Array of segments.
+ * @returns {Array<{type: 'text'|'hashtag'|'mention'|'url', value: string}>} Array of segments.
  */
 export function renderContentWithMentions(content) {
   if (!content) return [];
 
-  // Regex to match either #hashtags or @mentions
-  // Group 1: #hashtag, Group 2: @mention
-  const combinedRegex = /(?:#([a-zA-Z0-9_]{1,50}))|(?:@([a-zA-Z0-9_]{3,20}))/g;
+  // Regex to match #hashtags, @mentions, or URLs
+  // Group 1: #hashtag
+  // Group 2: @mention
+  // Group 3: URL
+  const combinedRegex = /(?:#([a-zA-Z0-9_]{1,50}))|(?:@([a-zA-Z0-9_]{3,20}))|(https?:\/\/[^\s$.?#].[^\s]*)/gi;
   const segments = [];
   let lastIndex = 0;
   let match;
@@ -34,6 +36,12 @@ export function renderContentWithMentions(content) {
         type: 'mention',
         value: match[2]
       });
+    } else if (match[3]) {
+      // It's a URL
+      segments.push({
+        type: 'url',
+        value: match[3]
+      });
     }
 
     lastIndex = combinedRegex.lastIndex;
@@ -54,7 +62,7 @@ export function renderContentWithMentions(content) {
  * Legacy support for existing code that only needs hashtags.
  */
 export function renderContentWithHashtags(content) {
-  return renderContentWithMentions(content).filter(s => s.type !== 'mention');
+  return renderContentWithMentions(content).filter(s => s.type === 'hashtag');
 }
 
 /**
@@ -77,4 +85,16 @@ export function extractHashtags(content) {
   }
 
   return Array.from(hashtags).slice(0, 10);
+}
+
+/**
+ * Extracts URLs from a content string.
+ * @param {string} content - The content to extract URLs from.
+ * @returns {string[]} An array of unique URL strings.
+ */
+export function extractUrls(content) {
+  if (!content) return [];
+  const urlRegex = /https?:\/\/[^\s$.?#].[^\s]*/gi;
+  const matches = content.match(urlRegex);
+  return matches ? Array.from(new Set(matches)) : [];
 }

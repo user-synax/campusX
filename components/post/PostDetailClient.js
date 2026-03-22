@@ -22,8 +22,9 @@ import PollDisplay from "@/components/post/PollDisplay"
 import CommentItem from "@/components/post/CommentItem"
 import LikeButton from './LikeButton'
 import ReactionPicker from './ReactionPicker'
-import { renderContentWithMentions } from "@/utils/hashtags"
+import { renderContentWithMentions, extractUrls } from "@/utils/hashtags"
 import UserMention from "@/components/shared/UserMention"
+import LinkPreview from "@/components/shared/LinkPreview"
 import useUser from "@/hooks/useUser"
 import { isFounder } from "@/lib/founder"
 import FounderAvatar from "@/components/founder/FounderAvatar"
@@ -89,6 +90,8 @@ export default function PostDetailClient({ postId }) {
   useEffect(() => {
     fetchData()
   }, [fetchData])
+
+  const urls = post?.content ? extractUrls(post.content) : []
 
   const handleLike = async () => {
     try {
@@ -328,7 +331,7 @@ export default function PostDetailClient({ postId }) {
         </div>
 
         {/* Content */}
-        <div className="text-xl leading-relaxed whitespace-pre-wrap wrap-break-words mb-6">
+        <div className="text-xl leading-relaxed whitespace-pre-wrap break-words mb-6">
           {renderContentWithMentions(post.content || '').map((segment, i) => {
             if (segment.type === 'hashtag') {
               return (
@@ -344,11 +347,33 @@ export default function PostDetailClient({ postId }) {
               return (
                 <UserMention key={i} username={segment.value} />
               )
+            } else if (segment.type === 'url') {
+              return (
+                <a 
+                  key={i} 
+                  href={segment.value}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {segment.value}
+                </a>
+              )
             } else {
               return <span key={i}>{segment.value}</span>
             }
           })}
         </div>
+
+        {/* Dynamic Link Previews */}
+        {urls.length > 0 && (
+          <div className="mb-6 space-y-4">
+            {urls.map((url, i) => (
+              <LinkPreview key={i} url={url} />
+            ))}
+          </div>
+        )}
 
         {post.linkPreview && (
           <div className="mb-6">

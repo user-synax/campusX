@@ -34,7 +34,7 @@ export default function CommentItem({ comment, currentUserId, onDelete }) {
               {formatRelativeTime(new Date(comment.createdAt))}
             </span>
           </div>
-          <p className="text-sm break-words leading-relaxed text-foreground/90">
+          <div className="text-sm break-words leading-relaxed text-foreground/90">
             {renderContentWithMentions(comment.content).map((segment, i) => {
               if (segment.type === 'hashtag') {
                 return (
@@ -55,7 +55,7 @@ export default function CommentItem({ comment, currentUserId, onDelete }) {
                 return <span key={i}>{segment.value}</span>
               }
             })}
-          </p>
+          </div>
         </div>
       </div>
       

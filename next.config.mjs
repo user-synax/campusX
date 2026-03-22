@@ -20,6 +20,10 @@ const nextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'assets.vercel.com',
+      },
+      {
+        protocol: 'https',
         hostname: 'media*.giphy.com',
       },
       {
