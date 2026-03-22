@@ -95,7 +95,6 @@ export default function PostDetailClient({ postId }) {
   }, [fetchData])
 
   const fetchReactions = useCallback(async () => {
-    if (reactions.length > 0) return
     setLoadingReactions(true)
     try {
       const res = await fetch(`/api/posts/${postId}/reactions`)
@@ -108,7 +107,7 @@ export default function PostDetailClient({ postId }) {
     } finally {
       setLoadingReactions(false)
     }
-  }, [postId, reactions.length])
+  }, [postId])
 
   useEffect(() => {
     if (activeTab === 'reactions') {
@@ -592,19 +591,19 @@ export default function PostDetailClient({ postId }) {
                 {reactions.map((react, i) => (
                   <Link 
                     key={i} 
-                    href={`/profile/${react.userId.username}`}
+                    href={`/profile/${react.user.username}`}
                     className="flex items-center justify-between p-3 rounded-2xl bg-accent/10 hover:bg-accent/30 border border-transparent hover:border-border transition-all group"
                   >
                     <div className="flex items-center gap-3">
-                      <UserAvatar user={react.userId} size="sm" />
+                      <UserAvatar user={react.user} size="sm" />
                       <div className="min-w-0">
-                        <p className="font-bold text-sm truncate leading-tight">{react.userId.name}</p>
-                        <p className="text-xs text-muted-foreground truncate">@{react.userId.username}</p>
+                        <p className="font-bold text-sm truncate leading-tight">{react.user.name}</p>
+                        <p className="text-xs text-muted-foreground truncate">@{react.user.username}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-10 h-10 rounded-full bg-background flex items-center justify-center text-xl shadow-sm border border-border group-hover:scale-110 transition-transform">
-                        {react.type === 'LIKE' ? '❤️' : REACTION_EMOJIS[react.type]}
+                        {react.type === 'like' || react.type === 'LIKE' ? '❤️' : REACTION_EMOJIS[react.type]}
                       </div>
                     </div>
                   </Link>

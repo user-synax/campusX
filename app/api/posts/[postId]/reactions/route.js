@@ -30,27 +30,49 @@ export async function GET(request, { params }) {
       return NextResponse.json({ reactions: [] });
     }
 
-    // Fetch full post with populated reactions
-    const populatedPost = await Post.findById(postId)
-      .populate('reactions.userId', 'name username avatar college')
+    // Use the model returned by findPostById to fetch the full populated post
+    const populatedPost = await PostModel.findById(postId)
+      .populate('reactions.user', 'name username avatar college')
       .populate('likes', 'name username avatar college')
       .lean();
 
-    // Transform reactions into a grouped format
-    const detailedReactions = populatedPost.reactions.map(r => ({
-      userId: sanitizeUser(r.userId),
-      type: r.type,
-      createdAt: r.createdAt
-    }));
+    if (!populatedPost) {
+      return NextResponse.json({ message: 'Post not found during population' }, { status: 404 });
+    }
 
-    const detailedLikes = populatedPost.likes.map(u => ({
-      userId: sanitizeUser(u),
-      type: 'LIKE',
-      createdAt: populatedPost.createdAt // We don't track like time separately yet
-    }));
+    // Transform reactions into a grouped format
+    const detailedReactions = (populatedPost.reactions || []).map(r => {
+      if (!r.user) return null;
+      // If user is not found after population, r.user might be an ID or null
+      if (typeof r.user === 'string' || r.user instanceof Object === false) return null;
+
+      return {
+        user: sanitizeUser(r.user),
+        type: r.type,
+        createdAt: r.createdAt || populatedPost.createdAt
+      };
+    }).filter(Boolean);
+
+    const detailedLikes = (populatedPost.likes || []).map(u => {
+      if (!u || typeof u === 'string') return null;
+      return {
+        user: sanitizeUser(u),
+        type: 'like',
+        createdAt: populatedPost.createdAt
+      };
+    }).filter(Boolean);
+
+    // Filter duplicates (if someone is in both likes and reactions)
+    const seenUsers = new Set();
+    const allReactions = [...detailedReactions, ...detailedLikes].filter(item => {
+      const userId = item.user._id.toString();
+      if (seenUsers.has(userId)) return false;
+      seenUsers.add(userId);
+      return true;
+    });
 
     return NextResponse.json({ 
-      reactions: [...detailedLikes, ...detailedReactions] 
+      reactions: allReactions
     });
 
   } catch (error) {
