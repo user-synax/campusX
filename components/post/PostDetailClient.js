@@ -192,6 +192,11 @@ export default function PostDetailClient({ postId }) {
 
       setUserReaction(data.reactionType)
       setReactionSummary(data.summary)
+      
+      // If we are on the reactions tab, refresh the list
+      if (activeTab === 'reactions') {
+        fetchReactions()
+      }
     } catch (error) {
       setUserReaction(prevReaction)
       setReactionSummary(prevSummary)

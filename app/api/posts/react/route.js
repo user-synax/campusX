@@ -85,12 +85,6 @@ export async function POST(request) {
           post: postId
         });
       }
-
-      return NextResponse.json({
-        success: true,
-        reactions: updatedPost.reactions,
-        summary: computeReactionSummary(updatedPost.reactions)
-      });
     } else if (existingReaction.type === reactionType) {
       // CASE B: Same reaction type - $pull (Toggle off)
       updatedPost = await PostModel.findOneAndUpdate(
@@ -121,6 +115,7 @@ export async function POST(request) {
     const userReaction = updatedPost.reactions.find(r => r.user.toString() === currentUserIdStr)?.type || null;
 
     return NextResponse.json({
+      success: true,
       reacted: !!userReaction,
       reactionType: userReaction,
       summary
