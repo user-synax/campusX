@@ -40,6 +40,9 @@ export default function PostDetailClient({ postId }) {
   const [post, setPost] = useState(null)
   const [comments, setComments] = useState([])
   const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState('comments') // 'comments' or 'reactions'
+  const [reactions, setReactions] = useState([])
+  const [loadingReactions, setLoadingReactions] = useState(false)
   const [newComment, setNewComment] = useState('')
   const [isSubmittingComment, setIsSubmittingComment] = useState(false)
   
@@ -90,6 +93,28 @@ export default function PostDetailClient({ postId }) {
   useEffect(() => {
     fetchData()
   }, [fetchData])
+
+  const fetchReactions = useCallback(async () => {
+    if (reactions.length > 0) return
+    setLoadingReactions(true)
+    try {
+      const res = await fetch(`/api/posts/${postId}/reactions`)
+      if (res.ok) {
+        const data = await res.json()
+        setReactions(data.reactions || [])
+      }
+    } catch (error) {
+      console.error('Error fetching reactions:', error)
+    } finally {
+      setLoadingReactions(false)
+    }
+  }, [postId, reactions.length])
+
+  useEffect(() => {
+    if (activeTab === 'reactions') {
+      fetchReactions()
+    }
+  }, [activeTab, fetchReactions])
 
   const urls = post?.content ? extractUrls(post.content) : []
 
@@ -477,48 +502,115 @@ export default function PostDetailClient({ postId }) {
         </div>
       </div>
 
-      {/* Comments Section */}
-      <div className="p-4">
-        <h3 className="font-bold text-lg mb-4">Comments</h3>
-        
-        {/* Comment input */}
-        <div className="flex gap-3 mb-8">
-          <UserAvatar user={currentUser} size="md" />
-          <div className="flex-1 flex flex-col gap-2">
-            <Input 
-              placeholder="Post your reply" 
-              value={newComment} 
-              onChange={(e) => setNewComment(e.target.value)} 
-              onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleAddComment()}
-              className="bg-accent/20 border-border h-12 text-base focus-visible:ring-1"
-            />
-            <div className="flex justify-end">
-              <Button 
-                onClick={handleAddComment} 
-                disabled={!newComment.trim() || isSubmittingComment}
-                className="rounded-full px-6"
-              >
-                {isSubmittingComment ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Reply'}
-              </Button>
-            </div>
-          </div>
-        </div>
+      {/* Tabs */}
+      <div className="flex border-b border-border bg-background sticky top-[64px] z-10">
+        <button 
+          onClick={() => setActiveTab('comments')}
+          className={cn(
+            "flex-1 py-4 text-sm font-bold transition-colors relative",
+            activeTab === 'comments' ? "text-primary" : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          Comments ({comments.length})
+          {activeTab === 'comments' && (
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full" />
+          )}
+        </button>
+        <button 
+          onClick={() => setActiveTab('reactions')}
+          className={cn(
+            "flex-1 py-4 text-sm font-bold transition-colors relative",
+            activeTab === 'reactions' ? "text-primary" : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          Reactions ({reactionSummary.total})
+          {activeTab === 'reactions' && (
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full" />
+          )}
+        </button>
+      </div>
 
-        {/* Comments list */}
-        {comments.length === 0 ? (
-          <div className="text-center py-10">
-            <p className="text-muted-foreground">No comments yet. Be the first to reply!</p>
-          </div>
+      {/* Tab Content */}
+      <div className="p-4">
+        {activeTab === 'comments' ? (
+          <>
+            {/* Comment input */}
+            <div className="flex gap-3 mb-8">
+              <UserAvatar user={currentUser} size="md" />
+              <div className="flex-1 flex flex-col gap-2">
+                <Input 
+                  placeholder="Post your reply" 
+                  value={newComment} 
+                  onChange={(e) => setNewComment(e.target.value)} 
+                  onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleAddComment()}
+                  className="bg-accent/20 border-border h-12 text-base focus-visible:ring-1"
+                />
+                <div className="flex justify-end">
+                  <Button 
+                    onClick={handleAddComment} 
+                    disabled={!newComment.trim() || isSubmittingComment}
+                    className="rounded-full px-6"
+                  >
+                    {isSubmittingComment ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Reply'}
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Comments list */}
+            {comments.length === 0 ? (
+              <div className="text-center py-10">
+                <p className="text-muted-foreground">No comments yet. Be the first to reply!</p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {comments.map(comment => (
+                  <CommentItem 
+                    key={comment._id} 
+                    comment={comment} 
+                    currentUserId={currentUser?._id} 
+                    onDelete={handleDeleteComment}
+                  />
+                ))}
+              </div>
+            )}
+          </>
         ) : (
-          <div className="space-y-6">
-            {comments.map(comment => (
-              <CommentItem 
-                key={comment._id} 
-                comment={comment} 
-                currentUserId={currentUser?._id} 
-                onDelete={handleDeleteComment}
-              />
-            ))}
+          /* Reactions Tab Content */
+          <div className="space-y-4 min-h-[300px]">
+            {loadingReactions ? (
+              <div className="flex flex-col items-center justify-center py-20 gap-3">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                <p className="text-sm text-muted-foreground">Loading reactions...</p>
+              </div>
+            ) : reactions.length === 0 ? (
+              <div className="text-center py-20">
+                <p className="text-muted-foreground">No reactions yet.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-2">
+                {reactions.map((react, i) => (
+                  <Link 
+                    key={i} 
+                    href={`/profile/${react.userId.username}`}
+                    className="flex items-center justify-between p-3 rounded-2xl bg-accent/10 hover:bg-accent/30 border border-transparent hover:border-border transition-all group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <UserAvatar user={react.userId} size="sm" />
+                      <div className="min-w-0">
+                        <p className="font-bold text-sm truncate leading-tight">{react.userId.name}</p>
+                        <p className="text-xs text-muted-foreground truncate">@{react.userId.username}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-10 h-10 rounded-full bg-background flex items-center justify-center text-xl shadow-sm border border-border group-hover:scale-110 transition-transform">
+                        {react.type === 'LIKE' ? '❤️' : REACTION_EMOJIS[react.type]}
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
