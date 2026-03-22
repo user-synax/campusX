@@ -4,6 +4,11 @@ import Hero from "@/components/landing/Hero";
 import Features from "@/components/landing/Features";
 import Stats from "@/components/landing/Stats";
 import Footer from "@/components/landing/Footer";
+import connectDB from "@/lib/db";
+import User from "@/models/User";
+import Post from "@/models/Post";
+import Resource from "@/models/Resource";
+import { verifyToken } from "@/lib/auth-edge";
 
 export const metadata = {
   title: 'CampusX — Your Campus Community',
@@ -17,36 +22,52 @@ export const metadata = {
   }
 };
 
+// Server action or direct DB call for landing page stats
+async function getLandingStats() {
+  try {
+    await connectDB();
+    const [users, posts, resources, colleges] = await Promise.all([
+      User.countDocuments().lean(),
+      Post.countDocuments().lean(),
+      Resource.countDocuments({ status: 'approved' }).lean(),
+      User.distinct('college').lean()
+    ]);
+
+    return {
+      users: users || 0,
+      posts: posts || 0,
+      resources: resources || 0,
+      communities: colleges.filter(c => c && c.trim() !== '').length || 0
+    };
+  } catch (error) {
+    console.error('[Landing Stats Fetch Error]:', error);
+    return { users: 0, posts: 0, resources: 0, communities: 0 };
+  }
+}
+
 export default async function LandingPage() {
   const cookieStore = await cookies();
-  const token = cookieStore.get("campusx_token");
+  const token = cookieStore.get("campusx_token")?.value;
 
   if (token) {
-    redirect("/feed");
+    const decoded = await verifyToken(token);
+    if (decoded) {
+      redirect("/feed");
+    }
   }
 
-  // ISR — revalidate every 60 seconds
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-  
-  const res = await fetch(
-    `${baseUrl}/api/public/stats`,
-    { next: { revalidate: 60 } }
-  ).catch((err) => {
-    console.error('Stats fetch error:', err);
-    return null;
-  });
-
-  const data = res?.ok ? await res.json() : null;
-  const stats = {
-    users: data?.users || 0,
-    posts: data?.posts || 0,
-    communities: data?.communities || 0
-  };
+  // Get real data directly from DB (fastest for SSR)
+  const stats = await getLandingStats();
 
   return (
     <main>
       <Hero />
-      <Stats users={stats.users} posts={stats.posts} communities={stats.communities} />
+      <Stats 
+        users={stats.users} 
+        posts={stats.posts} 
+        resources={stats.resources} 
+        communities={stats.communities} 
+      />
       <Features />
       <Footer />
     </main>

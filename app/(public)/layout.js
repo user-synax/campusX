@@ -14,14 +14,8 @@ export const metadata = {
 
 export default function PublicLayout({ children }) {
   return (
-    <html lang="en">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-      </head>
-      <body className="bg-[#0f0f0f] text-[#f0f0f0] antialiased">
-        {children}
-      </body>
-    </html>
+    <div className="bg-[#0f0f0f] text-[#f0f0f0] antialiased min-h-screen">
+      {children}
+    </div>
   );
 }
