@@ -30,7 +30,7 @@ export async function POST(request) {
 
     await connectDB();
 
-    if (!name || !username || !email || !password) {
+    if (!name || !username || !email || !password || !gender) {
       return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
     }
 

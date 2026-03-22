@@ -21,7 +21,7 @@ export default function SignupPage() {
     college: '',
     course: '',
     year: '1',
-    gender: 'unspecified',
+    gender: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -43,7 +43,7 @@ export default function SignupPage() {
     setLoading(true);
     setError(null);
 
-    if (!formData.name || !formData.username || !formData.email || !formData.password) {
+    if (!formData.name || !formData.username || !formData.email || !formData.password || !formData.gender) {
       setError('Please fill in all required fields.');
       setLoading(false);
       return;
@@ -117,8 +117,8 @@ export default function SignupPage() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="gender">Gender</Label>
-                  <Select onValueChange={handleGenderChange} defaultValue={formData.gender}>
+                  <Label htmlFor="gender">I am a...</Label>
+                  <Select onValueChange={handleGenderChange} value={formData.gender}>
                     <SelectTrigger className="h-10">
                       <SelectValue placeholder="Select gender" />
                     </SelectTrigger>
@@ -126,7 +126,6 @@ export default function SignupPage() {
                       <SelectItem value="male">Male</SelectItem>
                       <SelectItem value="female">Female</SelectItem>
                       <SelectItem value="other">Other</SelectItem>
-                      <SelectItem value="unspecified">Prefer not to say</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

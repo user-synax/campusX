@@ -38,6 +38,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'lh3.googleusercontent.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'api.dicebear.com',
+      },
     ],
   },
   async headers() { 
@@ -67,7 +71,7 @@ const nextConfig = {
               "default-src 'self'", 
               "script-src 'self' 'unsafe-eval' 'unsafe-inline'",  // Next.js needs unsafe-eval 
               "style-src 'self' 'unsafe-inline'", 
-              "img-src 'self' data: https: blob: res.cloudinary.com *.giphy.com i.ytimg.com *.googleusercontent.com",  // allow external images (avatars, OG) 
+              "img-src 'self' data: https: blob: res.cloudinary.com *.giphy.com i.ytimg.com *.googleusercontent.com api.dicebear.com",  // allow external images (avatars, OG) 
               "connect-src 'self' https://api.anthropic.com wss://*.pusher.com https://*.pusher.com", 
               "font-src 'self'", 
               "frame-src 'none'", 
