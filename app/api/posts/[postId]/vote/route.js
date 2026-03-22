@@ -7,6 +7,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { validateObjectId } from '@/utils/validators';
 import { applyRateLimit } from '@/lib/rate-limit';
 import { sanitizeMongoInput } from '@/lib/sanitize';
+import { createNotification } from '@/lib/notifications';
 
 // POST /api/posts/[postId]/vote
 export async function POST(request, { params }) {
@@ -83,6 +84,17 @@ export async function POST(request, { params }) {
       percentage: totalVotes > 0 ? Math.round((o.votes.length / totalVotes) * 100) : 0,
       userVoted: o._id.toString() === optionId
     }));
+
+    // Notification - ONLY if not anonymous
+    if (post && !post.isAnonymous && post.author && post.author.toString() !== currentUser._id.toString()) {
+      createNotification({
+        recipient: post.author,
+        sender: currentUser._id,
+        type: 'poll_vote',
+        postId: postId,
+        meta: { postPreview: post.content?.substring(0, 50) }
+      }).catch(() => {});
+    }
 
     return NextResponse.json({ 
       results, 

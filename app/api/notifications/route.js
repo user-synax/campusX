@@ -1,84 +1,72 @@
-import { NextResponse } from 'next/server';
-import connectDB from '@/lib/db';
-import Notification from '@/models/Notification';
-import User from '@/models/User';
-import Post from '@/models/Post';
-import Event from '@/models/Event';
-import Resource from '@/models/Resource';
-import { getCurrentUser } from '@/lib/auth';
-
-/**
- * GET /api/notifications
- * Fetch paginated notifications for the current user.
- */
-export async function GET(request) {
-  try {
-    const currentUser = await getCurrentUser(request);
-    if (!currentUser) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-    }
-
-    await connectDB();
-
-    const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page')) || 1;
-    const limit = parseInt(searchParams.get('limit')) || 20;
-    const skip = (page - 1) * limit;
-
-    // Add level_up notifications to the default query
-    const [notifications, total, unreadCount] = await Promise.all([
-      Notification.find({ recipient: currentUser._id })
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .populate('actor', 'name username avatar')
-        .populate('sender', 'name username avatar')
-        .populate('postId', 'content')
-        .populate('post', 'content')
-        .populate('eventId', 'title')
-        .populate('resourceId', 'title')
-        .lean(),
-      Notification.countDocuments({ recipient: currentUser._id }),
-      Notification.countDocuments({ recipient: currentUser._id, read: false })
-    ]);
-
-    return NextResponse.json({
-      notifications,
-      pagination: {
-        total,
-        page,
-        limit,
-        pages: Math.ceil(total / limit)
-      },
-      unreadCount
-    });
-  } catch (error) {
-    console.error('Error fetching notifications:', error);
-    return NextResponse.json({ message: 'Internal Server Error', error: error.message }, { status: 500 });
-  }
-}
-
-/**
- * POST /api/notifications/read
- * Mark all notifications as read for the current user.
- */
-export async function POST(request) {
-  try {
-    const currentUser = await getCurrentUser(request);
-    if (!currentUser) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-    }
-
-    await connectDB();
-
-    await Notification.updateMany(
-      { recipient: currentUser._id, read: false },
-      { read: true }
-    );
-
-    return NextResponse.json({ success: true, message: 'All notifications marked as read' });
-  } catch (error) {
-    console.error('Error marking notifications read:', error);
-    return NextResponse.json({ message: 'Internal Server Error', error: error.message }, { status: 500 });
-  }
-}
+import { NextResponse } from 'next/server' 
+import { getCurrentUser } from '@/lib/auth' 
+import connectDB from '@/lib/db' 
+import Notification from '@/models/Notification' 
+import '@/models/User' 
+import '@/models/Post' 
+import '@/models/Comment'
+import '@/models/GroupChat'
+import '@/models/Event'
+import '@/models/Resource'
+import { getNotificationText, getNotificationIcon, getNotificationURL } from '@/lib/notifications' 
+ 
+export async function GET(request) { 
+  try { 
+    const currentUser = await getCurrentUser(request) 
+    if (!currentUser) { 
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) 
+    } 
+ 
+    const { searchParams } = new URL(request.url) 
+    const page = parseInt(searchParams.get('page')) || 1 
+    const limit = Math.min(parseInt(searchParams.get('limit')) || 20, 50) 
+    const filter = searchParams.get('filter') || 'all' 
+    const skip = (page - 1) * limit 
+ 
+    await connectDB() 
+ 
+    // 1. Build query
+    const query = { recipient: currentUser._id } 
+    if (filter === 'unread') { 
+      query.read = false 
+    } 
+ 
+    // 2. Parallel fetch — notifications + total + unreadCount
+    const [notifications, total, unreadCount] = await Promise.all([ 
+      Notification.find(query) 
+        .sort({ createdAt: -1 }) 
+        .skip(skip) 
+        .limit(limit) 
+        .populate('sender', 'name username avatar') 
+        .lean(), 
+      Notification.countDocuments(query), 
+      Notification.countDocuments({ 
+        recipient: currentUser._id, 
+        read: false 
+      }) 
+    ]) 
+ 
+    // 3. Add computed fields
+    const withComputed = notifications.map(n => ({ 
+      ...n, 
+      text: getNotificationText(n.type, n.sender?.name, n.meta), 
+      icon: getNotificationIcon(n.type), 
+      url: getNotificationURL(n) 
+    })) 
+ 
+    return NextResponse.json({ 
+      notifications: withComputed, 
+      total, 
+      hasMore: total > skip + notifications.length, 
+      unreadCount 
+    }) 
+ 
+  } catch (err) { 
+    console.error('[Notifications GET] Error:', err) 
+    return NextResponse.json({ 
+      error: 'Internal Server Error', 
+      message: err.message,
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    }, { status: 500 }) 
+  } 
+} 

@@ -9,7 +9,8 @@ import { Progress } from "@/components/ui/progress"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import Logo from "@/components/shared/Logo"
 import useUser from "@/hooks/useUser"
-import useNotificationCount from "@/hooks/useNotificationCount"
+import { useNotifications } from "@/hooks/useNotifications"
+import NotificationBell from '@/components/notifications/NotificationBell'
 import { cn } from "@/lib/utils"
 import { isFounder } from "@/lib/founder"
 import FounderAvatar from "@/components/founder/FounderAvatar"
@@ -18,19 +19,19 @@ export default function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
   const { user, loading } = useUser()
-  const { count } = useNotificationCount()
+  const { unreadCount } = useNotifications()
   const chatUnread = useChatUnreadCount()
 
   const navItems = [
     { label: "Feed", href: "/feed", icon: Home },
     { label: "Search", href: "/search", icon: Search },
+    { label: "Notifications", href: "/notifications", icon: Bell, badge: unreadCount },
     { label: "Chats", href: "/chats", icon: MessageSquare, badge: chatUnread },
-    { label: "Bookmarks", href: "/bookmarks", icon: Bookmark },
-    { label: "Profile", href: user?.username ? `/profile/${user.username}` : "/login", icon: User },
     { label: "Communities", href: "/community", icon: GraduationCap },
     { label: "Events", href: "/events", icon: Calendar },
     { label: "Leaderboard", href: "/leaderboard", icon: Trophy },
-    { label: "Notifications", href: "/notifications", icon: Bell, badge: count },
+    { label: "Bookmarks", href: "/bookmarks", icon: Bookmark },
+    { label: "Profile", href: user?.username ? `/profile/${user.username}` : "/login", icon: User },
   ]
 
   const handleLogout = async () => {
@@ -118,14 +119,17 @@ export default function Sidebar() {
           </div>
         )}
         
-        <Button
-          variant="ghost"
-          onClick={handleLogout}
-          className="w-full justify-start gap-4 h-10 px-3 text-destructive hover:text-destructive hover:bg-destructive/10"
-        >
-          <LogOut className="w-5 h-5 shrink-0" />
-          <span className="hidden lg:block text-sm font-medium">Log out</span>
-        </Button>
+        <div className="flex items-center gap-2">
+          <NotificationBell currentUser={user} />
+          <Button
+            variant="ghost"
+            onClick={handleLogout}
+            className="flex-1 justify-start gap-4 h-10 px-3 text-destructive hover:text-destructive hover:bg-destructive/10"
+          >
+            <LogOut className="w-5 h-5 shrink-0" />
+            <span className="hidden lg:block text-sm font-medium">Log out</span>
+          </Button>
+        </div>
       </div>
     </aside>
   )

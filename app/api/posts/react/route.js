@@ -62,8 +62,9 @@ export async function POST(request) {
       // If they were just "liking", remove the like notification before potentially creating a new one
       await deleteNotification({
         sender: currentUser._id,
+        recipient: post.author,
         type: 'like',
-        post: postId
+        postId: postId
       });
     }
 
@@ -81,8 +82,11 @@ export async function POST(request) {
           recipient: post.author,
           sender: currentUser._id,
           type: 'reaction',
-          reactionType: reactionType,
-          post: postId
+          meta: { 
+            emoji: reactionType === 'like' ? '❤️' : reactionType,
+            postPreview: post.content?.substring(0, 50)
+          },
+          postId: postId
         });
       }
     } else if (existingReaction.type === reactionType) {
@@ -96,8 +100,9 @@ export async function POST(request) {
       // Delete notification
       await deleteNotification({
         sender: currentUser._id,
+        recipient: post.author,
         type: 'reaction',
-        post: postId
+        postId: postId
       });
     } else {
       // CASE C: Different reaction type - $set (Update)

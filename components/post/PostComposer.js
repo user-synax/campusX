@@ -34,9 +34,15 @@ export default function PostComposer({ onPostCreated, defaultCommunity, noBorder
 
   // Detect and fetch link preview
   useEffect(() => {
-    const urlRegex = /(https?:\/\/[^\s]+)/g
+    // Improved regex to avoid trailing punctuation like ) or .
+    const urlRegex = /(https?:\/\/[^\s)]+)/g
     const match = debouncedContent.match(urlRegex)
-    const url = match ? match[0] : null
+    let url = match ? match[0] : null
+
+    // Clean up trailing dots or commas often typed at end of sentence
+    if (url) {
+      url = url.replace(/[.,;!]+$/, '')
+    }
 
     if (url && (!linkPreview || linkPreview.originalUrl !== url)) {
       fetchPreview(url)
@@ -162,13 +168,12 @@ export default function PostComposer({ onPostCreated, defaultCommunity, noBorder
               </button>
               <div className="flex flex-col sm:flex-row gap-3">
                 {linkPreview.image && (
-                  <div className="w-full sm:w-32 h-32 sm:h-auto shrink-0 bg-secondary relative">
-                    <Image 
+                  <div className="w-full sm:w-32 h-32 sm:h-auto shrink-0 bg-secondary relative overflow-hidden">
+                    <img 
                       src={linkPreview.image} 
                       alt="" 
-                      fill
-                      className="object-cover"
-                      unoptimized={linkPreview.image.startsWith('data:')}
+                      className="w-full h-full object-cover"
+                      onError={(e) => e.currentTarget.style.display = 'none'}
                     />
                   </div>
                 )}

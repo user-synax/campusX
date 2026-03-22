@@ -11,39 +11,11 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'res.cloudinary.com',
+        hostname: '**',
       },
       {
-        protocol: 'https',
-        hostname: 'images.unsplash.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'avatar.vercel.sh',
-      },
-      {
-        protocol: 'https',
-        hostname: 'assets.vercel.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'media*.giphy.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'giphy.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'i.ytimg.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'lh3.googleusercontent.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'api.dicebear.com',
+        protocol: 'http',
+        hostname: '**',
       },
     ],
   },
@@ -74,7 +46,7 @@ const nextConfig = {
               "default-src 'self'", 
               "script-src 'self' 'unsafe-eval' 'unsafe-inline'",  // Next.js needs unsafe-eval 
               "style-src 'self' 'unsafe-inline'", 
-              "img-src 'self' data: https: blob: res.cloudinary.com *.giphy.com i.ytimg.com *.googleusercontent.com api.dicebear.com",  // allow external images (avatars, OG) 
+              "img-src 'self' data: https: http: blob:",  // allow all external images
               "connect-src 'self' https://api.anthropic.com wss://*.pusher.com https://*.pusher.com", 
               "font-src 'self'", 
               "frame-src 'none'", 

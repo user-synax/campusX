@@ -8,6 +8,7 @@ import { sanitizeMongoInput } from '@/lib/sanitize'
 import { applyRateLimit } from '@/lib/rate-limit'
 import { triggerPusher } from '@/lib/pusher-server'
 import { validateObjectId } from '@/utils/validators'
+import { createNotification } from '@/lib/notifications'
 
 /**
  * POST /api/groups/[groupId]/members - Add member (admin only)
@@ -101,7 +102,17 @@ export async function POST(request, { params }) {
       type: 'system'
     })
 
-    // 7. Trigger Pusher events
+    // 7. Create notification for the added user
+    createNotification({
+      recipient: userId,
+      sender: currentUser._id,
+      type: 'group_invite',
+      groupId: group._id,
+      meta: { groupName: group.name },
+      dedupe: false
+    }).catch(() => {})
+
+    // 8. Trigger Pusher events
     // Trigger on group channel for existing members
     triggerPusher(`private-group-${groupId}`, 'member-added', {
       member: {

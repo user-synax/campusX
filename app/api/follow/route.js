@@ -3,8 +3,9 @@ import connectDB from '@/lib/db';
 import User from '@/models/User';
 import { getCurrentUser } from '@/lib/auth';
 import { validateObjectId } from '@/utils/validators';
-import { createNotification } from '@/lib/notifications';
+import { createNotification, deleteNotification } from '@/lib/notifications';
 import { awardXP } from '@/lib/xp';
+
 import { applyRateLimit } from '@/lib/rate-limit';
 import { sanitizeMongoInput } from '@/lib/sanitize';
 
@@ -60,6 +61,12 @@ export async function POST(request) {
       // Unfollow
       currentUser.following.pull(targetUserId);
       targetUser.followers.pull(currentUser._id);
+
+      await deleteNotification({
+        sender: currentUser._id,
+        recipient: targetUserId,
+        type: 'follow'
+      }).catch(() => {});
     } else {
       // Follow
       currentUser.following.push(targetUserId);
@@ -70,11 +77,11 @@ export async function POST(request) {
 
     let xpResult = { xpAwarded: false };
     if (nowFollowing) {
-      await createNotification({
+      createNotification({
         recipient: targetUserId,
         sender: currentUser._id,
         type: 'follow'
-      });
+      }).catch(() => {});
 
       // Award XP for following someone
       xpResult = await awardXP(currentUser._id, 'follow');

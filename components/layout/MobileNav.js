@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/sheet"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import useUser from "@/hooks/useUser"
-import useNotificationCount from "@/hooks/useNotificationCount"
+import { useNotifications } from "@/hooks/useNotifications"
 import { useChatUnreadCount } from '@/hooks/useChatUnreadCount'
 import CreatePostDialog from "@/components/post/CreatePostDialog"
 import Logo from "@/components/shared/Logo"
@@ -24,7 +24,7 @@ import { cn } from "@/lib/utils"
 export default function MobileNav() {
   const pathname = usePathname()
   const { user, loading } = useUser()
-  const { count } = useNotificationCount()
+  const { unreadCount } = useNotifications()
   const chatUnread = useChatUnreadCount()
   const [open, setOpen] = useState(false)
 
@@ -41,7 +41,7 @@ export default function MobileNav() {
     { href: "/feed", icon: Home, label: "Home" },
     { href: "/search", icon: Search, label: "Search" },
     { href: "/chats", icon: MessageSquare, label: "Chats", badge: chatUnread },
-    { href: "/notifications", icon: Bell, label: "Notifications", badge: count },
+    { href: "/notifications", icon: Bell, label: "Notifications", badge: unreadCount },
   ]
 
   return (

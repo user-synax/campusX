@@ -63,6 +63,21 @@ export async function POST(request) {
       } 
     } 
 
+    // Extract userId from channel name: private-notifications-[userId]
+    if (channelName.startsWith('private-notifications-')) {
+      const channelUserId = channelName.replace('private-notifications-', '')
+
+      // Only allow subscribing to YOUR OWN notification channel
+      if (channelUserId !== currentUser._id.toString()) {
+        console.warn(`[PusherAuth] User ${currentUser._id} attempted to subscribe to channel for user ${channelUserId}`)
+        return NextResponse.json(
+          { error: 'Cannot subscribe to another user\'s notifications' },
+          { status: 403 }
+        )
+      }
+      // Auth passes — user can subscribe to their own channel
+    }
+
     // Generate Pusher auth response 
     const pusher = getPusherServer() 
     const authResponse = pusher.authorizeChannel(socketId, channelName) 

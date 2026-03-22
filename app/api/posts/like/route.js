@@ -64,8 +64,9 @@ export async function POST(request) {
       // Delete notification
       await deleteNotification({
         sender: currentUser._id,
+        recipient: post.author,
         type: 'like',
-        post: postId
+        postId: postId
       }).catch(err => console.error('Notification error:', err));
     } else {
       // Like optimized: $addToSet and $inc +1
@@ -84,7 +85,8 @@ export async function POST(request) {
           recipient: post.author,
           sender: currentUser._id,
           type: 'like',
-          postId: postId
+          postId: postId,
+          meta: { postPreview: post.content?.substring(0, 50) }
         }).catch(err => console.error('Notification error:', err));
       }
     }

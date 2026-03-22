@@ -89,12 +89,17 @@ export async function POST(request, { params }) {
 
     // Notification - ONLY if not anonymous
     if (post && !post.isAnonymous && post.author && post.author.toString() !== currentUser._id.toString()) {
-      await createNotification({
+      createNotification({
         recipient: post.author,
         sender: currentUser._id,
         type: 'comment',
-        postId: postId
-      });
+        postId: postId,
+        commentId: comment._id,
+        meta: { 
+          postPreview: post.content?.substring(0, 50),
+          commentPreview: sanitizedContent.substring(0, 50)
+        }
+      }).catch(() => {});
     }
 
     await comment.populate('author', 'name username avatar');

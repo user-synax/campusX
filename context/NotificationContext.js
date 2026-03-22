@@ -1,0 +1,121 @@
+"use client"
+
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react'
+import { getPusherClient } from '@/lib/pusher-client'
+import useUser from '@/hooks/useUser'
+
+const NotificationContext = createContext()
+
+export function NotificationProvider({ children }) {
+  const { user } = useUser()
+  const [unreadCount, setUnreadCount] = useState(0)
+  const [newNotification, setNewNotification] = useState(null)
+  const channelRef = useRef(null)
+
+  // Fetch initial unread count
+  const fetchCount = useCallback(async () => {
+    if (!user?._id) return
+    try {
+      const res = await fetch('/api/notifications/count')
+      if (res.ok) {
+        const { count } = await res.json()
+        setUnreadCount(count)
+      }
+    } catch (err) {
+      console.error('[NotificationContext] Fetch count failed:', err)
+    }
+  }, [user?._id])
+
+  useEffect(() => {
+    if (!user?._id) return
+
+    fetchCount()
+
+    // Subscribe to Pusher private notifications channel
+    const pusher = getPusherClient()
+    if (!pusher) return
+
+    const channelName = `private-notifications-${user._id}`
+    const channel = pusher.subscribe(channelName)
+    channelRef.current = channel
+
+    // New notification arrives
+    channel.bind('new-notification', (data) => {
+      setUnreadCount(prev => Math.min(prev + 1, 99))
+      setNewNotification(data)
+      
+      // Clear new notification state after a delay to allow UI to react
+      setTimeout(() => setNewNotification(null), 5000)
+    })
+
+    // Notification removed (unlike, unfollow)
+    channel.bind('remove-notification', () => {
+      fetchCount()
+    })
+
+    // Read status synced across tabs
+    channel.bind('notifications-read', ({ notificationId }) => {
+      if (notificationId === 'all') {
+        setUnreadCount(0)
+      } else {
+        setUnreadCount(prev => Math.max(0, prev - 1))
+      }
+    })
+
+    return () => {
+      if (channelRef.current) {
+        channelRef.current.unbind_all()
+        pusher.unsubscribe(channelName)
+        channelRef.current = null
+      }
+    }
+  }, [user?._id, fetchCount])
+
+  const markAllRead = useCallback(async () => {
+    try {
+      const res = await fetch('/api/notifications/read', { method: 'PATCH' })
+      if (res.ok) {
+        setUnreadCount(0)
+      }
+    } catch (err) {
+      console.error('[NotificationContext] Mark all read failed:', err)
+    }
+  }, [])
+
+  const markOneRead = useCallback(async (notificationId) => {
+    try {
+      const res = await fetch('/api/notifications/read', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notificationId })
+      })
+      if (res.ok) {
+        setUnreadCount(prev => Math.max(0, prev - 1))
+      }
+    } catch (err) {
+      console.error('[NotificationContext] Mark one read failed:', err)
+    }
+  }, [])
+
+  const value = {
+    unreadCount,
+    newNotification,
+    markAllRead,
+    markOneRead,
+    refetchCount: fetchCount
+  }
+
+  return (
+    <NotificationContext.Provider value={value}>
+      {children}
+    </NotificationContext.Provider>
+  )
+}
+
+export function useNotifications() {
+  const context = useContext(NotificationContext)
+  if (context === undefined) {
+    throw new Error('useNotifications must be used within a NotificationProvider')
+  }
+  return context
+}
