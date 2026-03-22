@@ -55,7 +55,7 @@ export default function Sidebar() {
         <Logo className="hidden lg:flex" />
       </div>
 
-      <nav className="flex-1 px-3 space-y-1">
+      <nav className="flex-1 px-3 space-y-1 overflow-y-auto custom-scrollbar">
         {navItems.map((item) => {
           const isActive = pathname === item.href
           const Icon = item.icon
@@ -84,12 +84,12 @@ export default function Sidebar() {
         })}
       </nav>
 
-      <div className="p-4 border-t border-border">
+      <div className="p-3 border-t border-border bg-background/50 backdrop-blur-md">
         {/* Music button — at bottom of nav, above user card */} 
         <button 
           onClick={isPlayerOpen ? closePlayer : openPlayer} 
           className={cn(
-            "flex items-center gap-4 w-full px-3 py-3 rounded-xl mb-4 transition-all duration-200 hover:bg-accent group",
+            "flex items-center gap-4 w-full px-3 py-2.5 rounded-xl mb-3 transition-all duration-200 hover:bg-accent group",
             isPlayerOpen ? "text-primary bg-primary/5" : "text-muted-foreground"
           )}
         > 
@@ -105,36 +105,36 @@ export default function Sidebar() {
         </button>
 
         {!loading && user && user.username && (
-          <div className="mb-4 space-y-4">
+          <div className="mb-3 space-y-3">
             {/* XP Progress Bar */}
-            <div className="hidden lg:block px-2 space-y-1.5">
+            <div className="hidden lg:block px-2 space-y-1">
               <div className="flex justify-between items-end">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Level {user.level || 1}</span>
-                <span className="text-[10px] font-medium text-muted-foreground">{(user.xp || 0) % 1000} / 1000 XP</span>
+                <span className="text-[9px] font-black uppercase tracking-wider text-muted-foreground">Level {user.level || 1}</span>
+                <span className="text-[9px] font-bold text-muted-foreground">{(user.xp || 0) % 1000} / 1000 XP</span>
               </div>
-              <Progress value={((user.xp || 0) % 1000) / 10} className="h-1.5" />
+              <Progress value={((user.xp || 0) % 1000) / 10} className="h-1" />
             </div>
 
             {isFounder(user.username) ? (
               <Link href={`/profile/${user.username}`}>
-                <div className="flex flex-col lg:flex-row items-center gap-3 p-2 rounded-xl bg-primary/5 border border-primary/10 hover:bg-primary/10 transition-colors">
-                  <FounderAvatar user={user} size="md" />
+                <div className="flex flex-col lg:flex-row items-center gap-3 p-1.5 rounded-xl bg-primary/5 border border-primary/10 hover:bg-primary/10 transition-colors">
+                  <FounderAvatar user={user} size="sm" />
                   <div className="hidden lg:block flex-1 min-w-0">
-                    <p className="text-sm font-bold text-foreground truncate">{user.name}</p>
-                    <p className="text-xs text-primary/80 font-medium truncate">Founder</p>
+                    <p className="text-xs font-bold text-foreground truncate">{user.name}</p>
+                    <p className="text-[10px] text-primary/80 font-bold truncate">Founder</p>
                   </div>
                 </div>
               </Link>
             ) : (
               <Link href={`/profile/${user.username}`}>
-                <div className="flex flex-col lg:flex-row items-center gap-3 p-2 rounded-xl hover:bg-accent transition-colors">
-                  <Avatar className="w-10 h-10 border border-border">
+                <div className="flex flex-col lg:flex-row items-center gap-3 p-1.5 rounded-xl hover:bg-accent transition-colors">
+                  <Avatar className="w-8 h-8 border border-border">
                     <AvatarImage src={user.avatar} alt={user.name} />
-                    <AvatarFallback className="bg-secondary">{user.name?.[0]}</AvatarFallback>
+                    <AvatarFallback className="bg-secondary text-[10px]">{user.name?.[0]}</AvatarFallback>
                   </Avatar>
                   <div className="hidden lg:block flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate text-foreground">{user.name}</p>
-                    <p className="text-xs text-muted-foreground truncate">@{user.username}</p>
+                    <p className="text-xs font-bold truncate text-foreground">{user.name}</p>
+                    <p className="text-[10px] text-muted-foreground truncate font-medium">@{user.username}</p>
                   </div>
                 </div>
               </Link>
@@ -142,15 +142,17 @@ export default function Sidebar() {
           </div>
         )}
         
-        <div className="flex items-center gap-2">
-          <NotificationBell currentUser={user} />
+        <div className="flex items-center gap-1.5">
+          <div className="shrink-0">
+            <NotificationBell currentUser={user} />
+          </div>
           <Button
             variant="ghost"
             onClick={handleLogout}
-            className="flex-1 justify-start gap-4 h-10 px-3 text-destructive hover:text-destructive hover:bg-destructive/10"
+            className="flex-1 justify-start gap-3 h-9 px-2 text-destructive hover:text-destructive hover:bg-destructive/10"
           >
-            <LogOut className="w-5 h-5 shrink-0" />
-            <span className="hidden lg:block text-sm font-medium">Log out</span>
+            <LogOut className="w-4.5 h-4.5 shrink-0" />
+            <span className="hidden lg:block text-xs font-bold">Log out</span>
           </Button>
         </div>
       </div>
