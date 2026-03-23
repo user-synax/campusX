@@ -98,17 +98,149 @@
 } 
 
 .founder-ring { 
+  background: conic-gradient(from var(--angle), #f59e0b, #fcd34d, #f59e0b); 
   animation: founder-ring 3s linear infinite; 
-  background: conic-gradient( 
-    from var(--angle), 
-    #f59e0b, 
-    #8b5cf6, 
-    #3b82f6, 
-    #06b6d4, 
-    #f59e0b 
-  ); 
-  border-radius: 50%; 
-  padding: 3px; 
+} 
+
+/* Campus Coins — Shop item animations */ 
+ 
+@keyframes spin-gradient { 
+  0%   { background-position: 0% 50%; } 
+  50%  { background-position: 100% 50%; } 
+  100% { background-position: 0% 50%; } 
+} 
+ 
+@keyframes name-shift { 
+  0%   { background-position: 0% center; } 
+  100% { background-position: 200% center; } 
+} 
+ 
+@keyframes banner-pulse { 
+  0%, 100% { background-position: 0% 50%; } 
+  50%       { background-position: 100% 50%; } 
+} 
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes rainbow-rotate {
+  0%   { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 5px currentColor, 0 0 10px currentColor; }
+  50%       { box-shadow: 0 0 15px currentColor, 0 0 25px currentColor; }
+}
+
+@keyframes glow-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Shop Item Classes */
+.shop-item-card {
+  @apply relative overflow-hidden transition-all duration-300;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.shop-item-card:hover {
+  @apply -translate-y-1;
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+}
+
+.shop-item-icon-container {
+  @apply relative flex items-center justify-center rounded-xl p-3 mb-3 transition-colors duration-300;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.shop-item-card:hover .shop-item-icon-container {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* Rarity Effects */
+.rarity-mythic {
+  background: linear-gradient(90deg, #ff0000, #8b0000, #ff0000);
+  background-size: 200% auto;
+  animation: name-shift 2s linear infinite;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 10px rgba(255, 0, 0, 0.8));
+  font-weight: 900;
+}
+
+.rarity-legendary {
+  background: linear-gradient(90deg, #f59e0b, #fef3c7, #f59e0b);
+  background-size: 200% auto;
+  animation: name-shift 3s linear infinite;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.6));
+  font-weight: 800;
+}
+
+.rarity-epic {
+  color: #a855f7;
+  filter: drop-shadow(0 0 5px rgba(168, 85, 247, 0.5));
+  font-weight: 700;
+}
+
+/* Item Card Rarity Variations */
+.shop-item-card.mythic {
+  border: 1px solid rgba(255, 0, 0, 0.3);
+  background: linear-gradient(135deg, rgba(255, 0, 0, 0.05) 0%, rgba(139, 0, 0, 0.1) 100%);
+}
+.shop-item-card.mythic::after {
+  content: '';
+  position: absolute;
+  top: -50%; left: -50%; width: 200%; height: 200%;
+  background: conic-gradient(transparent, transparent, transparent, rgba(255, 0, 0, 0.1));
+  animation: glow-spin 4s linear infinite;
+  z-index: -1;
+}
+
+.shop-item-card.legendary {
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(254, 243, 199, 0.1) 100%);
+}
+
+.shop-item-card.epic {
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.05) 0%, rgba(168, 85, 247, 0.1) 100%);
+}
+
+.avatar-frame-rainbow {
+  border: 2px solid transparent;
+  background: linear-gradient(var(--background), var(--background)) padding-box,
+              linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet) border-box;
+  animation: rainbow-rotate 5s linear infinite;
+}
+
+.avatar-frame-gold {
+  border: 2px solid transparent;
+  background: linear-gradient(var(--background), var(--background)) padding-box,
+              linear-gradient(45deg, #f59e0b, #fef3c7, #f59e0b) border-box;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+}
+
+/* Reduce motion support */ 
+@media (prefers-reduced-motion: reduce) { 
+  [style*="spin-gradient"], 
+  [style*="name-shift"], 
+  [style*="banner-pulse"],
+  .rarity-mythic,
+  .rarity-legendary,
+  .avatar-frame-rainbow,
+  .avatar-frame-gold { 
+    animation: none !important; 
+    background-position: 0% 50% !important; 
+    filter: none !important;
+  } 
 } 
 
 .founder-ring-inner { 

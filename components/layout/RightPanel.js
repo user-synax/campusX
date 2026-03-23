@@ -7,7 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "lucide-react"
-import UserAvatar from "@/components/user/UserAvatar"
+import AvatarWithFrame from '@/components/coins/AvatarWithFrame'
+import CoinUsername from '@/components/coins/CoinUsername'
+import CoinBadge from '@/components/coins/CoinBadge'
 import FollowButton from "@/components/user/FollowButton"
 import useUser from "@/hooks/useUser"
 
@@ -55,7 +57,7 @@ export default function RightPanel() {
   }
 
   return (
-    <aside className="hidden xl:flex flex-col sticky top-0 h-screen w-[350px] p-4 space-y-6 overflow-y-auto">
+    <aside className="hidden xl:flex flex-col sticky top-0 h-screen w-87.5 p-4 space-y-6 overflow-y-auto">
       {/* Trending */}
       <Card className="bg-card/50 border-border">
         <CardHeader className="pb-2">
@@ -130,7 +132,7 @@ export default function RightPanel() {
           ) : (
             upcomingEvents.map((event) => (
               <Link key={event._id} href={`/events/${event._id}`} className="group flex gap-3">
-                <div className="text-center bg-accent/50 rounded-lg p-1.5 flex-shrink-0 min-w-[45px] h-fit border border-border/50">
+                <div className="text-center bg-accent/50 rounded-lg p-1.5 shrink-0 min-w-11.25 h-fit border border-border/50">
                   <p className="text-[9px] text-muted-foreground uppercase font-black tracking-tighter">
                     {format(new Date(event.eventDate), 'MMM')}
                   </p>
@@ -167,20 +169,20 @@ export default function RightPanel() {
           ) : suggestions.length === 0 ? (
             <p className="text-xs text-muted-foreground text-center py-2">No suggestions found.</p>
           ) : (
-            suggestions.map((user) => (
-              <div key={user._id} className="flex items-center gap-3">
-                <UserAvatar user={user} size="sm" />
-                <div className="flex-1 min-w-0">
-                  <Link href={`/profile/${user.username}`} className="text-sm font-semibold hover:underline truncate block">
-                    {user.name}
-                  </Link>
-                  <p className="text-xs text-muted-foreground truncate">@{user.username}</p>
-                </div>
+            suggestions.slice(0, 5).map((user) => (
+              <div key={user._id} className="flex items-center justify-between gap-3">
+                <Link href={`/profile/${user.username}`} className="flex items-center gap-3 min-w-0 flex-1">
+                  <AvatarWithFrame user={user} size="sm" equipped={user.equipped} />
+                  <div className="min-w-0">
+                    <CoinUsername name={user.name} equipped={user.equipped} className="text-sm font-semibold hover:underline block truncate" />
+                    <p className="text-[10px] text-muted-foreground truncate">@{user.username}</p>
+                  </div>
+                </Link>
                 <FollowButton 
                   targetUserId={user._id} 
                   username={user.username}
                   initialIsFollowing={currentUser?.following?.includes(user._id)} 
-                  initialFollowersCount={0} // Not showing on suggestions
+                  size="xs"
                 />
               </div>
             ))

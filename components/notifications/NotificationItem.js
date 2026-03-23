@@ -1,7 +1,7 @@
 "use client" 
  
 import Link from 'next/link' 
-import UserAvatar from '@/components/user/UserAvatar' 
+import AvatarWithFrame from '@/components/coins/AvatarWithFrame' 
 import { formatRelativeTime } from '@/utils/formatters' 
  
 export default function NotificationItem({ notification, onRead, compact }) { 
@@ -19,10 +19,10 @@ export default function NotificationItem({ notification, onRead, compact }) {
       `} 
     > 
       {/* Left: avatar or icon */} 
-      <div className="relative flex-shrink-0 mt-0.5"> 
+      <div className="relative shrink-0 mt-0.5"> 
         {notification.sender ? ( 
           <div className="relative"> 
-            <UserAvatar user={notification.sender} size={compact ? "sm" : "md"} /> 
+            <AvatarWithFrame user={notification.sender} size={compact ? "sm" : "md"} equipped={notification.sender.equipped} /> 
             {/* Notification type icon overlay */} 
             <span className=" 
               absolute -top-1 -right-1 
@@ -66,7 +66,7 @@ export default function NotificationItem({ notification, onRead, compact }) {
  
       {/* Unread dot */} 
       {!notification.read && ( 
-        <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-2" /> 
+        <div className="w-2 h-2 rounded-full bg-primary shrink-0 mt-2" /> 
       )} 
     </Link> 
   ) 

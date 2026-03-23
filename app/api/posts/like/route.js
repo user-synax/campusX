@@ -8,6 +8,7 @@ import { validateObjectId } from '@/utils/validators';
 import { createNotification, deleteNotification } from '@/lib/notifications';
 import { applyRateLimit } from '@/lib/rate-limit';
 import { sanitizeMongoInput } from '@/lib/sanitize';
+import { awardCoins } from '@/lib/coins';
 
 export async function POST(request) {
   try {
@@ -88,6 +89,11 @@ export async function POST(request) {
           postId: postId,
           meta: { postPreview: post.content?.substring(0, 50) }
         }).catch(err => console.error('Notification error:', err));
+      }
+
+      // Award coins for like received
+      if (post.author && post.author.toString() !== currentUserIdStr) {
+        awardCoins(post.author, 'like_received', postId).catch(() => {});
       }
     }
 

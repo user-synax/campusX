@@ -4,6 +4,7 @@ import User from '@/models/User';
 import { signToken, setAuthCookie } from '@/lib/auth';
 import { applyRateLimit, rateLimit } from '@/lib/rate-limit';
 import { sanitizeUser, sanitizeMongoInput } from '@/lib/sanitize';
+import { awardCoins } from '@/lib/coins';
 
 export async function POST(request) {
   try {
@@ -67,6 +68,9 @@ export async function POST(request) {
     const response = NextResponse.json({ success: true, user: sanitizeUser(user) });
 
     await setAuthCookie(response, token);
+
+    // Award daily login coins (fire-and-forget)
+    awardCoins(user._id, 'daily_login').catch(() => {});
 
     return response;
   } catch (error) {

@@ -6,6 +6,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { computeReactionSummary, getUserReaction } from '@/lib/reaction-utils';
 import { applyRateLimit } from '@/lib/rate-limit';
 import { sanitizeMongoInput, sanitizeUser } from '@/lib/sanitize';
+import { attachEquippedToItems } from '@/lib/equipped-helpers';
 
 export async function GET(request) {
   try {
@@ -104,8 +105,11 @@ export async function GET(request) {
       };
     });
 
+    // Attach equipped visuals in batch
+    const postsWithEquipped = await attachEquippedToItems(postsWithReactions);
+
     return NextResponse.json({
-      posts: postsWithReactions,
+      posts: postsWithEquipped,
       total,
       hasMore: skip + posts.length < total,
       query: sanitizedQuery

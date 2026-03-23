@@ -1,8 +1,9 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import UserAvatar from "@/components/user/UserAvatar"
+import AvatarWithFrame from '@/components/coins/AvatarWithFrame' 
 import { Trash2 } from 'lucide-react'
 import ConfirmDeleteModal from './ConfirmDeleteModal'
 import { renderContentWithMentions, extractUrls } from "@/utils/hashtags"
@@ -14,6 +15,14 @@ export default function MessageBubble({ message, isOwn, showAvatar, currentUserI
   const [showReactionPicker, setShowReactionPicker] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const senderEquipped = message.sender?.equipped
+  const chatBubbleVisual = senderEquipped?.chatBubble
+
+  const bubbleStyle = chatBubbleVisual ? { 
+    background: chatBubbleVisual.background || chatBubbleVisual.gradient, 
+    color: chatBubbleVisual.textColor || (isOwn ? '#ffffff' : 'inherit'),
+    borderColor: chatBubbleVisual.background ? 'transparent' : undefined
+  } : {}
 
   const handleDelete = async () => {
     setDeleting(true)
@@ -59,7 +68,7 @@ export default function MessageBubble({ message, isOwn, showAvatar, currentUserI
         <div className="flex-shrink-0 mb-1"> 
           {showAvatar ? ( 
             <Link href={`/profile/${message.sender.username}`}> 
-              <UserAvatar user={message.sender} size="xs" /> 
+              <AvatarWithFrame user={message.sender} size="xs" equipped={message.sender?.equipped} /> 
             </Link> 
           ) : ( 
             <div className="w-6" />  // spacer 
@@ -78,10 +87,11 @@ export default function MessageBubble({ message, isOwn, showAvatar, currentUserI
  
         {/* Message bubble */} 
         <div 
+          style={bubbleStyle}
           className={`relative px-3 py-2 rounded-2xl text-sm leading-relaxed 
-            ${isOwn 
-              ? 'bg-primary text-primary-foreground rounded-br-sm' 
-              : 'bg-card border border-border rounded-bl-sm' 
+            ${!chatBubbleVisual 
+              ? (isOwn ? 'bg-primary text-primary-foreground rounded-br-sm' : 'bg-card border border-border rounded-bl-sm')
+              : (isOwn ? 'rounded-br-sm' : 'rounded-bl-sm border')
             }`} 
         > 
           {/* Image message */} 

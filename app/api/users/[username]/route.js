@@ -6,6 +6,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { sanitizeString } from '@/utils/validators';
 import { isFounder } from '@/lib/founder';
 import { sanitizeUser, sanitizeText } from '@/lib/sanitize';
+import { attachEquippedToItems } from '@/lib/equipped-helpers';
 
 // GET /api/users/[username]
 export async function GET(request, { params }) {
@@ -59,7 +60,10 @@ export async function GET(request, { params }) {
       founderData: userResult.founderData
     };
 
-    return NextResponse.json(responseData);
+    // Attach equipped visuals to the profile user
+    const [profileWithEquipped] = await attachEquippedToItems([responseData], '');
+
+    return NextResponse.json(profileWithEquipped);
   } catch (error) {
     console.error('User profile fetch error:', error);
     return NextResponse.json({ message: 'Internal Server Error', error: error.message }, { status: 500 });

@@ -7,6 +7,7 @@ import { sanitizeString } from '@/utils/validators';
 import { extractHashtags } from '@/utils/hashtags';
 import { indexHashtags } from '@/lib/hashtag-utils';
 import { awardXP } from '@/lib/xp';
+import { awardCoins } from '@/lib/coins';
 import { deleteCachePattern } from '@/lib/cache';
 import { applyRateLimit } from '@/lib/rate-limit';
 import { sanitizeText } from '@/lib/sanitize';
@@ -110,6 +111,25 @@ export async function POST(request) {
 
     // Award XP for posting
     const xpResult = await awardXP(currentUser._id, 'post');
+
+    // Award Coins for posting
+    awardCoins(currentUser._id, 'post_created', post._id).catch(() => {});
+
+    // Check first post of day
+    const dayStart = new Date(); 
+    dayStart.setHours(0, 0, 0, 0);
+    const postsToday = await Model.countDocuments({
+      author: currentUser._id,
+      createdAt: { $gte: dayStart }
+    });
+    if (postsToday === 1) {
+      awardCoins(currentUser._id, 'first_post_of_day', post._id).catch(() => {});
+    }
+
+    // Award Coins for poll creation
+    if (post.poll) {
+      awardCoins(currentUser._id, 'poll_created', post._id).catch(() => {});
+    }
 
     // Broadcast new post event
     broadcastEvent({ 

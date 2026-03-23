@@ -7,6 +7,7 @@ import { sanitizeText, sanitizeMongoInput } from '@/lib/sanitize'
 import { applyRateLimit } from '@/lib/rate-limit'
 import { triggerPusher } from '@/lib/pusher-server'
 import { validateObjectId } from '@/utils/validators'
+import { attachEquippedToItems } from '@/lib/equipped-helpers'
 
 /**
  * GET /api/groups/[groupId]/messages - Get messages for a group (cursor-based pagination)
@@ -55,14 +56,17 @@ export async function GET(request, { params }) {
     // 5. Reverse for display (oldest first)
     const reversedMessages = [...paginatedMessages].reverse()
 
-    // 6. Mark as read (fire and forget)
+    // 6. Attach equipped visuals in batch
+    const messagesWithEquipped = await attachEquippedToItems(reversedMessages, 'sender')
+
+    // 7. Mark as read (fire and forget)
     GroupChat.findOneAndUpdate(
       { _id: groupId, 'members.userId': currentUser._id },
       { $set: { 'members.$.lastReadAt': new Date() } }
     ).catch(() => {})
 
     return NextResponse.json({
-      messages: reversedMessages,
+      messages: messagesWithEquipped,
       hasMore,
       nextCursor: hasMore ? paginatedMessages[paginatedMessages.length - 1]._id : null
     })
@@ -155,6 +159,9 @@ export async function POST(request, { params }) {
       }
     }
 
+    // 5.5 Attach equipped visuals in batch
+    const [populatedWithEquipped] = await attachEquippedToItems([populated], 'sender')
+
     // 6. Update group's lastMessage (fire and forget)
     GroupChat.findByIdAndUpdate(groupId, {
       lastMessage: {
@@ -169,12 +176,12 @@ export async function POST(request, { params }) {
     // 7. Trigger Pusher
     // We await this to ensure delivery before function ends in serverless environment
     await triggerPusher(`private-group-${groupId}`, 'new-message', {
-      ...populated,
+      ...populatedWithEquipped,
       clientId, 
       reactions: []
     })
 
-    return NextResponse.json({ ...populated, clientId }, { status: 201 })
+    return NextResponse.json({ ...populatedWithEquipped, clientId }, { status: 201 })
 
   } catch (err) {
     console.error('[GroupMessages POST]', err.message)

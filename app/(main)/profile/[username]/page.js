@@ -7,7 +7,9 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
-import UserAvatar from "@/components/user/UserAvatar"
+import AvatarWithFrame from '@/components/coins/AvatarWithFrame'
+import CoinUsername from '@/components/coins/CoinUsername'
+import CoinBadge from '@/components/coins/CoinBadge'
 import FollowButton from "@/components/user/FollowButton"
 import PostCard from "@/components/post/PostCard"
 import PostSkeleton from "@/components/post/PostSkeleton"
@@ -153,11 +155,23 @@ export default function ProfilePage() {
         />
       ) : (
         <div>
-          <div className="h-32 bg-linear-to-r from-[#1a1a1a] to-[#2a2a2a]" />
+          <div 
+            className="h-32 bg-linear-to-r from-[#1a1a1a] to-[#2a2a2a] relative overflow-hidden" 
+            style={profileUser.equipped?.profileBanner ? { 
+              background: profileUser.equipped.profileBanner.gradient || profileUser.equipped.profileBanner.color,
+              backgroundSize: profileUser.equipped.profileBanner.backgroundSize || 'cover',
+              animation: profileUser.equipped.profileBanner.animation || 'none'
+            } : {}}
+          />
           
           <div className="px-4 pb-4">
-            <div className="flex justify-between items-end -mt-12 mb-3">
-              <UserAvatar user={profileUser} size="lg" className="w-24 h-24 border-4 border-background" />
+            <div className="flex justify-between items-end -mt-16 mb-3 relative z-10">
+              <AvatarWithFrame 
+                user={profileUser} 
+                size="lg" 
+                className="w-32 h-32 border-4 border-background shadow-xl ring-2 ring-black/10" 
+                equipped={profileUser.equipped} 
+              />
               
               {isOwnProfile ? (
                 <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="rounded-full">
@@ -177,7 +191,12 @@ export default function ProfilePage() {
             </div>
             
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-xl font-bold">{profileUser.name}</h1>
+              <CoinUsername 
+                name={profileUser.name} 
+                equipped={profileUser.equipped} 
+                className="text-xl font-bold text-foreground" 
+              />
+              <CoinBadge equipped={profileUser.equipped} />
             </div>
             <p className="text-muted-foreground text-sm">@{profileUser.username}</p>
             

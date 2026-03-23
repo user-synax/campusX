@@ -28,7 +28,9 @@ import LinkPreview from "@/components/shared/LinkPreview"
 import FormattedTime from "@/components/shared/FormattedTime"
 import useUser from "@/hooks/useUser"
 import { isFounder } from "@/lib/founder"
-import FounderAvatar from "@/components/founder/FounderAvatar"
+import AvatarWithFrame from '@/components/coins/AvatarWithFrame'
+import CoinUsername from '@/components/coins/CoinUsername'
+import CoinBadge from '@/components/coins/CoinBadge'
 import FounderBadges from "@/components/founder/FounderBadges"
 import { REACTIONS as REACTION_EMOJIS } from "@/lib/reaction-utils"
 import { cn } from "@/lib/utils"
@@ -325,13 +327,9 @@ export default function PostDetailClient({ postId }) {
             <div className="w-12 h-12 rounded-full bg-accent flex items-center justify-center text-xl font-bold text-muted-foreground">
               ?
             </div>
-          ) : isPostFounder ? (
-            <Link href={`/profile/${post.author.username}`}>
-              <FounderAvatar user={post.author} size="lg" />
-            </Link>
           ) : (
             <Link href={`/profile/${post.author.username}`}>
-              <UserAvatar user={post.author} size="lg" />
+              <AvatarWithFrame user={post.author} size="lg" equipped={post.author?.equipped} />
             </Link>
           )}
           <div>
@@ -340,8 +338,13 @@ export default function PostDetailClient({ postId }) {
                 <span className="font-bold text-lg">Anonymous</span>
               ) : (
                 <>
-                  <Link href={`/profile/${post.author.username}`} className="font-bold text-lg hover:underline">
-                    {post.author.name}
+                  <Link href={`/profile/${post.author.username}`} className="hover:underline flex items-center gap-1">
+                    <CoinUsername 
+                      name={post.author.name} 
+                      equipped={post.author?.equipped} 
+                      className="font-bold text-lg text-foreground" 
+                    />
+                    <CoinBadge equipped={post.author?.equipped} />
                   </Link>
                   {isPostFounder && <FounderBadges size="sm" />}
                 </>

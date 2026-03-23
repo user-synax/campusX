@@ -29,9 +29,11 @@ import { formatCount } from "@/utils/formatters"
 import { cn } from "@/lib/utils"
 import useUser from "@/hooks/useUser"
 import { isFounder } from "@/lib/founder"
-import FounderAvatar from "@/components/founder/FounderAvatar"
 import FounderBadges from "@/components/founder/FounderBadges"
 import FormattedTime from "@/components/shared/FormattedTime"
+import AvatarWithFrame from '@/components/coins/AvatarWithFrame' 
+import CoinUsername from '@/components/coins/CoinUsername' 
+import CoinBadge from '@/components/coins/CoinBadge' 
 
 import { REACTIONS as REACTION_EMOJIS } from "@/lib/reaction-utils"
 
@@ -196,6 +198,7 @@ const PostCard = memo(function PostCard({ post, currentUserId, onDelete, onLike,
   }, [isPinned, post._id])
 
   const isPostFounder = !post.isAnonymous && post.author && typeof post.author === 'object' && isFounder(post.author.username)
+  const authorEquipped = post.author?.equipped || null
 
   return (
     <div 
@@ -203,11 +206,7 @@ const PostCard = memo(function PostCard({ post, currentUserId, onDelete, onLike,
       onClick={() => router.push(`/post/${post._id}`)}
     >
       <div className="flex gap-3">
-        {isPostFounder ? (
-          <FounderAvatar user={post.author} size="md" />
-        ) : (
-          <UserAvatar user={post.isAnonymous || typeof post.author !== 'object' ? null : post.author} size="md" />
-        )}
+        <AvatarWithFrame user={post.isAnonymous || typeof post.author !== 'object' ? null : post.author} size="md" equipped={authorEquipped} />
         
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap text-sm">
@@ -217,10 +216,15 @@ const PostCard = memo(function PostCard({ post, currentUserId, onDelete, onLike,
               <>
                 <Link 
                   href={`/profile/${post.author.username}`} 
-                  className="font-bold text-foreground hover:underline"
+                  className="hover:underline flex items-center gap-1"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  {post.author.name}
+                  <CoinUsername 
+                    name={post.author.name} 
+                    equipped={authorEquipped} 
+                    className="font-bold text-foreground" 
+                  />
+                  <CoinBadge equipped={authorEquipped} />
                 </Link>
                 {isPostFounder && (
                   <span className="flex-shrink-0">

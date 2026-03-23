@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
+import { useState, useEffect } from 'react';
 import { 
   Home, 
   User, 
@@ -13,11 +14,14 @@ import {
   Calendar, 
   Trophy, 
   MessageSquare, 
+  BarChart2,
   Settings, 
   Shield,
   BookOpen,
   History,
-  Heart
+  Heart,
+  Coins,
+  ShoppingBag
 } from "lucide-react"
 import { useChatUnreadCount } from '@/hooks/useChatUnreadCount'
 import { Button } from "@/components/ui/button"
@@ -32,7 +36,8 @@ import NotificationBell from '@/components/notifications/NotificationBell'
 import { cn } from "@/lib/utils"
 import { isFounder } from "@/lib/founder"
 import { isAdmin } from "@/lib/admin"
-import FounderAvatar from "@/components/founder/FounderAvatar"
+import AvatarWithFrame from '@/components/coins/AvatarWithFrame'
+import CoinUsername from '@/components/coins/CoinUsername'
 
 export default function Sidebar() {
   const pathname = usePathname()
@@ -41,6 +46,27 @@ export default function Sidebar() {
   const { unreadCount } = useNotifications()
   const chatUnread = useChatUnreadCount()
   const { currentSong, isPlayerOpen, openPlayer, closePlayer } = useMusic()
+  const [coinBalance, setCoinBalance] = useState(0);
+  const [pendingResources, setPendingResources] = useState(0);
+  const [myEquipped, setMyEquipped] = useState(null)
+
+  useEffect(() => {
+    if (user) {
+      fetch('/api/coins/wallet')
+        .then(res => res.json())
+        .then(data => {
+          setCoinBalance(data.balance)
+          setMyEquipped(data.equipped)
+        });
+      
+      if (isAdmin(user)) {
+        fetch('/api/admin/resources?status=pending')
+          .then(res => res.json())
+          .then(data => setPendingResources(data.total || 0))
+          .catch(() => {});
+      }
+    }
+  }, [user]);
 
   const navItems = [
     { label: "Feed", href: "/feed", icon: Home },
@@ -56,16 +82,6 @@ export default function Sidebar() {
     { label: "Profile", href: user?.username ? `/profile/${user.username}` : "/login", icon: User },
   ]
 
-  // Add Admin Review if user is admin
-  if (user && isAdmin(user)) {
-    navItems.splice(navItems.length - 1, 0, { 
-      label: "Review", 
-      href: "/admin/resources", 
-      icon: Shield,
-      className: "text-amber-500 hover:text-amber-600 hover:bg-amber-500/10"
-    })
-  }
-
   const handleLogout = async () => {
     try {
       await fetch("/api/auth/logout", { method: "POST" })
@@ -77,7 +93,7 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-[72px] lg:w-[280px] border-r border-border bg-background z-50 hidden md:flex flex-col">
+    <aside className="fixed left-0 top-0 h-screen w-18 lg:w-70 border-r border-border bg-background z-50 hidden md:flex flex-col">
       <div className="p-6">
         <Logo className="lg:hidden" showText={false} />
         <Logo className="hidden lg:flex" />
@@ -135,9 +151,79 @@ export default function Sidebar() {
             </div>
           )
         })}
+
+        {/* Admin Section */}
+        {user && isAdmin(user) && (
+          <div className="mt-4 pt-4 border-t border-border/50">
+            <p className="hidden lg:block text-[10px] text-muted-foreground uppercase font-black tracking-widest px-3 mb-2 opacity-50">
+              Admin
+            </p>
+
+            {[
+              { href: '/admin', icon: Shield, label: 'Dashboard', color: 'text-amber-500' },
+              { href: '/admin/resources', icon: BookOpen, label: 'Review', badge: pendingResources },
+              { href: '/analytics', icon: BarChart2, label: 'Analytics' },
+            ].map(item => {
+              const isActive = pathname === item.href
+              const Icon = item.icon
+
+              return (
+                <Link key={item.href} href={item.href}>
+                  <Button
+                    variant="ghost"
+                    className={cn(
+                      "w-full justify-start gap-4 h-12 px-3 relative transition-all duration-200 group",
+                      isActive ? "bg-accent text-accent-foreground font-bold" : "text-muted-foreground",
+                      item.color
+                    )}
+                  >
+                    <div className="relative">
+                      <Icon className={cn("w-5 h-5 shrink-0 transition-transform group-hover:scale-110", item.color)} />
+                      {item.badge > 0 && (
+                        <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-[10px] text-white flex items-center justify-center rounded-full border-2 border-background animate-in zoom-in">
+                          {item.badge > 9 ? '9+' : item.badge}
+                        </span>
+                      )}
+                    </div>
+                    <span className="hidden lg:block text-sm font-bold tracking-tight">{item.label}</span>
+                  </Button>
+                </Link>
+              )
+            })}
+          </div>
+        )}
       </nav>
 
-      <div className="p-3 border-t border-border bg-background/50 backdrop-blur-md">
+      <div className="p-3 border-t border-border bg-background/50 backdrop-blur-md space-y-1">
+        {/* Coin & Shop Quick Links */}
+        <div className="flex flex-col gap-1 mb-2">
+          <Link href="/wallet">
+            <div className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-amber-500/10 transition-colors group">
+              <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Coins className="w-4 h-4 text-amber-500" />
+              </div>
+              <div className="hidden lg:block">
+                <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter leading-none">Wallet</p>
+                <p className="text-sm text-amber-500 font-black">{coinBalance}</p>
+              </div>
+            </div>
+          </Link>
+          <Link href="/shop">
+            <div className={cn(
+              "flex items-center gap-3 px-3 py-2 rounded-xl transition-colors group",
+              pathname === '/shop' ? "bg-primary/10" : "hover:bg-accent"
+            )}>
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <ShoppingBag className={cn("w-4 h-4", pathname === '/shop' ? "text-primary" : "text-muted-foreground")} />
+              </div>
+              <span className={cn(
+                "hidden lg:inline text-sm font-bold",
+                pathname === '/shop' ? "text-primary" : "text-muted-foreground"
+              )}>Shop</span>
+            </div>
+          </Link>
+        </div>
+
         {/* Music button — at bottom of nav, above user card */} 
         <button 
           onClick={isPlayerOpen ? closePlayer : openPlayer} 
@@ -171,9 +257,9 @@ export default function Sidebar() {
             {isFounder(user.username) ? (
               <Link href={`/profile/${user.username}`}>
                 <div className="flex flex-col lg:flex-row items-center gap-3 p-1.5 rounded-xl bg-primary/5 border border-primary/10 hover:bg-primary/10 transition-colors">
-                  <FounderAvatar user={user} size="sm" />
+                  <AvatarWithFrame user={user} size="sm" equipped={myEquipped} />
                   <div className="hidden lg:block flex-1 min-w-0">
-                    <p className="text-xs font-bold text-foreground truncate">{user.name}</p>
+                    <CoinUsername name={user.name} equipped={myEquipped} className="text-xs font-bold text-foreground" />
                     <p className="text-[10px] text-primary/80 font-bold truncate">Founder</p>
                   </div>
                 </div>
@@ -181,12 +267,9 @@ export default function Sidebar() {
             ) : (
               <Link href={`/profile/${user.username}`}>
                 <div className="flex flex-col lg:flex-row items-center gap-3 p-1.5 rounded-xl hover:bg-accent transition-colors">
-                  <Avatar className="w-8 h-8 border border-border">
-                    <AvatarImage src={user.avatar} alt={user.name} />
-                    <AvatarFallback className="bg-secondary text-[10px]">{user.name?.[0]}</AvatarFallback>
-                  </Avatar>
+                  <AvatarWithFrame user={user} size="sm" equipped={myEquipped} />
                   <div className="hidden lg:block flex-1 min-w-0">
-                    <p className="text-xs font-bold truncate text-foreground">{user.name}</p>
+                    <CoinUsername name={user.name} equipped={myEquipped} className="text-xs font-bold text-foreground" />
                     <p className="text-[10px] text-muted-foreground truncate font-medium">@{user.username}</p>
                   </div>
                 </div>

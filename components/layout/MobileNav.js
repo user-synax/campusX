@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, GraduationCap, PlusSquare, User, Bell, Bookmark, LogOut, Menu, Search, Calendar, Trophy, Settings, MessageSquare, Shield, BookOpen } from "lucide-react"
+import { Home, GraduationCap, PlusSquare, User, Bell, Bookmark, LogOut, Menu, Search, Calendar, Trophy, Settings, MessageSquare, Shield, BookOpen, ShoppingBag, Wallet } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import {
@@ -216,6 +216,30 @@ export default function MobileNav() {
                 >
                   <Calendar className="w-5 h-5" />
                   <span className="text-base font-medium">Events</span>
+                </Button>
+              </Link>
+              <Link href="/shop" onClick={() => setOpen(false)}>
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-start gap-4 h-12 px-3",
+                    pathname === "/shop" ? "bg-accent text-accent-foreground font-bold" : "text-muted-foreground"
+                  )}
+                >
+                  <ShoppingBag className="w-5 h-5" />
+                  <span className="text-base font-medium">Shop</span>
+                </Button>
+              </Link>
+              <Link href="/wallet" onClick={() => setOpen(false)}>
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-start gap-4 h-12 px-3",
+                    pathname === "/wallet" ? "bg-accent text-accent-foreground font-bold" : "text-muted-foreground"
+                  )}
+                >
+                  <Wallet className="w-5 h-5" />
+                  <span className="text-base font-medium">Wallet</span>
                 </Button>
               </Link>
 

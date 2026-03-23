@@ -2,8 +2,9 @@
 
 import Link from "next/link"
 import { X } from "lucide-react"
-import UserAvatar from "@/components/user/UserAvatar"
-import { formatRelativeTime } from "@/utils/formatters"
+import AvatarWithFrame from '@/components/coins/AvatarWithFrame'
+import CoinUsername from '@/components/coins/CoinUsername'
+import CoinBadge from '@/components/coins/CoinBadge'
 import { renderContentWithMentions } from "@/utils/hashtags"
 import UserMention from "@/components/shared/UserMention"
 import FormattedTime from "@/components/shared/FormattedTime"
@@ -18,22 +19,37 @@ import FormattedTime from "@/components/shared/FormattedTime"
  */
 export default function CommentItem({ comment, currentUserId, onDelete }) {
   const isOwner = comment.author?._id === currentUserId || comment.author === currentUserId
+  const chatBubbleVisual = comment.author?.equipped?.chatBubble
+
+  const bubbleStyle = chatBubbleVisual ? { 
+    background: chatBubbleVisual.background || chatBubbleVisual.gradient, 
+    color: chatBubbleVisual.textColor || 'inherit',
+    borderColor: chatBubbleVisual.background ? 'transparent' : undefined
+  } : {}
 
   return (
     <div className="flex gap-3 group animate-in fade-in slide-in-from-bottom-1 duration-300">
-      <UserAvatar user={comment.author} size="sm" className="mt-0.5" />
+      <AvatarWithFrame user={comment.author} size="sm" className="mt-0.5" equipped={comment.author?.equipped} />
       <div className="flex-1 min-w-0">
-        <div className="bg-secondary/40 rounded-2xl px-4 py-2 inline-block max-w-full">
+        <div 
+          style={bubbleStyle}
+          className={`rounded-2xl px-4 py-2 inline-block max-w-full ${!chatBubbleVisual ? 'bg-secondary/40' : 'border'}`}
+        >
           <div className="flex items-center gap-2 mb-0.5">
             <Link 
               href={`/profile/${comment.author?.username}`} 
-              className="text-xs font-bold hover:underline"
+              className="hover:underline flex items-center gap-1"
             >
-              {comment.author?.name || 'User'}
+              <CoinUsername 
+                name={comment.author?.name || 'User'} 
+                equipped={comment.author?.equipped} 
+                className="text-xs font-bold text-foreground" 
+              />
+              <CoinBadge equipped={comment.author?.equipped} />
             </Link>
             <FormattedTime date={comment.createdAt} className="text-[10px] text-muted-foreground" />
           </div>
-          <div className="text-sm break-words leading-relaxed text-foreground/90">
+          <div className="text-sm wrap-break-words leading-relaxed text-foreground/90">
             {renderContentWithMentions(comment.content).map((segment, i) => {
               if (segment.type === 'hashtag') {
                 return (

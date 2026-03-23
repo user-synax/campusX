@@ -5,6 +5,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { sanitizeString } from '@/utils/validators';
 import { applyRateLimit } from '@/lib/rate-limit';
 import { sanitizeText } from '@/lib/sanitize';
+import { awardCoins } from '@/lib/coins';
 
 // GET /api/events - List events
 export async function GET(request) {
@@ -144,6 +145,9 @@ export async function POST(request) {
     });
 
     await event.populate('organizer', 'name username avatar');
+
+    // Award coins for event creation
+    awardCoins(currentUser._id, 'event_created', event._id).catch(() => {});
 
     return NextResponse.json(event, { status: 201 });
   } catch (error) {

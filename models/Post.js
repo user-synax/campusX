@@ -78,7 +78,14 @@ const postSchema = new mongoose.Schema({
     description: String,
     image: String,
     url: String
-  }
+  },
+  // Admin & Moderation fields
+  isDeleted: { type: Boolean, default: false },
+  deletedAt: { type: Date, default: null },
+  deletedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  isHidden: { type: Boolean, default: false },
+  isFeatured: { type: Boolean, default: false },
+  reportCount: { type: Number, default: 0, min: 0 }
 }, { 
   timestamps: true,toJSON: { virtuals: true },
   toObject: { virtuals: true },
@@ -93,6 +100,9 @@ postSchema.index({ likes: 1 });
 postSchema.index({ content: 'text' });
 postSchema.index({ author: 1, isAnonymous: 1, createdAt: -1 });
 postSchema.index({ 'reactions.user': 1 });
+postSchema.index({ reportCount: -1, isDeleted: 1 });
+postSchema.index({ isFeatured: 1, createdAt: -1 });
+postSchema.index({ isDeleted: 1, createdAt: -1 });
 
 postSchema.virtual('reactionCount').get(function () {
   return this.reactions.length;

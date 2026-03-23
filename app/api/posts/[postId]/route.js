@@ -7,6 +7,7 @@ import { validateObjectId } from '@/utils/validators';
 import { sanitizeUser, sanitizeMongoInput } from '@/lib/sanitize';
 import { getCurrentUser } from '@/lib/auth';
 import { computeReactionSummary, getUserReaction } from '@/lib/reaction-utils';
+import { attachEquippedToItems } from '@/lib/equipped-helpers';
 
 /**
  * GET /api/posts/[postId]
@@ -48,14 +49,19 @@ export async function GET(request, { params }) {
     // Sanitize author and remove sensitive raw fields
     const { reactions, likes, author, ...postData } = populatedPost;
     
-    return NextResponse.json({
+    const postResponse = {
       ...postData,
       likesCount: populatedPost.likesCount ?? populatedPost.likes?.length ?? 0,
       author: author ? sanitizeUser(author) : null,
       _reactionSummary: summary,
       _userReaction: userReaction,
       _isLiked: isLiked
-    });
+    };
+
+    // Attach equipped visuals
+    const [postWithEquipped] = await attachEquippedToItems([postResponse]);
+
+    return NextResponse.json(postWithEquipped);
   } catch (error) {
     console.error('Post fetch error:', error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });

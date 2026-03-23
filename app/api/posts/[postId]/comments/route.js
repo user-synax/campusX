@@ -9,6 +9,8 @@ import { validateObjectId } from '@/utils/validators';
 import { createNotification } from '@/lib/notifications';
 import { applyRateLimit } from '@/lib/rate-limit';
 import { sanitizeText } from '@/lib/sanitize';
+import { awardCoins } from '@/lib/coins';
+import { attachEquippedToItems } from '@/lib/equipped-helpers';
 
 // GET /api/posts/[postId]/comments
 export async function GET(request, { params }) {
@@ -26,7 +28,9 @@ export async function GET(request, { params }) {
       .populate('author', 'name username avatar')
       .lean();
 
-    return NextResponse.json({ comments });
+    const commentsWithEquipped = await attachEquippedToItems(comments);
+
+    return NextResponse.json({ comments: commentsWithEquipped });
   } catch (error) {
     console.error('Comment fetching error:', error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
@@ -85,7 +89,27 @@ export async function POST(request, { params }) {
       content: sanitizedContent,
     });
 
+    const populated = {
+      ...comment.toObject(),
+      author: {
+        _id: currentUser._id,
+        name: currentUser.name,
+        username: currentUser.username,
+        avatar: currentUser.avatar
+      }
+    };
+
+    const [commentWithEquipped] = await attachEquippedToItems([populated]);
+
     await PostModel.findByIdAndUpdate(postId, { $inc: { commentsCount: 1 } });
+
+    // Award coins for comment created
+    awardCoins(currentUser._id, 'comment_created', postId).catch(() => {});
+
+    // Award coins for comment received (if not own post)
+    if (post.author && post.author.toString() !== currentUser._id.toString()) {
+      awardCoins(post.author, 'comment_received', postId).catch(() => {});
+    }
 
     // Notification - ONLY if not anonymous
     if (post && !post.isAnonymous && post.author && post.author.toString() !== currentUser._id.toString()) {
@@ -102,9 +126,7 @@ export async function POST(request, { params }) {
       }).catch(() => {});
     }
 
-    await comment.populate('author', 'name username avatar');
-
-    return NextResponse.json(comment, { status: 201 });
+    return NextResponse.json(commentWithEquipped, { status: 201 });
   } catch (error) {
     console.error('Comment creation error:', error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });

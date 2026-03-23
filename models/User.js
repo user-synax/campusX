@@ -116,7 +116,29 @@ const userSchema = new mongoose.Schema({
     default: true
   },
   verifiedAt: Date,
-  pinnedPost: { type: mongoose.Schema.Types.ObjectId, ref: 'Post', default: null }
+  pinnedPost: { type: mongoose.Schema.Types.ObjectId, ref: 'Post', default: null },
+  // Moderation fields 
+  isBanned: { type: Boolean, default: false }, 
+  isDeleted: { type: Boolean, default: false },  // soft delete 
+  deletedAt: { type: Date, default: null },
+  tokenVersion: { type: Number, default: 0 }, // For force logout
+
+  // Coin display preference 
+  showCoinsOnProfile: { type: Boolean, default: true }, 
+  
+  // Referral 
+  referralCode: { type: String, unique: true, sparse: true }, 
+  referredBy: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'User', 
+    default: null 
+  }, 
+  referralCount: { type: Number, default: 0 }, 
+  
+  // Streak 
+  currentStreak:  { type: Number, default: 0 }, 
+  longestStreak:  { type: Number, default: 0 }, 
+  lastActiveDate: { type: Date,   default: null } 
 }, { timestamps: true });
 
 userSchema.methods.comparePassword = async function (plainPassword) {
@@ -138,6 +160,9 @@ userSchema.index({ name: 'text', username: 'text' });
 userSchema.index({ totalXP: -1 });
 userSchema.index({ weeklyXP: -1 });
 userSchema.index({ college: 1, weeklyXP: -1 });
+// Moderation index 
+userSchema.index({ isBanned: 1 }) 
+userSchema.index({ isDeleted: 1, createdAt: -1 }) 
 
 const User = mongoose.models.User || mongoose.model('User', userSchema);
 

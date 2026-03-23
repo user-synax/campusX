@@ -9,11 +9,13 @@ import { formatCount } from '@/utils/formatters'
 import { renderContentWithMentions } from "@/utils/hashtags"
 import UserMention from "@/components/shared/UserMention"
 import Link from 'next/link'
-import FounderAvatar from './FounderAvatar'
 import FounderBadges from './FounderBadges'
 import RoadmapWidget from './RoadmapWidget'
 import FollowButton from '@/components/user/FollowButton'
 import BroadcastManager from './BroadcastManager'
+import AvatarWithFrame from '@/components/coins/AvatarWithFrame'
+import CoinUsername from '@/components/coins/CoinUsername'
+import CoinBadge from '@/components/coins/CoinBadge'
 
 export default function FounderProfileHeader({ user, isOwnProfile, stats, onFollowClick }) {
   const [editOpen, setEditOpen] = useState(false)
@@ -49,7 +51,7 @@ export default function FounderProfileHeader({ user, isOwnProfile, stats, onFoll
     
         {/* Avatar + Actions row */} 
         <div className="flex justify-between items-start mb-4"> 
-          <FounderAvatar user={user} size="xl" /> 
+          <AvatarWithFrame user={user} size="xl" equipped={user?.equipped} /> 
           {isOwnProfile ? ( 
             <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} 
               className="border-amber-500/30 text-amber-400 hover:bg-amber-500/10 rounded-full px-6"> 
@@ -57,10 +59,10 @@ export default function FounderProfileHeader({ user, isOwnProfile, stats, onFoll
             </Button> 
           ) : ( 
             <FollowButton 
-              targetUserId={user._id} 
-              username={user.username}
+              targetUserId={user?._id} 
+              username={user?.username}
               initialIsFollowing={false} 
-              initialFollowersCount={user.followers?.length || 0} 
+              initialFollowersCount={user?.followers?.length || 0} 
             /> 
           )} 
         </div> 
@@ -68,9 +70,9 @@ export default function FounderProfileHeader({ user, isOwnProfile, stats, onFoll
         {/* Name + badges */} 
         <div className="space-y-1"> 
           <div className="flex items-center gap-2 flex-wrap"> 
-            <h1 className="text-2xl font-bold">{user.name}</h1> 
+            <h1 className="text-2xl font-bold">{user?.name}</h1> 
             {/* Verified badge */} 
-            <svg viewBox="0 0 24 24" className="w-5 h-5 flex-shrink-0"> 
+            <svg viewBox="0 0 24 24" className="w-5 h-5 shrink-0"> 
               <circle cx="12" cy="12" r="12" fill="#3b82f6" /> 
               <path d="M9 12l2 2 4-4" stroke="white" strokeWidth="2.5" 
                 strokeLinecap="round" strokeLinejoin="round" fill="none" /> 
@@ -78,7 +80,7 @@ export default function FounderProfileHeader({ user, isOwnProfile, stats, onFoll
           </div> 
     
           {/* Username */} 
-          <p className="text-muted-foreground">@{user.username}</p> 
+          <p className="text-muted-foreground">@{user?.username}</p> 
     
           {/* Founder badge row */} 
           <div className="pt-1"> 
@@ -96,13 +98,16 @@ export default function FounderProfileHeader({ user, isOwnProfile, stats, onFoll
               color: '#f59e0b' 
             }} 
           > 
-            ⚡ Creator of CampusX 
+            Platform Founder 
+          </span> 
+          <span className="text-xs text-muted-foreground font-medium"> 
+            Launched {getDaysSinceLaunch()} days ago 
           </span> 
         </div> 
     
         {/* Bio */} 
-        {user.bio && (
-          <div className="mt-3 text-sm leading-relaxed whitespace-pre-wrap break-words">
+        {user?.bio && ( 
+          <div className="mt-4 text-sm text-foreground/90 leading-relaxed max-w-xl"> 
             {renderContentWithMentions(user.bio).map((segment, i) => {
               if (segment.type === 'hashtag') {
                 return (
@@ -116,65 +121,53 @@ export default function FounderProfileHeader({ user, isOwnProfile, stats, onFoll
                 )
               } else if (segment.type === 'mention') {
                 return <UserMention key={i} username={segment.value} />
-              } else {
-                return <span key={i}>{segment.value}</span>
+              } else if (segment.type === 'url') {
+                return (
+                  <a 
+                    key={i} 
+                    href={segment.value}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline"
+                  >
+                    {segment.value}
+                  </a>
+                )
               }
+              return <span key={i}>{segment.value}</span>
             })}
-          </div>
+          </div> 
         )} 
     
-        {/* Meta row */} 
-        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-sm text-muted-foreground"> 
-          {user.college && <span>🎓 {user.college}</span>} 
-          <span>📅 Day {getDaysSinceLaunch()} of CampusX</span> 
-          <span>🗓️ Since {LAUNCH_DATE.toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })}</span> 
+        {/* Stats row */} 
+        <div className="mt-6 flex items-center gap-6"> 
+          <div className="flex flex-col"> 
+            <span className="text-lg font-bold">{formatCount(stats?.followers || 0)}</span> 
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Followers</span> 
+          </div> 
+          <div className="flex flex-col"> 
+            <span className="text-lg font-bold">{formatCount(stats?.posts || 0)}</span> 
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Posts</span> 
+          </div> 
+          <div className="flex flex-col"> 
+            <span className="text-lg font-bold">{formatCount(stats?.views || 0)}</span> 
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Views</span> 
+          </div> 
         </div> 
-    
-        {/* Stats row — special styling */} 
-        <div className="grid grid-cols-3 gap-3 mt-5"> 
-          {[ 
-            { label: 'Posts', value: stats.postCount, clickable: false }, 
-            { label: 'Followers', value: formatCount(user.followers?.length || 0), clickable: true, tab: 'followers' }, 
-            { label: 'Following', value: formatCount(user.following?.length || 0), clickable: true, tab: 'following' } 
-          ].map(stat => ( 
-            <div 
-              key={stat.label} 
-              onClick={() => stat.clickable && onFollowClick?.(stat.tab)}
-              className={cn(
-                "text-center py-2 rounded-lg transition-colors",
-                stat.clickable && "cursor-pointer hover:bg-[#252525] hover:border-amber-500/30 group"
-              )} 
-              style={{ background: '#1a1a1a', border: '1px solid #2a2a2a' }}
-            > 
-              <p className={cn("text-lg font-bold transition-colors", stat.clickable && "group-hover:text-amber-400")}>{stat.value}</p> 
-              <p className="text-xs text-muted-foreground">{stat.label}</p> 
-            </div> 
-          ))} 
-        </div> 
-    
-        {/* Profile views — only visible to founder themselves */} 
+ 
+        {/* Admin Broadcast Manager (Only for founder) */} 
         {isOwnProfile && ( 
-          <p className="text-xs text-muted-foreground mt-3 flex items-center gap-1"> 
-            <Eye className="w-3 h-3" /> 
-            {user.founderData?.profileViews || 0} total profile views 
-            · {user.founderData?.profileViewsToday || 0} today 
-          </p> 
+          <div className="mt-8 border-t border-border/50 pt-6"> 
+            <BroadcastManager /> 
+          </div> 
         )} 
-
-        {/* Roadmap widget */}
-        <RoadmapWidget isOwnProfile={isOwnProfile} />
-
-        {/* Broadcast Manager — only for founder's own profile */}
-        {isOwnProfile && (
-          <BroadcastManager 
-            currentBroadcast={{
-              message: user.founderData?.broadcastMessage,
-              active: user.founderData?.broadcastActive
-            }} 
-          />
-        )}
+ 
+        {/* Roadmap Widget (Always visible on founder profile) */} 
+        <div className="mt-8"> 
+          <RoadmapWidget isAdmin={isOwnProfile} /> 
+        </div> 
     
       </div> 
     </div> 
-  )
-}
+  ) 
+} 
