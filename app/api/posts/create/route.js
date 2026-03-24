@@ -37,7 +37,7 @@ export async function POST(request) {
       return NextResponse.json({ message: 'Invalid request body' }, { status: 400 });
     }
 
-    const { content, community, isAnonymous, poll, linkPreview } = body;
+    const { content, community, isAnonymous, poll, linkPreview, images } = body;
 
     await connectDB();
 
@@ -79,12 +79,23 @@ export async function POST(request) {
     const isAnon = isAnonymous === true;
     const Model = isAnon ? AnonymousPost : Post;
 
+    // Validate images array
+    if (images !== undefined) {
+      if (!Array.isArray(images) || images.length > 6) {
+        return NextResponse.json({ message: 'Maximum 6 images allowed' }, { status: 400 });
+      }
+      if (images.some(url => typeof url !== 'string' || !url.trim())) {
+        return NextResponse.json({ message: 'Invalid image URL in images array' }, { status: 400 });
+      }
+    }
+
     const postData = {
       content: sanitizedContent,
       community: sanitizeText(community) || '',
       isAnonymous: isAnon,
       poll: pollData,
       hashtags,
+      images: Array.isArray(images) ? images : [],
       linkPreview: linkPreview ? {
         title: sanitizeText(linkPreview.title),
         description: sanitizeText(linkPreview.description),

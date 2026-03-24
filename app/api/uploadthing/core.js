@@ -6,9 +6,7 @@ import User from "@/models/User";
 
 const f = createUploadthing();
 
-/**
- * Edge-compatible JWT verification helper.
- */
+/** Edge-compatible JWT verification helper. */
 async function verifyToken(token) {
   if (!token) return null;
   try {
@@ -24,72 +22,66 @@ async function verifyToken(token) {
   }
 }
 
+/** Shared authentication middleware reused by all uploaders. */
+async function authenticateRequest(req) {
+  let token = null;
+
+  const fromCookie = req.cookies.get('campusx_token')?.value;
+  if (fromCookie) {
+    token = fromCookie;
+  } else {
+    const cookieHeader = req.headers.get('cookie');
+    if (cookieHeader) {
+      const match = cookieHeader.match(/campusx_token=([^;]+)/);
+      if (match) token = match[1];
+    }
+  }
+
+  if (!token) {
+    throw new UploadThingError({ code: "UNAUTHORIZED", message: "Session required for upload." });
+  }
+
+  const decoded = await verifyToken(token);
+  if (!decoded || !decoded.userId) {
+    throw new UploadThingError({ code: "UNAUTHORIZED", message: "Invalid or expired session. Please refresh." });
+  }
+
+  await connectDB();
+  const user = await User.findById(decoded.userId).lean();
+  if (!user) {
+    throw new UploadThingError({ code: "UNAUTHORIZED", message: "User account no longer active." });
+  }
+
+  return { userId: user._id.toString() };
+}
+
 export const ourFileRouter = {
-  /**
-   * Main resource uploader for student materials.
-   * Handles PDFs (16MB) and Images (4MB).
-   */
+  /** Main resource uploader for student materials. Handles PDFs (16MB) and Images (4MB). */
   resourceUploader: f({
     pdf: { maxFileSize: "16MB", maxFileCount: 1 },
     image: { maxFileSize: "4MB", maxFileCount: 1 },
   })
-    .middleware(async ({ req }) => {
-      try {
-        // 1. Extract token from cookies (supporting Next.js 15/16 header access patterns)
-        let token = req.cookies.get('campusx_token')?.value;
-        
-        if (!token) {
-          const cookieHeader = req.headers.get('cookie');
-          if (cookieHeader) {
-            const match = cookieHeader.match(/campusx_token=([^;]+)/);
-            if (match) token = match[1];
-          }
-        }
-        
-        if (!token) {
-          throw new UploadThingError({
-            code: "UNAUTHORIZED",
-            message: "Session required for resource upload."
-          });
-        }
-
-        // 2. Verify identity
-        const decoded = await verifyToken(token);
-        if (!decoded || !decoded.userId) {
-          throw new UploadThingError({
-            code: "UNAUTHORIZED",
-            message: "Invalid or expired session. Please refresh."
-          });
-        }
-
-        // 3. Ensure user exists in database
-        await connectDB();
-        const user = await User.findById(decoded.userId).lean();
-        if (!user) {
-          throw new UploadThingError({
-            code: "UNAUTHORIZED",
-            message: "User account no longer active."
-          });
-        }
-
-        return { userId: user._id.toString() };
-      } catch (err) {
-        if (err instanceof UploadThingError) throw err;
-        console.error("[UploadThing Middleware Error]:", err.message);
-        throw new UploadThingError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Internal authentication failure. Please try again."
-        });
-      }
-    })
+    .middleware(async ({ req }) => authenticateRequest(req))
     .onUploadComplete(async ({ metadata, file }) => {
-      // Return metadata to client for database persistence in Phase 2
       return {
         url: file.url,
         key: file.key,
         name: file.name,
         size: file.size,
         type: file.type,
+        uploadedBy: metadata.userId,
+      };
+    }),
+
+  /** Post image uploader — up to 6 images per post, 8 MB each. */
+  postImageUploader: f({
+    image: { maxFileSize: "8MB", maxFileCount: 6 },
+  })
+    .middleware(async ({ req }) => authenticateRequest(req))
+    .onUploadComplete(async ({ metadata, file }) => {
+      return {
+        url: file.url,
+        key: file.key,
         uploadedBy: metadata.userId,
       };
     }),

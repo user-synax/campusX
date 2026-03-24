@@ -23,7 +23,7 @@ const anonymousPostSchema = new mongoose.Schema({
   },
   images: {
     type: [String],
-    validate: [v => v.length <= 4, 'You can upload a maximum of 4 images'],
+    validate: [v => v.length <= 6, 'You can upload a maximum of 6 images'],
   },
   likes: [{
     type: mongoose.Schema.Types.ObjectId,

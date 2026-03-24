@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Image from 'next/image'
-import { MapPin, X, BarChart2, Link2, Loader2, ExternalLink } from 'lucide-react'
+import { MapPin, X, BarChart2, Link2, Loader2, ImagePlus } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
@@ -16,6 +16,7 @@ import PollCreator from "@/components/post/PollCreator"
 import { cn } from "@/lib/utils"
 import useUser from "@/hooks/useUser"
 import { useDebounce } from "@/hooks/useDebounce"
+import { useUploadThing } from "@/lib/uploadthing"
 
 export default function PostComposer({ onPostCreated, defaultCommunity, noBorder = false }) {
   const { user: currentUser } = useUser()
@@ -26,6 +27,13 @@ export default function PostComposer({ onPostCreated, defaultCommunity, noBorder
   const [manualCommunity, setManualCommunity] = useState('')
   const [showPoll, setShowPoll] = useState(false)
   const [pollOptions, setPollOptions] = useState(['', ''])
+
+  // Image state
+  const [selectedImages, setSelectedImages] = useState([]) // File[]
+  const [isUploading, setIsUploading] = useState(false)
+  const fileInputRef = useRef(null)
+
+  const { startUpload } = useUploadThing('postImageUploader')
 
   // Link preview state
   const [linkPreview, setLinkPreview] = useState(null)
@@ -73,6 +81,28 @@ export default function PostComposer({ onPostCreated, defaultCommunity, noBorder
     return 'text-muted-foreground' 
   }
 
+  const handleImageSelect = (e) => {
+    const files = Array.from(e.target.files || [])
+    if (!files.length) return
+
+    const remaining = 6 - selectedImages.length
+    if (files.length > remaining) {
+      toast.error(`Maximum 6 images allowed`, {
+        description: `You can only add ${remaining} more image${remaining === 1 ? '' : 's'}.`,
+      })
+    }
+    const accepted = files.slice(0, remaining)
+    if (accepted.length) {
+      setSelectedImages(prev => [...prev, ...accepted])
+    }
+    // Reset input so the same file can be re-selected if removed
+    e.target.value = ''
+  }
+
+  const removeImage = (index) => {
+    setSelectedImages(prev => prev.filter((_, i) => i !== index))
+  }
+
   const handleSubmit = async () => {
     if (!content.trim() || content.length > 2000) return
 
@@ -86,11 +116,32 @@ export default function PostComposer({ onPostCreated, defaultCommunity, noBorder
       }
     }
 
+    // Upload images first if any are selected
+    let uploadedImageUrls = []
+    if (selectedImages.length > 0) {
+      setIsUploading(true)
+      try {
+        const results = await startUpload(selectedImages)
+        if (!results || results.length === 0) {
+          throw new Error('Upload returned no results')
+        }
+        uploadedImageUrls = results.map(r => r.url)
+      } catch (err) {
+        toast.error("Image upload failed", {
+          description: "Please try again. Your post content has been preserved.",
+        })
+        setIsUploading(false)
+        return
+      }
+      setIsUploading(false)
+    }
+
     const payload = {
       content,
       community: defaultCommunity || manualCommunity,
       isAnonymous,
       poll: showPoll ? pollOptions.filter(o => o.trim()) : null,
+      images: uploadedImageUrls,
       linkPreview: linkPreview ? {
         title: linkPreview.title,
         description: linkPreview.description,
@@ -120,6 +171,7 @@ export default function PostComposer({ onPostCreated, defaultCommunity, noBorder
       setShowPoll(false)
       setPollOptions(['', ''])
       setLinkPreview(null)
+      setSelectedImages([])
       if (onPostCreated) onPostCreated(newPost)
       
       toast.success("Posted!", {
@@ -227,6 +279,29 @@ export default function PostComposer({ onPostCreated, defaultCommunity, noBorder
               }}
             />
           )}
+
+          {/* Image Preview Strip */}
+          {selectedImages.length > 0 && (
+            <div className="mt-2 flex gap-2 overflow-x-auto pb-1 scrollbar-thin">
+              {selectedImages.map((file, i) => (
+                <div key={i} className="relative shrink-0 w-20 h-20 rounded-lg overflow-hidden bg-accent/20 group">
+                  <img
+                    src={URL.createObjectURL(file)}
+                    alt={`Preview ${i + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeImage(i)}
+                    className="absolute top-0.5 right-0.5 p-0.5 rounded-full bg-background/80 hover:bg-background text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                    aria-label="Remove image"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
           
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-3 pt-3 border-t border-border gap-3">
             <div className="flex flex-wrap items-center gap-2 sm:gap-4 w-full sm:w-auto">
@@ -262,6 +337,34 @@ export default function PostComposer({ onPostCreated, defaultCommunity, noBorder
                   <BarChart2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   <span className="text-[10px] sm:text-xs">Poll</span>
                 </Button>
+
+                {/* Image attachment button */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={handleImageSelect}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    "h-8 gap-1.5 rounded-full px-2 sm:px-3 transition-colors",
+                    selectedImages.length > 0 ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-primary"
+                  )}
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={selectedImages.length >= 6}
+                >
+                  <ImagePlus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  {selectedImages.length > 0 ? (
+                    <span className="text-[10px] sm:text-xs">{selectedImages.length}/6</span>
+                  ) : (
+                    <span className="text-[10px] sm:text-xs">Photo</span>
+                  )}
+                </Button>
               </div>
               
               <div className="flex items-center gap-2 text-sm text-muted-foreground ml-0 sm:ml-2">
@@ -281,11 +384,13 @@ export default function PostComposer({ onPostCreated, defaultCommunity, noBorder
               </span>
               <Button
                 onClick={handleSubmit}
-                disabled={!content.trim() || content.length > 2000 || isLoading}
+                disabled={!content.trim() || content.length > 2000 || isLoading || isUploading}
                 size="sm"
                 className="rounded-full px-4 sm:px-5 text-xs sm:text-sm h-8 sm:h-9"
               >
-                {isLoading ? 'Posting...' : 'Post'}
+                {isUploading ? (
+                  <><Loader2 className="w-3 h-3 animate-spin mr-1" />Uploading...</>
+                ) : isLoading ? 'Posting...' : 'Post'}
               </Button>
             </div>
           </div>

@@ -23,6 +23,7 @@ import PostContent from './PostContent'
 const CommentSection = dynamic(() => import('@/components/post/CommentSection'), { ssr: false })
 const PollDisplay = dynamic(() => import('@/components/post/PollDisplay'), { ssr: false })
 const ReactionPicker = dynamic(() => import('@/components/post/ReactionPicker'), { ssr: false })
+const PostImageGrid = dynamic(() => import('@/components/post/PostImageGrid'), { ssr: false })
 
 import { formatRelativeTime } from "@/utils/formatters"
 import { formatCount } from "@/utils/formatters"
@@ -252,6 +253,12 @@ const PostCard = memo(function PostCard({ post, currentUserId, onDelete, onLike,
           <div className="mt-1">
             <PostContent content={post.content} />
           </div>
+
+          {post.images?.length > 0 && (
+            <div onClick={(e) => e.stopPropagation()}>
+              <PostImageGrid images={post.images} />
+            </div>
+          )}
 
           {post.poll?.options?.length > 0 && (
             <div onClick={(e) => e.stopPropagation()}>
