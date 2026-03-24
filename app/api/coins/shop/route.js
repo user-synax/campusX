@@ -1455,6 +1455,475 @@ export async function GET(request) {
         price: 1500,
         rarity: 'epic',
         visual: { icon: 'Zap', color: '#fbbf24', emoji: '⚡' }
+      },
+
+      // ━━━ STARTER ITEMS (50–200 coins) — new users can buy something right away ━━━
+      {
+        slug: 'color-sky-blue',
+        name: 'Sky Blue',
+        description: 'A clean, calm sky-blue username color.',
+        category: 'username_color',
+        price: 50,
+        rarity: 'common',
+        sortOrder: 1,
+        visual: { type: 'solid', color: '#38bdf8' }
+      },
+      {
+        slug: 'color-mint-green',
+        name: 'Mint Green',
+        description: 'Fresh mint green for your username.',
+        category: 'username_color',
+        price: 50,
+        rarity: 'common',
+        sortOrder: 2,
+        visual: { type: 'solid', color: '#34d399' }
+      },
+      {
+        slug: 'color-rose-pink',
+        name: 'Rose Pink',
+        description: 'Soft rose pink username color.',
+        category: 'username_color',
+        price: 75,
+        rarity: 'common',
+        sortOrder: 3,
+        visual: { type: 'solid', color: '#fb7185' }
+      },
+      {
+        slug: 'badge-newcomer',
+        name: 'Newcomer',
+        description: 'A friendly badge for those just getting started.',
+        category: 'post_badge',
+        price: 100,
+        rarity: 'common',
+        sortOrder: 1,
+        visual: { icon: 'Star', color: '#94a3b8', label: 'NEW' }
+      },
+      {
+        slug: 'frame-simple-white',
+        name: 'Clean White',
+        description: 'A minimal clean white border around your avatar.',
+        category: 'avatar_frame',
+        price: 100,
+        rarity: 'common',
+        sortOrder: 1,
+        visual: { gradient: 'linear-gradient(45deg, #ffffff, #e2e8f0)', padding: '3px' }
+      },
+      {
+        slug: 'frame-simple-dark',
+        name: 'Midnight Border',
+        description: 'A sleek dark border for a minimal look.',
+        category: 'avatar_frame',
+        price: 150,
+        rarity: 'common',
+        sortOrder: 2,
+        visual: { gradient: 'linear-gradient(45deg, #1e293b, #334155)', padding: '3px' }
+      },
+      {
+        slug: 'bubble-simple-dark',
+        name: 'Dark Mode Bubble',
+        description: 'A clean dark chat bubble for night owls.',
+        category: 'chat_bubble',
+        price: 100,
+        rarity: 'common',
+        sortOrder: 1,
+        visual: { background: '#1e293b', textColor: '#e2e8f0', borderColor: '#334155' }
+      },
+      {
+        slug: 'bubble-simple-purple',
+        name: 'Purple Haze Bubble',
+        description: 'A soft purple chat bubble.',
+        category: 'chat_bubble',
+        price: 150,
+        rarity: 'common',
+        sortOrder: 2,
+        visual: { background: '#4c1d95', textColor: '#ede9fe', borderColor: '#7c3aed' }
+      },
+
+      // ━━━ BIO THEMES (currently missing from seed) ━━━
+      {
+        slug: 'bio-minimal-dark',
+        name: 'Minimal Dark',
+        description: 'A sleek dark background for your bio section.',
+        category: 'bio_theme',
+        price: 300,
+        rarity: 'uncommon',
+        sortOrder: 1,
+        visual: { background: '#0f172a', textColor: '#94a3b8', borderColor: '#1e293b' }
+      },
+      {
+        slug: 'bio-sunset-glow',
+        name: 'Sunset Glow',
+        description: 'Warm sunset gradient behind your bio.',
+        category: 'bio_theme',
+        price: 500,
+        rarity: 'rare',
+        sortOrder: 2,
+        visual: { gradient: 'linear-gradient(135deg, #7f1d1d, #c2410c, #d97706)', textColor: '#fef3c7' }
+      },
+      {
+        slug: 'bio-ocean-breeze',
+        name: 'Ocean Breeze',
+        description: 'Cool ocean tones for a calm, collected bio.',
+        category: 'bio_theme',
+        price: 500,
+        rarity: 'rare',
+        sortOrder: 3,
+        visual: { gradient: 'linear-gradient(135deg, #0c4a6e, #0369a1, #0ea5e9)', textColor: '#e0f2fe' }
+      },
+      {
+        slug: 'bio-forest-spirit',
+        name: 'Forest Spirit',
+        description: 'Deep greens and earthy tones for your bio.',
+        category: 'bio_theme',
+        price: 600,
+        rarity: 'rare',
+        sortOrder: 4,
+        visual: { gradient: 'linear-gradient(135deg, #14532d, #166534, #15803d)', textColor: '#dcfce7' }
+      },
+      {
+        slug: 'bio-galaxy-ink',
+        name: 'Galaxy Ink',
+        description: 'A deep space gradient with subtle star shimmer.',
+        category: 'bio_theme',
+        price: 1200,
+        rarity: 'epic',
+        sortOrder: 5,
+        visual: { gradient: 'linear-gradient(135deg, #0f0c29, #302b63, #24243e)', textColor: '#c4b5fd', animation: 'shimmer 6s infinite' }
+      },
+      {
+        slug: 'bio-neon-city',
+        name: 'Neon City',
+        description: 'Cyberpunk neon vibes for your bio.',
+        category: 'bio_theme',
+        price: 1500,
+        rarity: 'epic',
+        sortOrder: 6,
+        visual: { gradient: 'linear-gradient(135deg, #0a0a0a, #1a0533)', textColor: '#f0abfc', borderColor: '#d946ef', animation: 'pulse 3s infinite' }
+      },
+      {
+        slug: 'bio-golden-hour',
+        name: 'Golden Hour',
+        description: 'Luxurious gold tones that make your bio shine.',
+        category: 'bio_theme',
+        price: 3000,
+        rarity: 'legendary',
+        sortOrder: 7,
+        visual: { gradient: 'linear-gradient(135deg, #78350f, #d97706, #fef3c7, #d97706)', backgroundSize: '300% 300%', textColor: '#1c1917', animation: 'gradient-shift 5s ease infinite' }
+      },
+
+      // ━━━ MORE EFFECTS ━━━
+      {
+        slug: 'effect-confetti',
+        name: 'Confetti Burst',
+        description: 'Colorful confetti rains down on your profile.',
+        category: 'effect',
+        price: 400,
+        rarity: 'uncommon',
+        sortOrder: 1,
+        visual: { icon: 'PartyPopper', color: '#f472b6', emoji: '🎉' }
+      },
+      {
+        slug: 'effect-fireflies',
+        name: 'Fireflies',
+        description: 'Tiny glowing fireflies drift across your profile at night.',
+        category: 'effect',
+        price: 700,
+        rarity: 'rare',
+        sortOrder: 2,
+        visual: { icon: 'Sparkles', color: '#fde047', emoji: '✨' }
+      },
+      {
+        slug: 'effect-snow',
+        name: 'Snowfall',
+        description: 'Gentle snowflakes drift down your profile.',
+        category: 'effect',
+        price: 500,
+        rarity: 'rare',
+        sortOrder: 3,
+        visual: { icon: 'Snowflake', color: '#bae6fd', emoji: '❄️' }
+      },
+      {
+        slug: 'effect-matrix-rain',
+        name: 'Matrix Rain',
+        description: 'Green code cascades down your profile like the Matrix.',
+        category: 'effect',
+        price: 1800,
+        rarity: 'epic',
+        sortOrder: 4,
+        visual: { icon: 'Code2', color: '#4ade80', emoji: '💻' }
+      },
+      {
+        slug: 'effect-aurora',
+        name: 'Aurora Borealis',
+        description: 'Shimmering northern lights dance across your profile.',
+        category: 'effect',
+        price: 3500,
+        rarity: 'legendary',
+        sortOrder: 5,
+        visual: { icon: 'Waves', color: '#34d399', emoji: '🌌' }
+      },
+      {
+        slug: 'effect-sakura',
+        name: 'Sakura Petals',
+        description: 'Cherry blossom petals float gently across your profile.',
+        category: 'effect',
+        price: 2200,
+        rarity: 'legendary',
+        sortOrder: 6,
+        visual: { icon: 'Flower2', color: '#f9a8d4', emoji: '🌸' }
+      },
+
+      // ━━━ MORE ENTRY EFFECTS ━━━
+      {
+        slug: 'entry-smoke',
+        name: 'Smoke Entrance',
+        description: 'Your messages drift in through a cloud of smoke.',
+        category: 'entry_effect',
+        price: 400,
+        rarity: 'uncommon',
+        sortOrder: 1,
+        visual: { icon: 'Wind', color: '#94a3b8', emoji: '💨' }
+      },
+      {
+        slug: 'entry-fire-trail',
+        name: 'Fire Trail',
+        description: 'Messages blaze into the chat leaving a trail of fire.',
+        category: 'entry_effect',
+        price: 900,
+        rarity: 'rare',
+        sortOrder: 2,
+        visual: { icon: 'Flame', color: '#f97316', emoji: '🔥' }
+      },
+      {
+        slug: 'entry-royal-fanfare',
+        name: 'Royal Fanfare',
+        description: 'A golden crown animation announces your every message.',
+        category: 'entry_effect',
+        price: 2500,
+        rarity: 'legendary',
+        sortOrder: 3,
+        visual: { icon: 'Crown', color: '#fbbf24', emoji: '👑' }
+      },
+      {
+        slug: 'entry-glitch-warp',
+        name: 'Glitch Warp',
+        description: 'Messages tear through reality with a glitch distortion.',
+        category: 'entry_effect',
+        price: 2000,
+        rarity: 'epic',
+        sortOrder: 4,
+        visual: { icon: 'Zap', color: '#a78bfa', emoji: '🌀' }
+      },
+      {
+        slug: 'entry-meteor',
+        name: 'Meteor Strike',
+        description: 'Your messages crash into the chat like a meteor.',
+        category: 'entry_effect',
+        price: 4000,
+        rarity: 'legendary',
+        sortOrder: 5,
+        visual: { icon: 'Rocket', color: '#fb923c', emoji: '☄️' }
+      },
+
+      // ━━━ MORE PROFILE THEMES ━━━
+      {
+        slug: 'theme-cherry-blossom',
+        name: 'Cherry Blossom',
+        description: 'A soft pink spring theme with floating petals.',
+        category: 'profile_theme',
+        price: 1200,
+        rarity: 'epic',
+        sortOrder: 1,
+        visual: { icon: 'Flower2', color: '#f9a8d4', emoji: '🌸' }
+      },
+      {
+        slug: 'theme-cyberpunk',
+        name: 'Cyberpunk 2099',
+        description: 'Neon-lit streets and dark alleys define your profile.',
+        category: 'profile_theme',
+        price: 2500,
+        rarity: 'legendary',
+        sortOrder: 2,
+        visual: { icon: 'Cpu', color: '#22d3ee', emoji: '🤖' }
+      },
+      {
+        slug: 'theme-enchanted-forest',
+        name: 'Enchanted Forest',
+        description: 'Mystical glowing trees and fireflies surround your profile.',
+        category: 'profile_theme',
+        price: 2000,
+        rarity: 'legendary',
+        sortOrder: 3,
+        visual: { icon: 'TreePine', color: '#4ade80', emoji: '🌲' }
+      },
+      {
+        slug: 'theme-lava-world',
+        name: 'Lava World',
+        description: 'Molten rock and volcanic energy power your profile.',
+        category: 'profile_theme',
+        price: 3000,
+        rarity: 'legendary',
+        sortOrder: 4,
+        visual: { icon: 'Flame', color: '#ef4444', emoji: '🌋' }
+      },
+      {
+        slug: 'theme-underwater',
+        name: 'Deep Ocean',
+        description: 'Dive into the abyss with bioluminescent sea creatures.',
+        category: 'profile_theme',
+        price: 2800,
+        rarity: 'legendary',
+        sortOrder: 5,
+        visual: { icon: 'Waves', color: '#0ea5e9', emoji: '🌊' }
+      },
+
+      // ━━━ ENGAGEMENT / GRIND BADGES ━━━
+      {
+        slug: 'badge-grind-king',
+        name: 'Grind King',
+        description: 'Awarded to those who hustle hardest. Earned by reaching 5,000 total coins.',
+        category: 'special_badge',
+        price: 0,
+        rarity: 'epic',
+        sortOrder: 10,
+        isActive: true,
+        visual: { icon: 'TrendingUp', color: '#f59e0b', label: 'GRIND' }
+      },
+      {
+        slug: 'badge-streak-7',
+        name: 'Week Warrior',
+        description: 'You showed up 7 days in a row. Respect.',
+        category: 'special_badge',
+        price: 0,
+        rarity: 'rare',
+        sortOrder: 11,
+        isActive: true,
+        visual: { icon: 'Flame', color: '#f97316', label: '7🔥' }
+      },
+      {
+        slug: 'badge-streak-30',
+        name: 'Monthly Legend',
+        description: '30-day login streak. You are built different.',
+        category: 'special_badge',
+        price: 0,
+        rarity: 'legendary',
+        sortOrder: 12,
+        isActive: true,
+        visual: { icon: 'Flame', color: '#ef4444', label: '30🔥' }
+      },
+      {
+        slug: 'badge-campus-legend',
+        name: 'Campus Legend',
+        description: 'A title reserved for those who define campus culture.',
+        category: 'post_badge',
+        price: 25000,
+        rarity: 'mythic',
+        sortOrder: 20,
+        visual: { icon: 'Trophy', color: '#fbbf24', label: 'LEGEND' }
+      },
+      {
+        slug: 'badge-night-owl',
+        name: 'Night Owl',
+        description: 'For those who are most active after midnight.',
+        category: 'post_badge',
+        price: 1200,
+        rarity: 'rare',
+        sortOrder: 5,
+        visual: { icon: 'Moon', color: '#818cf8', label: 'OWL' }
+      },
+      {
+        slug: 'badge-top-contributor',
+        name: 'Top Contributor',
+        description: 'Recognized for consistently adding value to the community.',
+        category: 'post_badge',
+        price: 5000,
+        rarity: 'epic',
+        sortOrder: 6,
+        visual: { icon: 'Award', color: '#34d399', label: 'TOP' }
+      },
+      {
+        slug: 'badge-verified-scholar',
+        name: 'Verified Scholar',
+        description: 'For those who share knowledge and resources generously.',
+        category: 'post_badge',
+        price: 3500,
+        rarity: 'epic',
+        sortOrder: 7,
+        visual: { icon: 'BookOpen', color: '#60a5fa', label: 'SCHOLAR' }
+      },
+
+      // ━━━ STREAK FRAMES (grind to unlock) ━━━
+      {
+        slug: 'frame-streak-flame',
+        name: 'Streak Flame',
+        description: 'A blazing frame for those on a 7-day login streak. Keep the fire alive.',
+        category: 'avatar_frame',
+        price: 2000,
+        rarity: 'epic',
+        sortOrder: 10,
+        visual: { gradient: 'linear-gradient(45deg, #7c2d12, #ea580c, #fbbf24)', backgroundSize: '200% 200%', animation: 'gradient-shift 2s ease infinite', padding: '4px' }
+      },
+      {
+        slug: 'frame-inferno-lord',
+        name: 'Inferno Lord',
+        description: 'For the 30-day streak holders. You are on fire.',
+        category: 'avatar_frame',
+        price: 8000,
+        rarity: 'mythic',
+        sortOrder: 11,
+        visual: { gradient: 'linear-gradient(45deg, #450a0a, #991b1b, #f97316, #fbbf24)', backgroundSize: '400% 400%', animation: 'gradient-shift 1.5s ease infinite', padding: '5px' }
+      },
+
+      // ━━━ PRESTIGE ITEMS (75,000–100,000 coins — serious grind) ━━━
+      {
+        slug: 'frame-divine-aura',
+        name: 'Divine Aura',
+        description: 'A transcendent golden aura only the most dedicated can afford. True prestige.',
+        category: 'avatar_frame',
+        price: 75000,
+        rarity: 'mythic',
+        sortOrder: 100,
+        visual: { gradient: 'conic-gradient(from 0deg, #fbbf24, #fef3c7, #d97706, #fbbf24)', backgroundSize: '300% 300%', animation: 'gradient-shift 3s linear infinite', padding: '6px' }
+      },
+      {
+        slug: 'color-divine-gold',
+        name: 'Divine Gold',
+        description: 'The rarest username color. Pure animated gold reserved for legends.',
+        category: 'username_color',
+        price: 80000,
+        rarity: 'mythic',
+        sortOrder: 100,
+        visual: { type: 'animated-gradient', gradient: 'linear-gradient(to right, #78350f, #d97706, #fef3c7, #d97706, #78350f)', backgroundSize: '400% auto', animation: 'text-shimmer 3s linear infinite' }
+      },
+      {
+        slug: 'theme-god-mode',
+        name: 'God Mode',
+        description: 'The ultimate profile theme. Reserved for those who have truly grinded.',
+        category: 'profile_theme',
+        price: 100000,
+        rarity: 'mythic',
+        sortOrder: 100,
+        visual: { icon: 'Crown', color: '#fbbf24', emoji: '👑' }
+      },
+      {
+        slug: 'entry-divine-descent',
+        name: 'Divine Descent',
+        description: 'Your messages descend from the heavens with golden light. Prestige only.',
+        category: 'entry_effect',
+        price: 90000,
+        rarity: 'mythic',
+        sortOrder: 100,
+        visual: { icon: 'Crown', color: '#fde047', emoji: '✨' }
+      },
+      {
+        slug: 'badge-og',
+        name: 'OG',
+        description: 'The original. The one who was here before everyone else.',
+        category: 'special_badge',
+        price: 50000,
+        rarity: 'mythic',
+        sortOrder: 100,
+        visual: { icon: 'Shield', color: '#fbbf24', label: 'OG' }
       }
     ]
 
