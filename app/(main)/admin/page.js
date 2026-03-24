@@ -177,7 +177,7 @@ export default function AdminDashboard() {
             Use the Logs tab to view all audit entries.
             {/* Full logs viewer can be implemented here or as a separate component */}
             <Link href="/admin/logs" className="block mt-4">
-               <Button variant="outline">View Full Audit Trail</Button>
+              <Button variant="outline">View Full Audit Trail</Button>
             </Link>
           </div>
         </TabsContent>
