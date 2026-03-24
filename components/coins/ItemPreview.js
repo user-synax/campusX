@@ -56,11 +56,15 @@ export default function ItemPreview({ item }) {
  
   if (category === 'profile_banner') { 
     return ( 
-      <div className="w-full h-full rounded-xl min-h-[48px]" 
+      <div className="w-full h-full rounded-xl min-h-[48px] overflow-hidden" 
            style={{ 
-             background: visual.gradient || visual.color, 
+             background: visual.gradient || visual.color || visual.background, 
+             backgroundColor: visual.backgroundColor,
              backgroundSize: visual.backgroundSize, 
-             animation: visual.animation 
+             animation: visual.animation,
+             borderBottom: visual.borderBottom,
+             boxShadow: visual.boxShadow,
+             opacity: visual.opacity
            }} /> 
     ) 
   } 

@@ -15,6 +15,18 @@ const SIZE_MAP = {
 function getFrameStyle(frameVisual) { 
   if (!frameVisual) return null 
  
+  // Founder animated frame 
+  if (frameVisual.type === 'animated-gradient') { 
+    return { 
+      background: frameVisual.gradient, 
+      backgroundSize: frameVisual.backgroundSize || '300% 300%', 
+      animation: frameVisual.animation, 
+      padding: frameVisual.padding || '2px', 
+      borderRadius: '50%', 
+      display: 'inline-flex' 
+    } 
+  } 
+ 
   const base = { 
     padding: frameVisual.padding || '2px', 
     backgroundSize: frameVisual.backgroundSize || '300% 300%', 

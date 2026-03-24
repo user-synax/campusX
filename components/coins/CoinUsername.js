@@ -13,6 +13,26 @@ const CoinUsername = memo(function CoinUsername({
     return <span className={className}>{name}</span> 
   } 
  
+  if (colorVisual.type === 'animated-gradient') { 
+    return ( 
+      <span 
+        className={`${className} font-semibold`} 
+        style={{ 
+          background: colorVisual.gradient, 
+          backgroundSize: colorVisual.backgroundSize || '200% auto', 
+          WebkitBackgroundClip: 'text', 
+          WebkitTextFillColor: 'transparent', 
+          backgroundClip: 'text', 
+          animation: colorVisual.animation, 
+          // Fallback for unsupported browsers 
+          color: '#f59e0b' 
+        }} 
+      > 
+        {name} 
+      </span> 
+    ) 
+  } 
+ 
   if (colorVisual.type === 'gradient') { 
     return ( 
       <span 

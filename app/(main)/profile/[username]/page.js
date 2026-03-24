@@ -147,7 +147,11 @@ export default function ProfilePage() {
         <FounderProfileHeader 
           user={profileUser} 
           isOwnProfile={isOwnProfile} 
-          stats={{ postCount: profileUser.postCount }} 
+          stats={{ 
+            followers: profileUser.followersCount,
+            posts: profileUser.postCount,
+            views: profileUser.founderData?.profileViews || 0
+          }} 
           onFollowClick={(tab) => {
             setFollowModalTab(tab)
             setFollowModal(true)
@@ -156,11 +160,15 @@ export default function ProfilePage() {
       ) : (
         <div>
           <div 
-            className="h-32 bg-linear-to-r from-[#1a1a1a] to-[#2a2a2a] relative overflow-hidden" 
+            className="h-32 bg-[#1a1a1a] relative overflow-hidden" 
             style={profileUser.equipped?.profileBanner ? { 
-              background: profileUser.equipped.profileBanner.gradient || profileUser.equipped.profileBanner.color,
+              background: profileUser.equipped.profileBanner.gradient || profileUser.equipped.profileBanner.color || profileUser.equipped.profileBanner.background,
+              backgroundColor: profileUser.equipped.profileBanner.backgroundColor,
               backgroundSize: profileUser.equipped.profileBanner.backgroundSize || 'cover',
-              animation: profileUser.equipped.profileBanner.animation || 'none'
+              animation: profileUser.equipped.profileBanner.animation || 'none',
+              borderBottom: profileUser.equipped.profileBanner.borderBottom,
+              boxShadow: profileUser.equipped.profileBanner.boxShadow,
+              opacity: profileUser.equipped.profileBanner.opacity
             } : {}}
           />
           

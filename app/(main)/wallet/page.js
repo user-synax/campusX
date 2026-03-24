@@ -22,6 +22,8 @@ import { Card } from "@/components/ui/card"
 import ItemPreview from "@/components/coins/ItemPreview"
 import { format } from 'date-fns'
 import { cn } from "@/lib/utils"
+import useUser from '@/hooks/useUser'
+import { isFounder } from '@/lib/founder'
 
 const COIN_VALUES = { 
   daily_login:          5, 
@@ -43,6 +45,7 @@ const COIN_VALUES = {
 const DAILY_CAP = 200
 
 export default function WalletPage() {
+  const { user: currentUser } = useUser()
   const [activeTab, setActiveTab] = useState('overview')
   const [wallet, setWallet] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -187,6 +190,18 @@ export default function WalletPage() {
           {/* OVERVIEW TAB */}
           <TabsContent value="overview" className="m-0 focus-visible:outline-none">
             <div className="p-4 space-y-6">
+              {isFounder(currentUser?.username) && ( 
+                <div className="bg-linear-to-br from-amber-500/20 to-purple-500/10 
+                                border border-amber-500/20 rounded-2xl p-6 text-center shadow-lg mb-6"> 
+                  <p className="text-4xl mb-3 animate-bounce">⚡</p> 
+                  <p className="font-black text-xl tracking-tight">Founder Account</p> 
+                  <p className="text-[11px] text-muted-foreground mt-2 leading-relaxed"> 
+                    Your customizations are exclusive and permanent. 
+                    No coins needed — ever. 
+                  </p> 
+                </div> 
+              )}
+
               {/* Balance Card */}
               <div className="bg-linear-to-br from-amber-500/20 to-orange-500/5 border border-amber-500/20 rounded-2xl p-8 text-center shadow-sm"> 
                 <p className="text-sm text-muted-foreground font-medium mb-2">Current Balance</p> 
@@ -391,9 +406,15 @@ export default function WalletPage() {
                   Surprise a friend with Campus Coins!
                 </p> 
                 <div className="flex items-center justify-center gap-2 mt-2 text-[10px] font-bold text-amber-600 uppercase tracking-tighter">
-                  <span>Min 10</span>
-                  <span className="opacity-30">•</span>
-                  <span>Max 1000</span>
+                  {isFounder(currentUser?.username) ? (
+                    <span>No Sending Limits</span>
+                  ) : (
+                    <>
+                      <span>Min 10</span>
+                      <span className="opacity-30">•</span>
+                      <span>Max 1000</span>
+                    </>
+                  )}
                 </div>
               </div> 
  
@@ -419,7 +440,8 @@ export default function WalletPage() {
                       type="number" 
                       placeholder="0" 
                       className="pl-10 rounded-xl font-black text-lg border-border/50 focus:border-amber-500"
-                      min={10} max={1000} 
+                      min={isFounder(currentUser?.username) ? 1 : 10} 
+                      max={isFounder(currentUser?.username) ? undefined : 1000} 
                       value={giftAmount} 
                       onChange={(e) => setGiftAmount(e.target.value)} 
                     /> 
@@ -427,7 +449,7 @@ export default function WalletPage() {
                 </div>
               </div> 
  
-              {giftTo && giftAmount && Number(giftAmount) >= 10 && ( 
+              {giftTo && giftAmount && Number(giftAmount) >= (isFounder(currentUser?.username) ? 1 : 10) && ( 
                 <div className="bg-accent/30 border border-border/50 rounded-2xl p-4 animate-in fade-in zoom-in-95 duration-200"> 
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-bold text-muted-foreground uppercase">Transfer Summary</span>
@@ -450,7 +472,8 @@ export default function WalletPage() {
                 className="w-full h-12 rounded-xl font-black uppercase tracking-widest shadow-lg shadow-primary/20" 
                 disabled={ 
                   !giftTo || !giftAmount || 
-                  Number(giftAmount) < 10 || 
+                  Number(giftAmount) < (isFounder(currentUser?.username) ? 1 : 10) || 
+                  (!isFounder(currentUser?.username) && Number(giftAmount) > 1000) ||
                   Number(giftAmount) > (wallet?.balance || 0) || 
                   gifting 
                 } 
@@ -464,7 +487,7 @@ export default function WalletPage() {
             </div>
           </TabsContent>
         </div>
-      </Tabs>
+        </Tabs>
     </div>
   )
 }

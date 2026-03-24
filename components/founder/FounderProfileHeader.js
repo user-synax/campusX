@@ -16,8 +16,9 @@ import BroadcastManager from './BroadcastManager'
 import AvatarWithFrame from '@/components/coins/AvatarWithFrame'
 import CoinUsername from '@/components/coins/CoinUsername'
 import CoinBadge from '@/components/coins/CoinBadge'
+import EditProfileDrawer from '@/components/user/EditProfileDrawer'
 
-export default function FounderProfileHeader({ user, isOwnProfile, stats, onFollowClick }) {
+export default function FounderProfileHeader({ user, isOwnProfile, stats, onFollowClick, onSave }) {
   const [editOpen, setEditOpen] = useState(false)
 
   return (
@@ -140,20 +141,33 @@ export default function FounderProfileHeader({ user, isOwnProfile, stats, onFoll
         )} 
     
         {/* Stats row */} 
-        <div className="mt-6 flex items-center gap-6"> 
-          <div className="flex flex-col"> 
-            <span className="text-lg font-bold">{formatCount(stats?.followers || 0)}</span> 
-            <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Followers</span> 
+        <div className="mt-6 flex items-center gap-8"> 
+          <div 
+            className="flex flex-col cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={() => onFollowClick?.('followers')}
+          > 
+            <span className="text-xl font-black text-amber-500">{formatCount(stats?.followers || 0)}</span> 
+            <span className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-black">Followers</span> 
           </div> 
           <div className="flex flex-col"> 
-            <span className="text-lg font-bold">{formatCount(stats?.posts || 0)}</span> 
-            <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Posts</span> 
+            <span className="text-xl font-black text-blue-500">{formatCount(stats?.posts || 0)}</span> 
+            <span className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-black">Posts</span> 
           </div> 
           <div className="flex flex-col"> 
-            <span className="text-lg font-bold">{formatCount(stats?.views || 0)}</span> 
-            <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Views</span> 
+            <span className="text-xl font-black text-purple-500">{formatCount(stats?.views || 0)}</span> 
+            <span className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-black">Views</span> 
           </div> 
         </div> 
+ 
+        <EditProfileDrawer 
+          open={editOpen} 
+          onOpenChange={setEditOpen} 
+          user={user} 
+          onSave={(updatedUser) => {
+            // The parent page handles the state update via refetch/local state
+            window.location.reload() 
+          }} 
+        />
  
         {/* Admin Broadcast Manager (Only for founder) */} 
         {isOwnProfile && ( 

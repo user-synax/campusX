@@ -120,6 +120,12 @@
   50%       { background-position: 100% 50%; } 
 } 
 
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
 @keyframes shimmer {
   0%   { background-position: -200% 0; }
   100% { background-position: 200% 0; }
@@ -269,3 +275,39 @@
     background: hsl(var(--muted-foreground) / 0.3);
   }
 }
+
+/* ━━━ FOUNDER EXCLUSIVE ANIMATIONS ━━━ */ 
+ 
+ /* Avatar frame — rotating gradient ring */ 
+ @keyframes founder-frame-spin { 
+   0%   { background-position: 0% 50%; } 
+   50%  { background-position: 100% 50%; } 
+   100% { background-position: 0% 50%; } 
+ } 
+ 
+ /* Username — shifting gradient */ 
+ @keyframes founder-name-shift { 
+   0%   { background-position: 0% center; } 
+   100% { background-position: 200% center; } 
+ } 
+ 
+ /* Profile banner — breathing pulse */ 
+ @keyframes founder-banner-pulse { 
+   0%, 100% { 
+     background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); 
+   } 
+   50% { 
+     background: linear-gradient(135deg, #1a1744, #3d378a, #312f5a); 
+   } 
+ } 
+ 
+ /* Post badge glow */ 
+ @keyframes founder-badge-glow { 
+   0%, 100% { box-shadow: 0 0 4px #f59e0b40; } 
+   50%       { box-shadow: 0 0 10px #f59e0b80; } 
+ } 
+ 
+ /* Applied via className */ 
+ .founder-badge-animated { 
+   animation: founder-badge-glow 2s ease infinite; 
+ } 
