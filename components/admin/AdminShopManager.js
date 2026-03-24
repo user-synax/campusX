@@ -44,7 +44,8 @@ const CATEGORIES = [
   { value: 'bio_theme', label: 'Bio Theme' },
   { value: 'special_badge', label: 'Special Badge' },
   { value: 'profile_theme', label: 'Profile Theme' },
-  { value: 'effect', label: 'Effect' }
+  { value: 'effect', label: 'Effect' },
+  { value: 'entry_effect', label: 'Entry Effect' }
 ]
 
 const RARITIES = [
@@ -84,23 +85,59 @@ export default function AdminShopManager() {
     maxStock: ''
   })
 
+  const getPrice = (category, rarity) => {
+    const basePrices = {
+        avatar_frame: 50,
+        post_badge: 75,
+        bio_theme: 80,
+        username_color: 100,
+        chat_bubble: 120,
+        profile_banner: 150,
+        profile_theme: 180,
+        special_badge: 200,
+        effect: 250,
+        entry_effect: 300
+    };
+
+    const rarityMultipliers = {
+        common: 1,
+        uncommon: 1.5,
+        rare: 2.5,
+        epic: 5,
+        legendary: 10,
+        mythic: 20
+    };
+
+    const basePrice = basePrices[category] || 0;
+    const multiplier = rarityMultipliers[rarity] || 1;
+
+    return basePrice * multiplier;
+  };
+
   useEffect(() => {
-    fetchItems()
-  }, [])
+    fetchItems();
+  }, []);
 
   const fetchItems = async () => {
+    setLoading(true);
     try {
-      setLoading(true)
-      const res = await fetch('/api/admin/shop')
-      const data = await res.json()
-      setItems(data.items || [])
+      const res = await fetch('/api/admin/shop');
+      const data = await res.json();
+      setItems(data.items || []);
     } catch (error) {
-      console.error('Failed to fetch shop items:', error)
-      toast.error('Failed to load shop items')
+      console.error('Failed to fetch shop items:', error);
+      toast.error('Failed to load shop items');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
+
+  useEffect(() => {
+    if (dialogOpen && !editingItem) {
+      const newPrice = getPrice(formData.category, formData.rarity);
+      setFormData(prev => ({ ...prev, price: newPrice }));
+    }
+  }, [formData.category, formData.rarity, dialogOpen, editingItem]);
 
   const handleOpenDialog = (item = null) => {
     if (item) {

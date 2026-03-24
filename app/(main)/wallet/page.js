@@ -91,13 +91,9 @@ export default function WalletPage() {
   const fetchInventory = async () => {
     setInventoryLoading(true)
     try {
-      // For inventory, we can use the same shop API but filter for owned items
-      // Or we can add an inventory field to the wallet data. 
-      // The getWalletData already returns inventoryCount, let's make it return full inventory.
-      // Wait, I'll update the wallet API to return full inventory data.
-      const res = await fetch('/api/coins/shop')
+      const res = await fetch('/api/coins/wallet?inventory=true')
       const data = await res.json()
-      setInventory(data.items.filter(item => item.isOwned))
+      setInventory(data.inventory || [])
     } catch (error) {
       toast.error('Failed to load inventory')
     } finally {
@@ -313,7 +309,9 @@ export default function WalletPage() {
                                      item.category === 'post_badge' ? 'postBadge' :
                                      item.category === 'chat_bubble' ? 'chatBubble' :
                                      item.category === 'special_badge' ? 'postBadge' :
-                                     item.category === 'profile_theme' ? 'profileTheme' : 'effect'
+                                     item.category === 'bio_theme' ? 'bioTheme' :
+                                     item.category === 'profile_theme' ? 'profileTheme' :
+                                     item.category === 'entry_effect' ? 'entryEffect' : 'effect'
 
                     const isEquipped = wallet?.equipped?.[mappedSlot] === item.slug
 

@@ -23,7 +23,7 @@ export async function GET(request, { params }) {
 
     await connectDB();
 
-    const comments = await Comment.find({ post: postId })
+    const comments = await Comment.find({ post: postId }).lean()
       .sort({ createdAt: 1 })
       .populate('author', 'name username avatar')
       .lean();
@@ -161,12 +161,12 @@ export async function DELETE(request, { params }) {
 
     await connectDB();
 
-    const comment = await Comment.findById(commentId);
+    const comment = await Comment.findById(commentId).lean();
     if (!comment) {
       return NextResponse.json({ message: 'Comment not found' }, { status: 404 });
     }
 
-    const post = await Post.findById(postId);
+    const post = await Post.findById(postId).lean();
     if (!post) {
       return NextResponse.json({ message: 'Post not found' }, { status: 404 });
     }

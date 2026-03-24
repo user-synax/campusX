@@ -16,7 +16,7 @@ export default function FormattedTime({ date, type = 'relative', className = '' 
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-  // no-op: we only need the effect to run once after mount
+    setMounted(true)
   }, [])
 
   if (!mounted || !date) {

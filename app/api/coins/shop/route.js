@@ -5,7 +5,7 @@ import connectDB from '@/lib/db'
 import ShopItem from '@/models/ShopItem'
 import Wallet from '@/models/Wallet'
 
-export async function GET() {
+export async function GET(request) {
   try {
     const cookieStore = await cookies()
     const token = cookieStore.get('campusx_token')?.value
@@ -1283,24 +1283,191 @@ export async function GET() {
           boxShadow: 'inset 0 0 100px rgba(0,0,0,0.4)',
           animation: 'pulse 5s infinite'
         }
+      },
+
+      {
+        slug: 'cosmic-profile',
+        name: 'Cosmic Profile',
+        description: "Transforms your entire profile with a deep-space nebula and twinkling animated stars.",
+        category: 'profile_theme',
+        price: 1800,
+        rarity: 'legendary',
+        visual: { icon: 'Sparkles', color: '#a855f7', emoji: '🌌' }
+      },
+      {
+        slug: 'glitch-username',
+        name: 'Glitch Username',
+        description: 'Applies a glitch animation to the username.',
+        category: 'username_color',
+        price: 500,
+        rarity: 'epic',
+        visual: {
+          type: 'animated-gradient',
+          gradient: 'linear-gradient(90deg, #ff0000, #00ff00, #0000ff)',
+          backgroundSize: '300% 100%',
+          animation: 'shimmer 0.2s infinite steps(2)'
+        }
+      },
+      {
+        slug: 'holographic-badge',
+        name: 'Holographic Badge',
+        description: 'A stunning, color-shifting holographic badge.',
+        category: 'post_badge',
+        price: 1500,
+        rarity: 'mythic',
+        visual: { icon: 'Shield', color: '#22d3ee', label: 'HOLO' }
+      },
+      {
+        slug: 'spotlight-entry',
+        name: 'Spotlight Entry',
+        description: "Your messages arrive with a dramatic glowing spotlight pulse, making every entry stand out.",
+        category: 'entry_effect',
+        price: 750,
+        rarity: 'rare',
+        visual: { icon: 'Zap', color: '#f59e0b', emoji: '🔦' }
+      },
+      {
+        slug: 'neon-glow-frame',
+        name: 'Neon Glow Frame',
+        description: "A pulsating neon frame around the user's avatar.",
+        category: 'avatar_frame',
+        price: 250,
+        rarity: 'epic',
+        visual: {
+          gradient: 'linear-gradient(45deg, #ff00ff, #00ffff, #ff00ff)',
+          backgroundSize: '300% 300%',
+          animation: 'pulse 2s infinite',
+          padding: '3px'
+        }
+      },
+      {
+        slug: 'golden-laurel-frame',
+        name: 'Golden Laurel Frame',
+        description: 'An animated golden laurel wreath around the avatar.',
+        category: 'avatar_frame',
+        price: 500,
+        rarity: 'legendary',
+        visual: {
+          gradient: 'linear-gradient(45deg, #f59e0b, #fef3c7, #d97706)',
+          backgroundSize: '200% 200%',
+          animation: 'shimmer 3s linear infinite',
+          padding: '4px'
+        }
+      },
+      {
+        slug: 'rainbow-wave-username',
+        name: 'Rainbow Wave Username',
+        description: 'A smooth, flowing rainbow animation on the username.',
+        category: 'username_color',
+        price: 1000,
+        rarity: 'legendary',
+        visual: {
+          type: 'animated-gradient',
+          gradient: 'linear-gradient(to right, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8b00ff)',
+          backgroundSize: '400% auto',
+          animation: 'text-shimmer 4s linear infinite'
+        }
+      },
+      {
+        slug: 'fire-username',
+        name: 'Fire Username',
+        description: 'Animated flames that appear on the username text.',
+        category: 'username_color',
+        price: 500,
+        rarity: 'epic',
+        visual: {
+          type: 'animated-gradient',
+          gradient: 'linear-gradient(to right, #7f1d1d, #ef4444, #f97316)',
+          backgroundSize: '200% auto',
+          animation: 'text-shimmer 2s linear infinite'
+        }
+      },
+      {
+        slug: 'waterfall-banner',
+        name: 'Waterfall Banner',
+        description: 'A looping waterfall vibe for the profile banner.',
+        category: 'profile_banner',
+        price: 1800,
+        rarity: 'legendary',
+        visual: {
+          gradient: 'linear-gradient(to bottom, #0ea5e9, #1e3a8a)',
+          backgroundSize: '200% 200%',
+          animation: 'gradient-shift 8s ease infinite'
+        }
+      },
+      {
+        slug: 'city-at-night-banner',
+        name: 'City at Night Banner',
+        description: 'A city skyline with twinkling night lights.',
+        category: 'profile_banner',
+        price: 750,
+        rarity: 'epic',
+        visual: {
+          gradient: 'linear-gradient(to bottom, #0f172a, #1e1b4b, #0f172a)',
+          backgroundSize: '200% 200%',
+          animation: 'gradient-shift 10s ease infinite'
+        }
+      },
+      {
+        slug: 'comic-book-bubble',
+        name: 'Comic Book Bubble',
+        description: 'A chat bubble styled like one from a comic book.',
+        category: 'chat_bubble',
+        price: 300,
+        rarity: 'rare',
+        visual: { background: '#fef08a', textColor: '#854d0e', borderColor: '#eab308' }
+      },
+      {
+        slug: 'galaxy-bubble',
+        name: 'Galaxy Bubble',
+        description: 'A chat bubble with a swirling galaxy animation inside.',
+        category: 'chat_bubble',
+        price: 600,
+        rarity: 'epic',
+        visual: {
+          background: 'linear-gradient(135deg, #1e1b4b, #4338ca, #a855f7)',
+          textColor: '#ffffff'
+        }
+      },
+      {
+        slug: 'retro-arcade-theme',
+        name: 'Retro Arcade Theme',
+        description: 'Immerse your profile in 8-bit nostalgia with scanlines and a glowing digital grid background.',
+        category: 'profile_theme',
+        price: 900,
+        rarity: 'epic',
+        visual: { icon: 'Gamepad2', color: '#8b5cf6', emoji: '🕹️' }
+      },
+      {
+        slug: 'floating-bubbles',
+        name: 'Floating Bubbles',
+        description: "Adds a soothing effect where translucent bubbles gently drift upwards across your profile.",
+        category: 'effect',
+        price: 625,
+        rarity: 'rare',
+        visual: { icon: 'Sparkles', color: '#38bdf8', emoji: '🫧' }
+      },
+      {
+        slug: 'thunderbolt-entry',
+        name: 'Thunderbolt Entry',
+        description: 'Messages strike the chat with a high-voltage lightning flash animation.',
+        category: 'entry_effect',
+        price: 1500,
+        rarity: 'epic',
+        visual: { icon: 'Zap', color: '#fbbf24', emoji: '⚡' }
       }
     ]
 
     // ━━━ Clean up old/invalid shop items ━━━
-    const allSeedSlugs = seedItems.map(s => s.slug)
-    
-    // 1. Delete anything that is NOT in our current seed list
-    // 2. Delete anything that has a URL/GIF (no external assets allowed)
     const deleteResult = await ShopItem.deleteMany({
       $or: [
-        { slug: { $nin: allSeedSlugs } },
         { 'visual.url': { $exists: true } },
         { 'visual.gif': { $exists: true } },
         { 'visual.background': /http/i },
         { 'visual.gradient': /http/i }
       ]
     })
-    
+
     if (deleteResult.deletedCount > 0) {
       console.log(`[API Shop] Cleaned up ${deleteResult.deletedCount} old/invalid items.`)
     }
@@ -1309,15 +1476,14 @@ export async function GET() {
       await ShopItem.findOneAndUpdate({ slug: item.slug }, item, { upsert: true })
     }
 
-    // Fetch active shop items
+    // Fetch all active shop items + wallet in parallel for speed
+    const [items, wallet] = await Promise.all([
+      ShopItem.find({ isActive: true })
+        .sort({ rarity: -1, price: 1 })
+        .lean(),
+      Wallet.findOne({ userId: decoded.userId }).select('inventory').lean()
+    ])
 
-    // Fetch active shop items
-    const items = await ShopItem.find({ isActive: true })
-      .sort({ rarity: -1, price: 1 })
-      .lean()
-
-    // Fetch user wallet to check ownership
-    const wallet = await Wallet.findOne({ userId: decoded.userId }).select('inventory').lean()
     const ownedItemIds = new Set(wallet?.inventory?.map(i => i.itemId.toString()) || [])
 
     const itemsWithOwnership = items.map(item => ({

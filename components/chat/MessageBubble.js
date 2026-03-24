@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { cn } from "@/lib/utils"
 import UserAvatar from "@/components/user/UserAvatar"
 import AvatarWithFrame from '@/components/coins/AvatarWithFrame' 
 import { Trash2 } from 'lucide-react'
@@ -17,12 +18,19 @@ export default function MessageBubble({ message, isOwn, showAvatar, currentUserI
   const [deleting, setDeleting] = useState(false)
   const senderEquipped = message.sender?.equipped
   const chatBubbleVisual = senderEquipped?.chatBubble
+  const entryEffect = senderEquipped?.entryEffect
 
   const bubbleStyle = chatBubbleVisual ? { 
     background: chatBubbleVisual.background || chatBubbleVisual.gradient, 
     color: chatBubbleVisual.textColor || (isOwn ? '#ffffff' : 'inherit'),
     borderColor: chatBubbleVisual.background ? 'transparent' : undefined
   } : {}
+
+  const getEntryEffectClass = () => {
+    if (entryEffect?.slug === 'spotlight-entry') return 'animate-entry-spotlight'
+    if (entryEffect?.slug === 'thunderbolt-entry') return 'animate-entry-thunderbolt'
+    return ''
+  }
 
   const handleDelete = async () => {
     setDeleting(true)
@@ -88,11 +96,13 @@ export default function MessageBubble({ message, isOwn, showAvatar, currentUserI
         {/* Message bubble */} 
         <div 
           style={bubbleStyle}
-          className={`relative px-3 py-2 rounded-2xl text-sm leading-relaxed 
-            ${!chatBubbleVisual 
-              ? (isOwn ? 'bg-primary text-primary-foreground rounded-br-sm' : 'bg-card border border-border rounded-bl-sm')
-              : (isOwn ? 'rounded-br-sm' : 'rounded-bl-sm border')
-            }`} 
+          className={cn(
+            "relative px-3 py-2 rounded-2xl text-sm leading-relaxed",
+            !chatBubbleVisual 
+              ? (isOwn ? "bg-primary text-primary-foreground rounded-br-sm" : "bg-card border border-border rounded-bl-sm")
+              : (isOwn ? "rounded-br-sm" : "rounded-bl-sm border"),
+            getEntryEffectClass()
+          )} 
         > 
           {/* Image message */} 
           {message.type === 'image' && message.imageUrl && ( 
@@ -241,6 +251,29 @@ export default function MessageBubble({ message, isOwn, showAvatar, currentUserI
         onConfirm={handleDelete}
         loading={deleting}
       />
+
+      <style>{`
+        .animate-entry-spotlight {
+          animation: spotlight-pulse 1.5s ease-out forwards;
+        }
+        .animate-entry-thunderbolt {
+          animation: thunderbolt-flash 0.8s ease-in-out forwards;
+        }
+
+        @keyframes spotlight-pulse {
+          0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); transform: scale(0.95); }
+          50% { box-shadow: 0 0 20px 10px rgba(255, 255, 255, 0.4); transform: scale(1.02); }
+          100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); transform: scale(1); }
+        }
+
+        @keyframes thunderbolt-flash {
+          0% { filter: brightness(1); transform: translateX(0); }
+          10% { filter: brightness(3); transform: translateX(-2px); }
+          20% { filter: brightness(1); transform: translateX(2px); }
+          30% { filter: brightness(3); transform: translateX(-1px); }
+          100% { filter: brightness(1); transform: translateX(0); }
+        }
+      `}</style>
     </div> 
   )
 }

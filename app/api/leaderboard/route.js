@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import User from '@/models/User';
 import { sanitizeUser } from '@/lib/sanitize';
+import { attachEquippedToItems } from '@/lib/equipped-helpers';
 
 /**
  * GET /api/leaderboard
@@ -20,17 +21,21 @@ export async function GET(request) {
       query.college = college;
     }
 
-    const topUsers = await User.find(query)
+    const topUsers = await User.find(query).lean()
       .sort({ xp: -1, level: -1 })
       .limit(limit)
-      .select('name username avatar college xp level')
+      .select('name username avatar college xp level equipped')
       .lean();
 
-    const leaderboard = topUsers.map((user, index) => ({
+    // Attach equipped visuals in batch
+    const usersWithEquipped = await attachEquippedToItems(topUsers);
+
+    const leaderboard = usersWithEquipped.map((user, index) => ({
       ...sanitizeUser(user),
       rank: index + 1,
       xp: user.xp || 0,
-      level: user.level || 1
+      level: user.level || 1,
+      equipped: user.equipped
     }));
 
     return NextResponse.json({

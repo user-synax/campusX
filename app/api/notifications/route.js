@@ -34,7 +34,7 @@ export async function GET(request) {
  
     // 2. Parallel fetch — notifications + total + unreadCount
     const [notifications, total, unreadCount] = await Promise.all([ 
-      Notification.find(query) 
+      Notification.find(query).lean() 
         .sort({ createdAt: -1 }) 
         .skip(skip) 
         .limit(limit) 

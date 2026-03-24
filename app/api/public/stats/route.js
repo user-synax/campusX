@@ -15,9 +15,9 @@ export async function GET(request) {
 
     // Parallel queries for high performance
     const [users, posts, resources, colleges] = await Promise.all([
-      User.countDocuments().lean(),
-      Post.countDocuments().lean(),
-      Resource.countDocuments({ status: 'approved' }).lean(),
+      User.countDocuments(),
+      Post.countDocuments(),
+      Resource.countDocuments({ status: 'approved' }),
       User.distinct('college').lean()
     ]);
 

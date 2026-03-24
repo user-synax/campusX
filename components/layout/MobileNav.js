@@ -244,18 +244,32 @@ export default function MobileNav() {
               </Link>
 
               {user && isAdmin(user) && (
-                <Link href="/admin/resources" onClick={() => setOpen(false)}>
-                  <Button
-                    variant="ghost"
-                    className={cn(
-                      "w-full justify-start gap-4 h-12 px-3 text-amber-500 hover:text-amber-600 hover:bg-amber-500/10",
-                      pathname === "/admin/resources" ? "bg-amber-500/10 font-bold" : ""
-                    )}
-                  >
-                    <Shield className="w-5 h-5" />
-                    <span className="text-base font-medium">Review Queue</span>
-                  </Button>
-                </Link>
+                <>
+                  <Link href="/admin" onClick={() => setOpen(false)}>
+                    <Button
+                      variant="ghost"
+                      className={cn(
+                        "w-full justify-start gap-4 h-12 px-3 text-emerald-500 hover:text-emerald-600 hover:bg-emerald-500/10",
+                        pathname === "/admin" ? "bg-emerald-500/10 font-bold" : ""
+                      )}
+                    >
+                      <Shield className="w-5 h-5" />
+                      <span className="text-base font-medium">Admin Dashboard</span>
+                    </Button>
+                  </Link>
+                  <Link href="/admin/resources" onClick={() => setOpen(false)}>
+                    <Button
+                      variant="ghost"
+                      className={cn(
+                        "w-full justify-start gap-4 h-12 px-3 text-amber-500 hover:text-amber-600 hover:bg-amber-500/10",
+                        pathname === "/admin/resources" ? "bg-amber-500/10 font-bold" : ""
+                      )}
+                    >
+                      <Shield className="w-5 h-5" />
+                      <span className="text-base font-medium">Review Queue</span>
+                    </Button>
+                  </Link>
+                </>
               )}
 
               <Link href={`/profile/${user?.username}`} onClick={() => setOpen(false)}>

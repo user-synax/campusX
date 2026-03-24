@@ -41,7 +41,7 @@ export async function GET(request) {
       };
 
       [users, total] = await Promise.all([
-        User.find(query)
+        User.find(query).lean()
           .select('name username avatar college bio followers following')
           .skip(skip)
           .limit(limit)
@@ -54,7 +54,7 @@ export async function GET(request) {
       // Strategy A: MongoDB $text search
       const textQuery = { $text: { $search: sanitizedQuery } };
       [users, total] = await Promise.all([
-        User.find(textQuery, { score: { $meta: 'textScore' } })
+        User.find(textQuery, { score: { $meta: 'textScore' } }).lean()
           .sort({ score: { $meta: 'textScore' } })
           .select('name username avatar college bio followers following')
           .skip(skip)
@@ -74,7 +74,7 @@ export async function GET(request) {
         };
 
         [users, total] = await Promise.all([
-          User.find(fallbackQuery)
+          User.find(fallbackQuery).lean()
             .select('name username avatar college bio followers following')
             .skip(skip)
             .limit(limit)

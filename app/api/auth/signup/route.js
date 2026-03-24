@@ -50,12 +50,12 @@ export async function POST(request) {
       return NextResponse.json({ message: passwordValidation.message }, { status: 400 });
     }
 
-    const existingEmail = await User.findOne({ email: sanitizedEmail });
+    const existingEmail = await User.findOne({ email: sanitizedEmail }).lean();
     if (existingEmail) {
       return NextResponse.json({ message: 'Email already registered' }, { status: 409 });
     }
 
-    const existingUsername = await User.findOne({ username: sanitizedUsername });
+    const existingUsername = await User.findOne({ username: sanitizedUsername }).lean();
     if (existingUsername) {
       return NextResponse.json({ message: 'Username already taken' }, { status: 409 });
     }
@@ -89,7 +89,7 @@ export async function POST(request) {
     try {
       const { FOUNDER_USERNAME } = await import('@/lib/founder');
       if (FOUNDER_USERNAME) {
-        const founderUser = await User.findOne({ username: FOUNDER_USERNAME });
+        const founderUser = await User.findOne({ username: FOUNDER_USERNAME }).lean();
         if (founderUser && founderUser._id.toString() !== user._id.toString()) {
           // Add founder to new user's following 
           await User.findByIdAndUpdate(user._id, {

@@ -14,8 +14,9 @@ export async function GET(request, { params }) {
     await connectDB()
 
     // 1. Find user by username 
+    const escapedUsername = username.toString().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const user = await User.findOne({ 
-      username: { $regex: new RegExp(`^${username.toString().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } 
+      username: { $regex: new RegExp(`^${escapedUsername}$`, 'i') } 
     }).select('following').lean()
 
     if (!user) {

@@ -18,7 +18,7 @@ export async function GET(request, { params }) {
     }
 
     await connectDB();
-    console.log('Fetching profile for:', username);
+
 
     const currentUser = await getCurrentUser(request);
     const escapedUsername = username.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

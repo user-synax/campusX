@@ -7,6 +7,9 @@ import { Trophy, Medal, Star, ArrowUp } from "lucide-react"
 import UserAvatar from "@/components/user/UserAvatar"
 import Link from 'next/link'
 import { cn } from "@/lib/utils"
+import CoinUsername from '@/components/coins/CoinUsername'
+import CoinBadge from '@/components/coins/CoinBadge'
+
 
 export default function LeaderboardPage() {
   const [leaderboard, setLeaderboard] = useState([])
@@ -92,13 +95,16 @@ export default function LeaderboardPage() {
                       {getRankIcon(user.rank)}
                     </div>
                   </div>
-                  <div className="text-center">
-                    <Link href={`/profile/${user.username}`} className={cn(
-                      "font-black hover:underline block truncate max-w-[150px]",
-                      isFirst ? "text-lg" : "text-base"
-                    )}>
-                      {user.name}
-                    </Link>
+                  <div className="text-center flex flex-col items-center gap-1">
+                    <div className="flex items-center gap-1.5 justify-center">
+                      <Link href={`/profile/${user.username}`} className="hover:underline max-w-[150px] truncate">
+                        <CoinUsername user={user} className={cn(
+                          "font-black tracking-tight",
+                          isFirst ? "text-lg" : "text-base"
+                        )} />
+                      </Link>
+                      <CoinBadge user={user} size="sm" />
+                    </div>
                     <p className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground truncate max-w-[150px]">
                       {user.college}
                     </p>
@@ -151,11 +157,14 @@ export default function LeaderboardPage() {
                   <tr key={user._id} className="group hover:bg-secondary/30 transition-colors">
                     <td className="px-6 py-4">{getRankIcon(user.rank)}</td>
                     <td className="px-6 py-4">
-                      <Link href={`/profile/${user.username}`} className="flex items-center gap-3">
-                        <UserAvatar user={user} className="w-10 h-10" />
-                        <div>
-                          <p className="font-bold text-sm group-hover:underline">{user.name}</p>
-                          <p className="text-[10px] text-muted-foreground">{user.college}</p>
+                      <Link href={`/profile/${user.username}`} className="flex items-center gap-3 group">
+                        <UserAvatar user={user} className="w-10 h-10 flex-shrink-0" />
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <CoinUsername user={user} className="font-bold text-sm group-hover:underline truncate" />
+                            <CoinBadge user={user} size="xs" />
+                          </div>
+                          <p className="text-[10px] text-muted-foreground truncate">{user.college}</p>
                         </div>
                       </Link>
                     </td>

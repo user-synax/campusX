@@ -20,9 +20,12 @@ const CATEGORY_TABS = [
   { id: 'avatar_frame',   label: 'Frames',   emoji: '🖼️' }, 
   { id: 'username_color', label: 'Names',    emoji: '✨' }, 
   { id: 'profile_banner', label: 'Banners',  emoji: '🎨' }, 
+  { id: 'profile_theme',  label: 'Themes',   emoji: '🌌' },
   { id: 'post_badge',     label: 'Badges',   emoji: '🏷️' }, 
   { id: 'chat_bubble',    label: 'Chat',     emoji: '💬' }, 
-  { id: 'special_badge',  label: 'Special',  emoji: '⭐' } 
+  { id: 'effect',         label: 'Effects',  emoji: '🫧' },
+  { id: 'special_badge',  label: 'Special',  emoji: '⭐' },
+  { id: 'entry_effect',   label: 'Entry',    emoji: '🚀' }
 ] 
  
 const RARITY = { 
@@ -49,8 +52,10 @@ export default function ShopPage() {
           fetch('/api/coins/wallet'),
           fetch('/api/coins/shop')
         ])
-        const walletData = await walletRes.json()
-        const shopData = await shopRes.json()
+        const [walletData, shopData] = await Promise.all([
+          walletRes.json(),
+          shopRes.json()
+        ])
         
         setBalance(walletData.balance || 0)
         setItems(shopData.items || [])
@@ -159,7 +164,7 @@ export default function ShopPage() {
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredItems.map(item => (
               <ShopItemCard 
-                key={item.slug} 
+                key={item._id} 
                 item={item} 
                 balance={balance} 
                 rarityConfig={RARITY} 

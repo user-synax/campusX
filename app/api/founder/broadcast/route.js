@@ -13,7 +13,7 @@ export async function GET() {
       await connectDB()
 
       if (!FOUNDER_USERNAME) {
-        console.log('FOUNDER_USERNAME not set in broadcast GET')
+
         return { broadcast: null }
       }
 
@@ -81,7 +81,7 @@ export async function POST(request) {
 
       const uniqueId = Date.now().toString(36) + Math.random().toString(36).slice(2)
       const sanitizedMessage = sanitizeText(message);
-      console.log('Activating broadcast for:', FOUNDER_USERNAME, 'with message:', sanitizedMessage)
+
       
       updatedUser = await User.findOneAndUpdate(
         { username: { $regex: new RegExp(`^${FOUNDER_USERNAME}$`, 'i') } },
@@ -96,7 +96,7 @@ export async function POST(request) {
         { new: true }
       ).select('founderData')
     } else {
-      console.log('Deactivating broadcast for:', FOUNDER_USERNAME)
+
       updatedUser = await User.findOneAndUpdate(
         { username: { $regex: new RegExp(`^${FOUNDER_USERNAME}$`, 'i') } },
         {

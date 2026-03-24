@@ -18,7 +18,8 @@ const equippedSchema = new mongoose.Schema({
   chatBubble:     { type: String, default: null }, 
   bioTheme:       { type: String, default: null },
   profileTheme:   { type: String, default: null },
-  effect:         { type: String, default: null }
+  effect:         { type: String, default: null },
+  entryEffect:    { type: String, default: null }
 }, { _id: false }) 
  
 const walletSchema = new mongoose.Schema({ 

@@ -63,7 +63,7 @@ export async function POST(request, { params }) {
     const body = await request.json()
     const { action, reason, duration, amount } = body
 
-    const targetUser = await User.findById(userId)
+    const targetUser = await User.findById(userId).lean()
     if (!targetUser) {
       return NextResponse.json({ error: 'Target user not found' }, { status: 404 })
     }
