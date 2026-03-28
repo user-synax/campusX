@@ -24,11 +24,11 @@ export default function MainLayout({ children }) {
   return (
     <NotificationProvider>
       <div className="flex min-h-screen bg-background text-foreground selection:bg-primary/20 overflow-x-hidden">
-        {/* Fixed Sidebar */}
+        {/* Fixed Left Sidebar */}
         <Sidebar />
 
         {/* Main Content Area */}
-        <main className={`flex-1 flex flex-col md:ml-[72px] lg:ml-[280px] ${isChatRoom ? 'pb-0 h-[100dvh] overflow-hidden' : 'pb-20 min-h-screen'} md:pb-0 overflow-x-hidden`}>
+        <main className={`flex-1 flex flex-col md:ml-[72px] lg:ml-[280px] mr-[350px] ${isChatRoom ? 'pb-0 h-[100dvh] overflow-hidden' : 'pb-20 min-h-screen'} md:pb-0 overflow-x-hidden`}>
           {/* Broadcast banner — site-wide announcement */}
           <BroadcastBanner />
 
@@ -37,10 +37,8 @@ export default function MainLayout({ children }) {
           </div>
         </main>
 
-        {/* Sticky Right Panel */}
-        <div className="hidden lg:block">
-          <RightPanel />
-        </div>
+        {/* Fixed Right Panel */}
+        <RightPanel />
 
         {/* Mobile Bottom Navigation — Hide in chat room */}
         {!isChatRoom && <MobileNav />}
