@@ -24,7 +24,7 @@ const CATEGORY_TABS = [
   { id: 'post_badge',     label: 'Badges',   emoji: '🏷️' }, 
   { id: 'chat_bubble',    label: 'Chat',     emoji: '💬' }, 
   { id: 'bio_theme',      label: 'Bio',      emoji: '📝' },
-  { id: 'effect',         label: 'Effects',  emoji: '🫧' },
+  { id: 'effect',         label: 'Effects',  emoji: '✨' },
   { id: 'special_badge',  label: 'Special',  emoji: '⭐' },
   { id: 'entry_effect',   label: 'Entry',    emoji: '🚀' }
 ] 
