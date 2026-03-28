@@ -138,7 +138,24 @@ const userSchema = new mongoose.Schema({
   // Streak 
   currentStreak:  { type: Number, default: 0 }, 
   longestStreak:  { type: Number, default: 0 }, 
-  lastActiveDate: { type: Date,   default: null } 
+  lastActiveDate: { type: Date,   default: null },
+
+  // Profile customization
+  interests: {
+    type: [String],
+    validate: {
+      validator: (arr) => arr.length <= 8,
+      message: 'Maximum 8 interests allowed'
+    },
+    default: []
+  },
+  socialLinks: {
+    twitter:   { type: String, default: '' },
+    instagram: { type: String, default: '' },
+    linkedin:  { type: String, default: '' },
+    github:    { type: String, default: '' },
+    website:   { type: String, default: '' },
+  },
 }, { timestamps: true });
 
 userSchema.methods.comparePassword = async function (plainPassword) {

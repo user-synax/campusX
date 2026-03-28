@@ -34,7 +34,8 @@ const shopItemSchema = new mongoose.Schema({
       'special_badge',
       'profile_theme',
       'effect',
-      'entry_effect'
+      'entry_effect',
+      'achievement_badge'
     ]
   },
   price: {

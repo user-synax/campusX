@@ -44,7 +44,11 @@ const groupChatSchema = new mongoose.Schema({
   members: { 
     type: [memberSchema], 
     validate: { 
-      validator: (arr) => arr.length <= 200,  // max 200 members 
+      validator: function(arr) {
+        // Global groups have no member cap — everyone on the platform joins
+        if (this.isGlobal) return true
+        return arr.length <= 200
+      },
       message: 'Group cannot have more than 200 members' 
     } 
   }, 
@@ -61,7 +65,10 @@ const groupChatSchema = new mongoose.Schema({
     sentAt: Date, 
     type: { type: String, default: 'text' } 
   }, 
-  isActive: { type: Boolean, default: true }, 
+  isActive: { type: Boolean, default: true },
+
+  // Global group — auto-joined by every new user, no member cap
+  isGlobal: { type: Boolean, default: false },
  
 }, { timestamps: true }) 
  
@@ -73,7 +80,9 @@ groupChatSchema.index({ college: 1, isActive: 1 })
 // Latest message for sorting inbox 
 groupChatSchema.index({ 'lastMessage.sentAt': -1 }) 
 // Creator's groups 
-groupChatSchema.index({ createdBy: 1 }) 
+groupChatSchema.index({ createdBy: 1 })
+// Global group lookup
+groupChatSchema.index({ isGlobal: 1 }) 
  
 export default mongoose.models.GroupChat || 
   mongoose.model('GroupChat', groupChatSchema) 
