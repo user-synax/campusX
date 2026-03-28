@@ -18,7 +18,7 @@ import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import { useRouter } from 'next/navigation'
 
-export default function CreateCommunityDialog({ trigger }) {
+export default function CreateCommunityDialog({ trigger, onCreated }) {
   const [collegeName, setCollegeName] = useState('')
   const [firstPost, setFirstPost] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -55,6 +55,7 @@ export default function CreateCommunityDialog({ trigger }) {
       
       // Refresh to show the new community
       router.refresh()
+      onCreated?.()
     } catch (error) {
       toast.error(error.message)
     } finally {

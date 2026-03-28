@@ -43,7 +43,7 @@ export default function CommunitiesPage() {
     <div className="flex flex-col min-h-screen">
       <div className="sticky top-0 bg-background/80 backdrop-blur-md border-b border-border p-4 z-10 flex justify-between items-center">
         <h1 className="text-xl font-bold tracking-tight">Communities</h1>
-        <CreateCommunityDialog />
+        <CreateCommunityDialog onCreated={fetchCommunities} />
       </div>
 
       <div className="p-4 space-y-6">
@@ -75,12 +75,12 @@ export default function CommunitiesPage() {
           </div>
         ) : filteredCommunities.length === 0 ? (
           <div className="flex flex-col items-center">
-            <EmptyState 
-              icon={GraduationCap} 
-              title={search ? "No results found" : "No communities yet"} 
-              description={search ? `We couldn't find any community matching "${search}"` : "Be the first to post from your college to create a community!"} 
+            <EmptyState
+              icon={GraduationCap}
+              title={search ? "No results found" : "No communities yet"}
+              description={search ? `We couldn't find any community matching "${search}"` : "Be the first to post from your college to create a community!"}
             />
-            {!search && <CreateCommunityDialog />}
+            {!search && <CreateCommunityDialog onCreated={fetchCommunities} />}
           </div>
         ) : (
           <div className="grid gap-4">
