@@ -26,6 +26,8 @@ import { renderContentWithMentions, extractUrls } from "@/utils/hashtags"
 import UserMention from "@/components/shared/UserMention"
 import LinkPreview from "@/components/shared/LinkPreview"
 import FormattedTime from "@/components/shared/FormattedTime"
+import MarkdownRenderer from "@/components/shared/MarkdownRenderer"
+import { containsMarkdown } from "@/utils/markdown"
 import useUser from "@/hooks/useUser"
 import { isFounder } from "@/lib/founder"
 import AvatarWithFrame from '@/components/coins/AvatarWithFrame'
@@ -358,39 +360,45 @@ export default function PostDetailClient({ postId }) {
         </div>
 
         {/* Content */}
-        <div className="text-xl leading-relaxed whitespace-pre-wrap word-break-words mb-6">
-          {renderContentWithMentions(post.content || '').map((segment, i) => {
-            if (segment.type === 'hashtag') {
-              return (
-                <Link 
-                  key={i} 
-                  href={`/hashtag/${segment.value}`}
-                  className="text-blue-400 hover:text-blue-300 hover:underline"
-                >
-                  #{segment.value}
-                </Link>
-              )
-            } else if (segment.type === 'mention') {
-              return (
-                <UserMention key={i} username={segment.value} />
-              )
-            } else if (segment.type === 'url') {
-              return (
-                <a 
-                  key={i} 
-                  href={segment.value}
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {segment.value}
-                </a>
-              )
-            } else {
-              return <span key={i}>{segment.value}</span>
-            }
-          })}
+        <div className="text-xl leading-relaxed mb-6">
+          {post.isMarkdown || containsMarkdown(post.content) ? (
+            <MarkdownRenderer content={post.content} />
+          ) : (
+            <div className="whitespace-pre-wrap word-break-words">
+              {renderContentWithMentions(post.content || '').map((segment, i) => {
+                if (segment.type === 'hashtag') {
+                  return (
+                    <Link
+                      key={i}
+                      href={`/hashtag/${segment.value}`}
+                      className="text-blue-400 hover:text-blue-300 hover:underline"
+                    >
+                      #{segment.value}
+                    </Link>
+                  )
+                } else if (segment.type === 'mention') {
+                  return (
+                    <UserMention key={i} username={segment.value} />
+                  )
+                } else if (segment.type === 'url') {
+                  return (
+                    <a
+                      key={i}
+                      href={segment.value}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {segment.value}
+                    </a>
+                  )
+                } else {
+                  return <span key={i}>{segment.value}</span>
+                }
+              })}
+            </div>
+          )}
         </div>
 
         {/* Link Previews */}
