@@ -37,7 +37,7 @@ export async function POST(request) {
       return NextResponse.json({ message: 'Invalid request body' }, { status: 400 });
     }
 
-    const { content, community, isAnonymous, poll, linkPreview, images } = body;
+    const { content, community, isAnonymous, poll, linkPreview, images, isMarkdown } = body;
 
     await connectDB();
 
@@ -101,7 +101,8 @@ export async function POST(request) {
         description: sanitizeText(linkPreview.description),
         image: linkPreview.image,
         url: linkPreview.url
-      } : null
+      } : null,
+      isMarkdown: isMarkdown === true
     };
 
     if (!isAnon) {

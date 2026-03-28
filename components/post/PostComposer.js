@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Image from 'next/image'
-import { MapPin, X, BarChart2, Link2, Loader2, ImagePlus } from 'lucide-react'
+import { MapPin, X, BarChart2, Link2, Loader2, ImagePlus, FileCode, Eye, Edit3 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
@@ -13,7 +13,9 @@ import { Card } from "@/components/ui/card"
 import { toast } from "sonner"
 import UserAvatar from "@/components/user/UserAvatar"
 import PollCreator from "@/components/post/PollCreator"
+import MarkdownRenderer from "@/components/shared/MarkdownRenderer"
 import { cn } from "@/lib/utils"
+import { containsMarkdown } from "@/utils/markdown"
 import useUser from "@/hooks/useUser"
 import { useDebounce } from "@/hooks/useDebounce"
 import { useUploadThing } from "@/lib/uploadthing"
@@ -28,10 +30,14 @@ export default function PostComposer({ onPostCreated, defaultCommunity, noBorder
   const [showPoll, setShowPoll] = useState(false)
   const [pollOptions, setPollOptions] = useState(['', ''])
 
+  // Markdown state
+  const [isMarkdownPreview, setIsMarkdownPreview] = useState(false)
+
   // Image state
   const [selectedImages, setSelectedImages] = useState([]) // File[]
   const [isUploading, setIsUploading] = useState(false)
   const fileInputRef = useRef(null)
+  const markdownFileInputRef = useRef(null)
 
   const { startUpload } = useUploadThing('postImageUploader')
 
@@ -103,6 +109,33 @@ export default function PostComposer({ onPostCreated, defaultCommunity, noBorder
     setSelectedImages(prev => prev.filter((_, i) => i !== index))
   }
 
+  // Handle markdown file import
+  const handleMarkdownFileSelect = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!file.name.endsWith('.md') && !file.name.endsWith('.txt')) {
+      toast.error('Please select a .md or .txt file')
+      e.target.value = ''
+      return
+    }
+
+    if (file.size > 50 * 1024) { // 50KB limit
+      toast.error('File too large (max 50KB)')
+      e.target.value = ''
+      return
+    }
+
+    try {
+      const text = await file.text()
+      setContent(text)
+      toast.success('Markdown file loaded!')
+    } catch (err) {
+      toast.error('Failed to read file')
+    }
+    e.target.value = ''
+  }
+
   const handleSubmit = async () => {
     if (!content.trim() || content.length > 2000) return
 
@@ -136,6 +169,9 @@ export default function PostComposer({ onPostCreated, defaultCommunity, noBorder
       setIsUploading(false)
     }
 
+    // Detect if content is markdown
+    const containsMd = containsMarkdown(content)
+
     const payload = {
       content,
       community: defaultCommunity || manualCommunity,
@@ -147,7 +183,8 @@ export default function PostComposer({ onPostCreated, defaultCommunity, noBorder
         description: linkPreview.description,
         image: linkPreview.image,
         url: linkPreview.url
-      } : null
+      } : null,
+      isMarkdown: containsMd
     };
 
     setIsLoading(true)
@@ -194,13 +231,60 @@ export default function PostComposer({ onPostCreated, defaultCommunity, noBorder
       <div className="flex gap-3">
         <UserAvatar user={isAnonymous ? null : currentUser} size="md" />
         <div className="flex-1">
-          <Textarea
-            placeholder="What's happening on campus?"
-            className="resize-none border-none bg-transparent text-lg focus-visible:ring-0 p-0 min-h-25"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            maxLength={2000}
-          />
+          {/* Markdown preview/edit toggle */}
+          {content && (
+            <div className="flex items-center gap-2 mb-2 border-b border-border pb-2">
+              <button
+                onClick={() => setIsMarkdownPreview(false)}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors",
+                  !isMarkdownPreview
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground hover:bg-muted/80"
+                )}
+              >
+                <Edit3 className="w-3 h-3" />
+                Edit
+              </button>
+              <button
+                onClick={() => setIsMarkdownPreview(true)}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors",
+                  isMarkdownPreview
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground hover:bg-muted/80"
+                )}
+              >
+                <Eye className="w-3 h-3" />
+                Preview
+              </button>
+            </div>
+          )}
+
+          {/* Edit mode */}
+          {!isMarkdownPreview && (
+            <Textarea
+              placeholder="What's happening on campus? (Supports **markdown**)"
+              className="resize-none border-none bg-transparent text-lg focus-visible:ring-0 p-0 min-h-25 font-mono"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              maxLength={2000}
+            />
+          )}
+
+          {/* Preview mode */}
+          {isMarkdownPreview && (
+            <div 
+              className="min-h-25 cursor-pointer"
+              onClick={() => setIsMarkdownPreview(false)}
+            >
+              {content ? (
+                <MarkdownRenderer content={content} className="text-lg" />
+              ) : (
+                <p className="text-muted-foreground">Nothing to preview...</p>
+              )}
+            </div>
+          )}
 
           {/* Link Preview */}
           {isPreviewLoading && (
@@ -364,6 +448,28 @@ export default function PostComposer({ onPostCreated, defaultCommunity, noBorder
                   ) : (
                     <span className="text-[10px] sm:text-xs">Photo</span>
                   )}
+                </Button>
+
+                {/* Markdown file attachment button */}
+                <input
+                  ref={markdownFileInputRef}
+                  type="file"
+                  accept=".md,.txt"
+                  className="hidden"
+                  onChange={handleMarkdownFileSelect}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    "h-8 gap-1.5 rounded-full px-2 sm:px-3 transition-colors",
+                    "text-muted-foreground hover:text-primary"
+                  )}
+                  onClick={() => markdownFileInputRef.current?.click()}
+                >
+                  <FileCode className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <span className="text-[10px] sm:text-xs">Markdown</span>
                 </Button>
               </div>
               

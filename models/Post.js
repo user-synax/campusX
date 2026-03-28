@@ -79,6 +79,10 @@ const postSchema = new mongoose.Schema({
     image: String,
     url: String
   },
+  isMarkdown: {
+    type: Boolean,
+    default: false
+  },
   // Admin & Moderation fields
   isDeleted: { type: Boolean, default: false },
   deletedAt: { type: Date, default: null },

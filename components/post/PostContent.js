@@ -1,33 +1,61 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { renderContentWithMentions, extractUrls } from "@/utils/hashtags"
 import UserMention from "@/components/shared/UserMention"
 import LinkPreview from "@/components/shared/LinkPreview"
+import MarkdownRenderer from "@/components/shared/MarkdownRenderer"
+import { containsMarkdown } from "@/utils/markdown"
 
-export default function PostContent({ content }) {
-  const TRUNCATE_LENGTH = 300 // chars shown in feed before "read more"
+export default function PostContent({ content, isMarkdown: isMarkdownProp = false, forceMarkdown = false }) {
+  const TRUNCATE_LENGTH = 300
   const [expanded, setExpanded] = useState(false)
 
   if (!content) return null
 
+  // Use prop if available, otherwise detect from content
+  const isMarkdown = forceMarkdown || isMarkdownProp || containsMarkdown(content)
   const shouldTruncate = content.length > TRUNCATE_LENGTH
   const displayContent = expanded || !shouldTruncate
     ? content
     : content.slice(0, TRUNCATE_LENGTH)
 
-  // Extract URLs for link preview
-  const urls = extractUrls(content)
+  // Extract URLs for link preview (only for non-markdown content)
+  const urls = useMemo(() => isMarkdown ? [] : extractUrls(content), [content, isMarkdown])
 
+  // For markdown content, use MarkdownRenderer
+  if (isMarkdown) {
+    return (
+      <div>
+        <MarkdownRenderer content={displayContent} className="text-[15px]" />
+        {!expanded && shouldTruncate && '...'}
+
+        {shouldTruncate && (
+          <button
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              setExpanded(!expanded)
+            }}
+            className="text-primary text-sm mt-1 hover:underline font-medium"
+          >
+            {expanded ? 'Show less' : 'Read more'}
+          </button>
+        )}
+      </div>
+    )
+  }
+
+  // For plain text, use original rendering with mentions/hashtags
   return (
     <div>
       <div className="whitespace-pre-wrap break-words text-[15px] leading-normal text-foreground">
         {renderContentWithMentions(displayContent).map((segment, i) => {
           if (segment.type === 'hashtag') {
             return (
-              <Link 
-                key={i} 
+              <Link
+                key={i}
                 href={`/hashtag/${segment.value}`}
                 className="text-blue-400 hover:text-blue-300 hover:underline"
                 onClick={(e) => e.stopPropagation()}
@@ -41,8 +69,8 @@ export default function PostContent({ content }) {
             )
           } else if (segment.type === 'url') {
             return (
-              <a 
-                key={i} 
+              <a
+                key={i}
                 href={segment.value}
                 target="_blank"
                 rel="noopener noreferrer"

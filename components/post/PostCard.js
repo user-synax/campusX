@@ -251,7 +251,7 @@ const PostCard = memo(function PostCard({ post, currentUserId, onDelete, onLike,
           </div>
           
           <div className="mt-1">
-            <PostContent content={post.content} />
+            <PostContent content={post.content} isMarkdown={post.isMarkdown} />
           </div>
 
           {post.images?.length > 0 && (
