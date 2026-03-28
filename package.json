@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "seed": "node -r dotenv/config scripts/seed.js"
+    "seed": "node -r dotenv/config scripts/seed.js",
+    "seed:global-group": "node -r dotenv/config scripts/seed-global-group.mjs",
+    "test": "node --experimental-vm-modules node_modules/.bin/jest"
   },
   "dependencies": {
     "@next/bundle-analyzer": "^16.2.1",
@@ -23,6 +25,7 @@
     "@radix-ui/react-tabs": "^1.1.13",
     "@tailwindcss/postcss": "^4.2.2",
     "@uploadthing/react": "^7.3.3",
+    "@upstash/redis": "^1.37.0",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
     "autoprefixer": "^10.4.27",
@@ -52,11 +55,19 @@
     "tailwind-merge": "^3.5.0",
     "tailwindcss": "^4.2.2",
     "uploadthing": "^7.7.4",
-    "web-push": "^3.6.7"
+    "web-push": "^3.6.7",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@babel/core": "^7.29.0",
+    "@babel/preset-env": "^7.29.2",
+    "@jest/globals": "^30.3.0",
+    "babel-jest": "^30.3.0",
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
-    "eslint-config-next": "16.2.0"
+    "eslint-config-next": "16.2.0",
+    "fast-check": "^4.6.0",
+    "jest": "^30.3.0",
+    "jest-environment-node": "^30.3.0"
   }
 }
