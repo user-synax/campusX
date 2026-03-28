@@ -11,14 +11,28 @@ import Resource from "@/models/Resource";
 import { verifyToken } from "@/lib/auth-edge";
 
 export const metadata = {
-  title: 'CampusX — Your Campus Community',
-  description: 'Connect with students, discover events, join college communities.',
+  title: 'CampusX — India ka Student Social Network',
+  description: 'Posts, chats, notes, events — sab ek jagah. Sirf apne college waalon ke saath.',
+  keywords: ['student social network', 'college community', 'IIT', 'NIT', 'campus'],
   openGraph: {
-    title: 'CampusX',
-    description: 'Connect with students, discover events, join college communities.',
     type: 'website',
+    locale: 'en_IN',
     url: process.env.NEXT_PUBLIC_APP_URL,
-    images: [{ url: '/og-image.png', width: 1200, height: 630 }]
+    siteName: 'CampusX',
+    title: 'CampusX — India ka Student Social Network',
+    description: 'Posts, chats, notes, events — sab ek jagah.',
+    images: [{
+      url: '/og/default.png',
+      width: 1200,
+      height: 630,
+      alt: 'CampusX — Student Social Network'
+    }]
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'CampusX — India ka Student Social Network',
+    description: 'Posts, chats, notes, events — sab ek jagah.',
+    images: [`${process.env.NEXT_PUBLIC_APP_URL}/og/default.png`]
   }
 };
 
