@@ -30,13 +30,20 @@ function getFrameStyle(frameVisual) {
   const base = { 
     padding: frameVisual.padding || '2px', 
     backgroundSize: frameVisual.backgroundSize || '300% 300%', 
-    animation: frameVisual.animation || 'none'
+    animation: frameVisual.animation || 'none' 
   } 
  
   return { 
     ...base, 
     background: frameVisual.gradient || frameVisual.color || 'transparent' 
   } 
+} 
+
+// Handle both object format (new) and string format (legacy) 
+function getVisual(item) { 
+  if (!item) return null 
+  if (typeof item === 'string') return null // legacy string format 
+  return item 
 } 
  
 const AvatarWithFrame = memo(function AvatarWithFrame({ 
@@ -46,9 +53,9 @@ const AvatarWithFrame = memo(function AvatarWithFrame({
   className = '' 
 }) { 
   const { size: outerSize, text, tw } = SIZE_MAP[size] || SIZE_MAP.md 
-  const frameVisual = equipped?.avatarFrame 
-  const bannerVisual = equipped?.profileBanner
-  const frameStyle = getFrameStyle(frameVisual) 
+  const frameVisual = getVisual(equipped?.avatarFrame) 
+  const bannerVisual = getVisual(equipped?.profileBanner) 
+  const frameStyle = getFrameStyle(frameVisual)
  
   const avatar = ( 
     <div 

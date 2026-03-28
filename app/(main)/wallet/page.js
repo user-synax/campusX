@@ -313,7 +313,7 @@ export default function WalletPage() {
                                      item.category === 'profile_theme' ? 'profileTheme' :
                                      item.category === 'entry_effect' ? 'entryEffect' : 'effect'
 
-                    const isEquipped = wallet?.equipped?.[mappedSlot] === item.slug
+                    const isEquipped = wallet?.equipped?.[mappedSlot]?.slug === item.slug
 
                     return (
                       <Card key={item.slug} className="p-3 border-border/50 hover:border-border transition-colors">

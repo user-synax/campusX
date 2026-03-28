@@ -7,7 +7,9 @@ const CoinUsername = memo(function CoinUsername({
   equipped = null, 
   className = '' 
 }) { 
-  const colorVisual = equipped?.usernameColor 
+  // Handle both object format (new) and string format (legacy) 
+  const usernameColor = equipped?.usernameColor 
+  const colorVisual = typeof usernameColor === 'object' && usernameColor !== null ? usernameColor : null 
  
   if (!colorVisual) { 
     return <span className={className}>{name}</span> 

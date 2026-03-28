@@ -16,8 +16,9 @@ export default function ProfileCosmetics({ equipped }) {
 
   if (!mounted || !equipped) return null
 
-  const profileTheme = equipped.profileTheme?.slug
-  const effect = equipped.effect?.slug
+  // Handle both object format (new) and string format (legacy)
+  const profileTheme = equipped.profileTheme?.slug || equipped.profileTheme
+  const effect = equipped.effect?.slug || equipped.effect
 
   // Only render if a theme or effect is equipped and we are in the visible window
   if (!profileTheme && !effect) return null
