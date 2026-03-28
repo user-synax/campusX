@@ -28,7 +28,7 @@ export default function MainLayout({ children }) {
         <Sidebar />
 
         {/* Main Content Area */}
-        <main className={`flex-1 flex flex-col md:ml-[72px] lg:ml-[280px] mr-[350px] ${isChatRoom ? 'pb-0 h-[100dvh] overflow-hidden' : 'pb-20 min-h-screen'} md:pb-0 overflow-x-hidden`}>
+        <main className={`flex-1 flex flex-col md:ml-[72px] lg:ml-[280px] xl:mr-[350px] ${isChatRoom ? 'pb-0 h-[100dvh] overflow-hidden' : 'pb-20 min-h-screen'} md:pb-0 overflow-x-hidden`}>
           {/* Broadcast banner — site-wide announcement */}
           <BroadcastBanner />
 
