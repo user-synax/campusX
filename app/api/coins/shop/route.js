@@ -1045,15 +1045,6 @@ export async function GET(request) {
         visual: { icon: 'Palette', color: '#f43f5e', label: 'ART' }
       },
       {
-        slug: 'badge-music-lover',
-        name: 'Music Lover',
-        description: 'Always in the groove.',
-        category: 'post_badge',
-        price: 500,
-        rarity: 'uncommon',
-        visual: { icon: 'Music', color: '#8b5cf6', label: 'MUSIC' }
-      },
-      {
         slug: 'badge-space-explorer',
         name: 'Space Explorer',
         description: 'Aiming for the stars.',

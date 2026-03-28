@@ -96,7 +96,6 @@ campusx/
 │   ├── founder/               # Founder features
 │   ├── landing/               # Landing page components
 │   ├── layout/                # Layout elements (header, sidebar)
-│   ├── music/                 # Music-related (if any)
 │   ├── notifications/         # Notification UI
 │   ├── post/                  # Post components (feed, comments)
 │   ├── resources/             # Resource display
