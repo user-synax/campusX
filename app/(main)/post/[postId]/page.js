@@ -10,40 +10,77 @@ import PostDetailClient from "@/components/post/PostDetailClient";
 export async function generateMetadata({ params }) {
   const { postId } = await params;
 
-  if (!validateObjectId(postId)) return { title: 'Post Not Found' };
+  if (!validateObjectId(postId)) {
+    return {
+      title: 'Post not found — CampusX',
+      description: 'This post may have been deleted.'
+    };
+  }
 
   try {
     await connectDB();
-    const post = await Post.findById(postId).populate('author', 'name username').lean();
 
-    if (!post) return { title: 'Post Not Found' };
+    const post = await Post.findById(postId)
+      .populate('author', 'name username college')
+      .select('content author isAnonymous createdAt')
+      .lean();
 
-    const title = post.isAnonymous 
-      ? `Anonymous Post on CampusX` 
-      : `${post.author.name} (@${post.author.username}) on CampusX`;
-    
-    const description = post.content?.slice(0, 160) || 'View this post on CampusX';
+    if (!post) {
+      return {
+        title: 'Post not found — CampusX',
+        description: 'This post may have been deleted.'
+      };
+    }
+
+    // Anonymous post — don't reveal author
+    const authorText = post.isAnonymous
+      ? 'Anonymous on CampusX'
+      : `${post.author.name} (@${post.author.username})`;
+
+    // Trim content for description
+    const description = post.content.length > 200
+      ? post.content.slice(0, 197) + '...'
+      : post.content;
+
+    // Clean content for title (first line or first 60 chars)
+    const firstLine = post.content.split('\n')[0];
+    const title = firstLine.length > 60
+      ? firstLine.slice(0, 57) + '...'
+      : firstLine;
+
+    // OG image URL — generated dynamically
+    const ogImageUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/og/post?id=${postId}`;
+    const postUrl = `${process.env.NEXT_PUBLIC_APP_URL}/post/${postId}`;
 
     return {
-      title,
-      description,
+      title: `${title} — CampusX`,
+      description: `${authorText}: ${description}`,
       openGraph: {
-        title,
-        description,
         type: 'article',
+        title: `${authorText} on CampusX`,
+        description,
+        url: postUrl,
+        siteName: 'CampusX',
         publishedTime: post.createdAt,
-        authors: [post.isAnonymous ? 'Anonymous' : post.author.name],
-        images: post.image ? [post.image] : ['/og-image.png'], // Fallback to default OG image
+        images: [{
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: description
+        }]
       },
       twitter: {
         card: 'summary_large_image',
-        title,
+        title: `${authorText} on CampusX`,
         description,
-        images: post.image ? [post.image] : ['/og-image.png'],
-      },
+        images: [ogImageUrl]
+      }
     };
   } catch (error) {
-    return { title: 'CampusX Post' };
+    return {
+      title: 'CampusX',
+      description: 'India ka student social network'
+    };
   }
 }
 
