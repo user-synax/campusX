@@ -1,126 +1,110 @@
-import { NextResponse } from 'next/server';
-import connectDB from '@/lib/db';
-import User from '@/models/User';
-import bcrypt from 'bcryptjs';
-import { signToken, setAuthCookie } from '@/lib/auth';
-import { notifyAdminNewUser } from '@/lib/admin-notify';
-import { validateEmail, validateUsername, validatePassword } from '@/utils/validators';
-import { applyRateLimit } from '@/lib/rate-limit';
-import { sanitizeText, sanitizeUsername, sanitizeUser } from '@/lib/sanitize';
+import { NextResponse } from 'next/server'
+import connectDB from '@/lib/db'
+import User from '@/models/User'
+import bcrypt from 'bcryptjs'
+import { signToken, setAuthCookie } from '@/lib/auth'
+import { notifyAdminNewUser } from '@/lib/admin-notify'
+import { applyRateLimit } from '@/lib/redis-rate-limit'
+import { signupSchema, validateRequest } from '@/utils/schemas'
+import { successResponse, errorResponse, BadRequestError } from '@/lib/api-response'
+import { sanitizeText } from '@/lib/sanitize'
 
 export async function POST(request) {
   try {
-    // Rate limit signup - 3 requests per hour per IP
-    const { blocked, response: rateLimitResponse } = applyRateLimit(
+    const { blocked, response: rateLimitResponse } = await applyRateLimit(
       request,
       'auth_signup',
       3,
       60 * 60 * 1000
-    );
-    if (blocked) return rateLimitResponse;
+    )
+    if (blocked) return rateLimitResponse
 
-    let body;
+    let body
     try {
-      body = await request.json();
+      body = await request.json()
     } catch (e) {
-      return NextResponse.json({ message: 'Invalid request body' }, { status: 400 });
+      return errorResponse(new BadRequestError('Invalid request body'))
     }
 
-    const { name, username, email, password, college, course, year, gender } = body;
-
-    await connectDB();
-
-    if (!name || !username || !email || !password || !gender) {
-      return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
+    const validation = signupSchema.safeParse(body)
+    if (!validation.success) {
+      return errorResponse(new BadRequestError(
+        'Validation failed',
+        validation.error.errors.map(e => ({ field: e.path.join('.'), message: e.message }))
+      ))
     }
 
-    const sanitizedUsername = sanitizeUsername(username);
-    const sanitizedEmail = email.toLowerCase().trim();
+    const { name, username, email, password, college, course, year, gender } = validation.data
 
-    if (!validateEmail(sanitizedEmail)) {
-      return NextResponse.json({ message: 'Invalid email format' }, { status: 400 });
-    }
+    await connectDB()
 
-    if (!validateUsername(sanitizedUsername)) {
-      return NextResponse.json({ message: 'Invalid username format' }, { status: 400 });
-    }
-
-    const passwordValidation = validatePassword(password);
-    if (!passwordValidation.valid) {
-      return NextResponse.json({ message: passwordValidation.message }, { status: 400 });
-    }
-
-    const existingEmail = await User.findOne({ email: sanitizedEmail }).lean();
+    const existingEmail = await User.findOne({ email }).lean()
     if (existingEmail) {
-      return NextResponse.json({ message: 'Email already registered' }, { status: 409 });
+      return errorResponse(new BadRequestError('Email already registered'))
     }
 
-    const existingUsername = await User.findOne({ username: sanitizedUsername }).lean();
+    const existingUsername = await User.findOne({ username }).lean()
     if (existingUsername) {
-      return NextResponse.json({ message: 'Username already taken' }, { status: 409 });
+      return errorResponse(new BadRequestError('Username already taken'))
     }
 
-    const hashedPassword = await bcrypt.hash(password, 12);
+    const hashedPassword = await bcrypt.hash(password, 12)
 
-    // Generate random avatar based on gender using DiceBear
-    let avatar = '';
-    const seed = Math.random().toString(36).substring(7);
+    let avatar = ''
+    const seed = Math.random().toString(36).substring(7)
     if (gender === 'male') {
-      avatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}&gender=male`;
+      avatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}&gender=male`
     } else if (gender === 'female') {
-      avatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}&gender=female`;
+      avatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}&gender=female`
     } else {
-      avatar = `https://api.dicebear.com/7.x/identicon/svg?seed=${seed}`;
+      avatar = `https://api.dicebear.com/7.x/identicon/svg?seed=${seed}`
     }
 
     const user = await User.create({
       name: sanitizeText(name),
-      username: sanitizedUsername,
-      email: sanitizedEmail,
+      username,
+      email: email.toLowerCase(),
       password: hashedPassword,
-      college: sanitizeText(college),
-      course: sanitizeText(course),
+      college: sanitizeText(college || ''),
+      course: sanitizeText(course || ''),
       year: parseInt(year) || 1,
       gender: gender || 'unspecified',
-      avatar: avatar
-    });
+      avatar
+    })
 
-    // Auto-follow founder 
     try {
-      const { FOUNDER_USERNAME } = await import('@/lib/founder');
+      const { FOUNDER_USERNAME } = await import('@/lib/founder')
       if (FOUNDER_USERNAME) {
-        const founderUser = await User.findOne({ username: FOUNDER_USERNAME }).lean();
+        const founderUser = await User.findOne({ username: FOUNDER_USERNAME }).lean()
         if (founderUser && founderUser._id.toString() !== user._id.toString()) {
-          // Add founder to new user's following 
           await User.findByIdAndUpdate(user._id, {
             $addToSet: { following: founderUser._id }
-          });
-          // Add new user to founder's followers 
+          })
           await User.findByIdAndUpdate(founderUser._id, {
             $addToSet: { followers: user._id }
-          });
+          })
         }
       }
     } catch (err) {
-      // Never block signup if auto-follow fails 
-      console.error('Auto-follow founder failed:', err.message);
+      console.error('Auto-follow founder failed:', err.message)
     }
 
-    const token = signToken({ userId: user._id, username: user.username });
-
-    const response = NextResponse.json(
-      { success: true, user: sanitizeUser(user) },
+    const token = signToken({ userId: user._id, username: user.username })
+    const response = successResponse(
+      { user: { _id: user._id, name: user.name, username: user.username, avatar: user.avatar } },
       { status: 201 }
-    );
+    )
 
-    await setAuthCookie(response, token);
+    await setAuthCookie(response, token)
+    notifyAdminNewUser(user).catch(() => {})
 
-    // Fire-and-forget notification to admin
-    notifyAdminNewUser(user).catch(() => {});
+    import('@/lib/globalGroup').then(({ autoJoinGlobalGroup }) => {
+      autoJoinGlobalGroup(user._id).catch(() => {})
+    }).catch(() => {})
 
-    return response;
+    return response
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
+    console.error('Signup error:', error)
+    return errorResponse(error)
   }
 }
