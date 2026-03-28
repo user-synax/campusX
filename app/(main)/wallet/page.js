@@ -455,7 +455,7 @@ export default function WalletPage() {
                   <div className="mt-3 pt-3 border-t border-border/50 flex justify-between items-center">
                     <span className="text-[10px] font-bold text-muted-foreground uppercase">Balance After</span>
                     <span className="text-sm font-black flex items-center gap-1">
-                      <Coins className="w-4 h-4 text-amber-500" /> {wallet.balance - Number(giftAmount)}
+                      <Coins className="w-4 h-4 text-amber-500" /> {(wallet?.balance || 0) - Number(giftAmount || 0)}
                     </span>
                   </div>
                 </div> 
