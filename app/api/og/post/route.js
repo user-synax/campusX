@@ -2,7 +2,7 @@ import { ImageResponse } from 'next/og'
 import connectDB from '@/lib/db'
 import Post from '@/models/Post'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url)

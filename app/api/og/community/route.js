@@ -3,7 +3,7 @@ import connectDB from '@/lib/db'
 import Post from '@/models/Post'
 import User from '@/models/User'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 function formatCollegeName(slug) {
   if (!slug) return 'College'
