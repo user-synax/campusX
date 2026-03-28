@@ -10,16 +10,12 @@ const inventoryItemSchema = new mongoose.Schema({
   expiresAt: { type: Date, default: null } 
 }, { _id: false }) 
  
-const equippedSchema = new mongoose.Schema({ 
+const equippedSchema = new mongoose.Schema({
   avatarFrame:    { type: mongoose.Schema.Types.Mixed, default: null },
   usernameColor:  { type: mongoose.Schema.Types.Mixed, default: null },
   profileBanner:  { type: mongoose.Schema.Types.Mixed, default: null },
   postBadge:      { type: mongoose.Schema.Types.Mixed, default: null },
-  chatBubble:     { type: mongoose.Schema.Types.Mixed, default: null },
-  bioTheme:       { type: mongoose.Schema.Types.Mixed, default: null },
-  profileTheme:   { type: mongoose.Schema.Types.Mixed, default: null },
-  effect:         { type: mongoose.Schema.Types.Mixed, default: null },
-  entryEffect:    { type: mongoose.Schema.Types.Mixed, default: null }
+  chatBubble:     { type: mongoose.Schema.Types.Mixed, default: null }
 }, { _id: false }) 
  
 const walletSchema = new mongoose.Schema({ 

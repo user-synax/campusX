@@ -15,18 +15,13 @@ import {
 import ShopItemCard from "@/components/coins/ShopItemCard"
 import ItemPreview from "@/components/coins/ItemPreview"
 
-const CATEGORY_TABS = [ 
-  { id: 'all',            label: 'All',      emoji: '🛍️' }, 
-  { id: 'avatar_frame',   label: 'Frames',   emoji: '🖼️' }, 
-  { id: 'username_color', label: 'Names',    emoji: '✨' }, 
-  { id: 'profile_banner', label: 'Banners',  emoji: '🎨' }, 
-  { id: 'profile_theme',  label: 'Themes',   emoji: '🌌' },
-  { id: 'post_badge',     label: 'Badges',   emoji: '🏷️' }, 
-  { id: 'chat_bubble',    label: 'Chat',     emoji: '💬' }, 
-  { id: 'bio_theme',      label: 'Bio',      emoji: '📝' },
-  { id: 'effect',         label: 'Effects',  emoji: '✨' },
-  { id: 'special_badge',  label: 'Special',  emoji: '⭐' },
-  { id: 'entry_effect',   label: 'Entry',    emoji: '🚀' }
+const CATEGORY_TABS = [
+  { id: 'all',            label: 'All',      emoji: '🛍️' },
+  { id: 'avatar_frame',   label: 'Frames',   emoji: '🖼️' },
+  { id: 'username_color', label: 'Names',    emoji: '✨' },
+  { id: 'profile_banner', label: 'Banners',  emoji: '🎨' },
+  { id: 'post_badge',     label: 'Badges',   emoji: '🏷️' },
+  { id: 'chat_bubble',    label: 'Chat',     emoji: '💬' }
 ] 
  
 const RARITY = { 

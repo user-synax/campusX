@@ -22,7 +22,6 @@ import InfiniteScrollSentinel from "@/components/shared/InfiniteScrollSentinel"
 import { isFounder } from "@/lib/founder"
 import { renderContentWithMentions } from "@/utils/hashtags"
 import UserMention from "@/components/shared/UserMention"
-import ProfileCosmetics from "@/components/coins/ProfileCosmetics"
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 
@@ -159,9 +158,6 @@ export default function ProfilePage() {
 
   return (
     <div className="flex flex-col min-h-screen relative">
-      {/* Profile Cosmetics (Starry background, bubbles, etc) */}
-      <ProfileCosmetics equipped={profileUser.equipped} />
-
       {/* Header */}
       {isFounderProfile ? (
         <FounderProfileHeader

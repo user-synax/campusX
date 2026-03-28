@@ -300,18 +300,13 @@ export default function WalletPage() {
               ) : (
                 <div className="grid grid-cols-1 gap-3">
                   {inventory.map(item => {
-                    const slot = item.category === 'special_badge' ? 'postBadge' : 
-                                item.category.replace(/_([a-z])/g, (g) => g[1].toUpperCase())
                     // Fix slot mapping for avatar_frame -> avatarFrame
-                    const mappedSlot = item.category === 'avatar_frame' ? 'avatarFrame' : 
+                    const mappedSlot = item.category === 'avatar_frame' ? 'avatarFrame' :
                                      item.category === 'username_color' ? 'usernameColor' :
                                      item.category === 'profile_banner' ? 'profileBanner' :
                                      item.category === 'post_badge' ? 'postBadge' :
                                      item.category === 'chat_bubble' ? 'chatBubble' :
-                                     item.category === 'special_badge' ? 'postBadge' :
-                                     item.category === 'bio_theme' ? 'bioTheme' :
-                                     item.category === 'profile_theme' ? 'profileTheme' :
-                                     item.category === 'entry_effect' ? 'entryEffect' : 'effect'
+                                     item.category === 'special_badge' ? 'postBadge' : 'postBadge'
 
                     const isEquipped = wallet?.equipped?.[mappedSlot]?.slug === item.slug
 

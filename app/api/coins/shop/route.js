@@ -1937,8 +1937,10 @@ export async function GET(request) {
     }
 
     // Fetch all active shop items + wallet in parallel for speed
+    const REMOVED_CATEGORIES = ['profile_theme', 'bio_theme', 'effect', 'entry_effect', 'special_badge']
+
     const [items, wallet] = await Promise.all([
-      ShopItem.find({ isActive: true })
+      ShopItem.find({ isActive: true, category: { $nin: REMOVED_CATEGORIES } })
         .sort({ rarity: -1, price: 1 })
         .lean(),
       Wallet.findOne({ userId: decoded.userId }).select('inventory').lean()

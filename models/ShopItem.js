@@ -30,11 +30,6 @@ const shopItemSchema = new mongoose.Schema({
       'profile_banner',
       'post_badge',
       'chat_bubble',
-      'bio_theme',
-      'special_badge',
-      'profile_theme',
-      'effect',
-      'entry_effect',
       'achievement_badge'
     ]
   },
