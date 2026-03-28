@@ -275,3 +275,4 @@ Build the `/analytics` admin-only page and `/api/admin/analytics` route for Camp
 - Properties 1, 2, 5 require `mongodb-memory-server` for in-process aggregation testing
 - All 7 API section aggregations run in `Promise.all` — implement them as separate async functions before wiring in task 3.9
 - The `Comment` model is referenced in task 3.3 — verify the model name/path before implementing
+

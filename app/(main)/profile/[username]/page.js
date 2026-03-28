@@ -31,22 +31,23 @@ const RoadmapWidget = dynamic(() => import('@/components/founder/RoadmapWidget')
 const BroadcastManager = dynamic(() => import('@/components/founder/BroadcastManager'), { ssr: false })
 const FollowListModal = dynamic(() => import('@/components/user/FollowListModal'), { ssr: false })
 const EditProfileDrawer = dynamic(() => import('@/components/user/EditProfileDrawer'), { ssr: false })
+const ActivityHeatmap = dynamic(() => import('@/components/profile/ActivityHeatmap'), { ssr: false })
 
 export default function ProfilePage() {
   const params = useParams()
   const username = params.username
   const { user: currentUser, refetch: refetchCurrentUser } = useUser()
-  const { 
-    posts, 
-    loading: postsLoading, 
+  const {
+    posts,
+    loading: postsLoading,
     error: postsError,
-    hasMore, 
-    loadMore, 
-    addPost, 
-    removePost, 
-    updatePostLike 
+    hasMore,
+    loadMore,
+    addPost,
+    removePost,
+    updatePostLike
   } = usePosts({ username })
-  
+
   const { sentinelRef } = useInfiniteScroll({
     fetchMore: loadMore,
     hasMore,
@@ -60,15 +61,15 @@ export default function ProfilePage() {
   const handleLikePost = useCallback(async (postId) => {
     return await updatePostLike(postId)
   }, [updatePostLike])
-  
+
   const [profileUser, setProfileUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [editOpen, setEditOpen] = useState(false)
-  
+
   // Follow modal state
   const [followModal, setFollowModal] = useState(false)
   const [followModalTab, setFollowModalTab] = useState('followers')
-  
+
   // Derived state
   const isOwnProfile = profileUser?.isMe || currentUser?.username?.toLowerCase() === profileUser?.username?.toLowerCase()
   const isFollowing = profileUser?.isFollowing || currentUser?.following?.some(id => id.toString() === profileUser?._id?.toString())
@@ -78,21 +79,21 @@ export default function ProfilePage() {
     const fetchProfileData = async () => {
       try {
         setLoading(true)
-        
+
         // Fetch profile and posts in parallel
         const [userRes, postsRes] = await Promise.all([
           fetch(`/api/users/${username}`),
           fetch(`/api/posts/get?username=${username}`)
         ])
-        
+
         const userData = await userRes.json()
-        
+
         if (userRes.ok) {
           setProfileUser(userData)
 
           // Track profile view if it's the founder's profile and not their own visit
           if (isFounder(username) && currentUser?.username !== username) {
-            fetch('/api/founder/profile-view', { method: 'POST' }).catch(() => {})
+            fetch('/api/founder/profile-view', { method: 'POST' }).catch(() => { })
           }
         } else {
           toast.error("Failed to load profile", {
@@ -110,8 +111,23 @@ export default function ProfilePage() {
     if (username) fetchProfileData()
   }, [username])
 
-  const handleEditSave = (updatedUser) => {
-    setProfileUser(prev => ({ ...prev, ...updatedUser }))
+  const handleEditSave = (data) => {
+    // data = { success: true, user: {...} } — merge the user object, not the wrapper
+    const updated = data?.user ?? data
+    setProfileUser(prev => ({
+      ...prev,
+      ...updated,
+      // preserve computed fields the API doesn't return
+      followersCount: prev.followersCount,
+      followingCount: prev.followingCount,
+      postCount: prev.postCount,
+      isFollowing: prev.isFollowing,
+      isMe: prev.isMe,
+      isFounder: prev.isFounder,
+      pinnedPost: prev.pinnedPost,
+      equipped: prev.equipped,
+      equippedVisuals: prev.equippedVisuals,
+    }))
     refetchCurrentUser()
   }
 
@@ -133,10 +149,10 @@ export default function ProfilePage() {
 
   if (!profileUser) {
     return (
-      <EmptyState 
-        icon={FileText} 
-        title="User not found" 
-        description="The profile you are looking for does not exist." 
+      <EmptyState
+        icon={FileText}
+        title="User not found"
+        description="The profile you are looking for does not exist."
       />
     )
   }
@@ -148,14 +164,14 @@ export default function ProfilePage() {
 
       {/* Header */}
       {isFounderProfile ? (
-        <FounderProfileHeader 
-          user={profileUser} 
-          isOwnProfile={isOwnProfile} 
-          stats={{ 
+        <FounderProfileHeader
+          user={profileUser}
+          isOwnProfile={isOwnProfile}
+          stats={{
             followers: profileUser.followersCount,
             posts: profileUser.postCount,
             views: profileUser.founderData?.profileViews || 0
-          }} 
+          }}
           onFollowClick={(tab) => {
             setFollowModalTab(tab)
             setFollowModal(true)
@@ -163,9 +179,9 @@ export default function ProfilePage() {
         />
       ) : (
         <div>
-          <div 
-            className="h-32 bg-[#1a1a1a] relative overflow-hidden" 
-            style={profileUser.equipped?.profileBanner ? { 
+          <div
+            className="h-32 bg-[#1a1a1a] relative overflow-hidden"
+            style={profileUser.equipped?.profileBanner ? {
               background: profileUser.equipped.profileBanner.gradient || profileUser.equipped.profileBanner.color || profileUser.equipped.profileBanner.background,
               backgroundColor: profileUser.equipped.profileBanner.backgroundColor,
               backgroundSize: profileUser.equipped.profileBanner.backgroundSize || 'cover',
@@ -175,25 +191,25 @@ export default function ProfilePage() {
               opacity: profileUser.equipped.profileBanner.opacity
             } : {}}
           />
-          
+
           <div className="px-4 pb-4">
             <div className="flex justify-between items-end -mt-16 mb-3 relative z-10">
-              <AvatarWithFrame 
-                user={profileUser} 
-                size="lg" 
-                className="w-32 h-32 border-4 border-background shadow-xl ring-2 ring-black/10" 
-                equipped={profileUser.equipped} 
+              <AvatarWithFrame
+                user={profileUser}
+                size="lg"
+                className="w-32 h-32 border-4 border-background shadow-xl ring-2 ring-black/10"
+                equipped={profileUser.equipped}
               />
-              
+
               {isOwnProfile ? (
                 <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="rounded-full">
                   Edit profile
                 </Button>
               ) : (
-                <FollowButton 
-                  targetUserId={profileUser._id} 
+                <FollowButton
+                  targetUserId={profileUser._id}
                   username={profileUser.username}
-                  initialIsFollowing={isFollowing} 
+                  initialIsFollowing={isFollowing}
                   initialFollowersCount={profileUser.followersCount}
                   onToggle={(following, count) => {
                     setProfileUser(prev => ({ ...prev, followersCount: count }))
@@ -201,24 +217,24 @@ export default function ProfilePage() {
                 />
               )}
             </div>
-            
+
             <div className="flex items-center gap-2 flex-wrap">
-              <CoinUsername 
-                name={profileUser.name} 
-                equipped={profileUser.equipped} 
-                className="text-xl font-bold text-foreground" 
+              <CoinUsername
+                name={profileUser.name}
+                equipped={profileUser.equipped}
+                className="text-xl font-bold text-foreground"
               />
               <CoinBadge equipped={profileUser.equipped} />
             </div>
             <p className="text-muted-foreground text-sm">@{profileUser.username}</p>
-            
+
             {profileUser.bio && (
               <div className="mt-3 text-[15px] whitespace-pre-wrap break-words">
                 {renderContentWithMentions(profileUser.bio).map((segment, i) => {
                   if (segment.type === 'hashtag') {
                     return (
-                      <Link 
-                        key={i} 
+                      <Link
+                        key={i}
                         href={`/hashtag/${segment.value}`}
                         className="text-blue-400 hover:text-blue-300 hover:underline"
                       >
@@ -233,29 +249,38 @@ export default function ProfilePage() {
                 })}
               </div>
             )}
-            
+
             <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-sm text-muted-foreground">
               {profileUser.college && <span className="flex items-center gap-1">🎓 {profileUser.college}</span>}
               {profileUser.course && <span className="flex items-center gap-1">📚 {profileUser.course}</span>}
               {profileUser.year && <span className="flex items-center gap-1">📅 Year {profileUser.year}</span>}
             </div>
-            
+
             <div className="flex gap-5 mt-4 text-sm">
-              <button 
-                onClick={() => { setFollowModal(true); setFollowModalTab('following') }} 
+              <button
+                onClick={() => { setFollowModal(true); setFollowModalTab('following') }}
                 className="flex gap-1 hover:underline"
               >
                 <strong>{profileUser.followingCount}</strong> <span className="text-muted-foreground">Following</span>
               </button>
-              <button 
-                onClick={() => { setFollowModal(true); setFollowModalTab('followers') }} 
+              <button
+                onClick={() => { setFollowModal(true); setFollowModalTab('followers') }}
                 className="flex gap-1 hover:underline"
               >
                 <strong>{profileUser.followersCount}</strong> <span className="text-muted-foreground">Followers</span>
               </button>
               <span className="flex gap-1"><strong>{profileUser.postCount}</strong> <span className="text-muted-foreground">Posts</span></span>
             </div>
+
+            {/* Activity Heatmap */}
           </div>
+        </div>
+      )}
+
+      {/* Activity Heatmap */}
+      {!isFounderProfile && profileUser && (
+        <div className="px-4 pb-2 mt-1">
+          <ActivityHeatmap username={username} />
         </div>
       )}
 
@@ -266,10 +291,10 @@ export default function ProfilePage() {
             <Pin className="w-3 h-3" />
             <span>Pinned post</span>
           </div>
-          <PostCard 
-            post={profileUser.pinnedPost} 
-            currentUserId={currentUser?._id} 
-            isPinned={true} 
+          <PostCard
+            post={profileUser.pinnedPost}
+            currentUserId={currentUser?._id}
+            isPinned={true}
             onDelete={handleDeletePost}
             onLike={handleLikePost}
           />
@@ -286,32 +311,32 @@ export default function ProfilePage() {
         {postsLoading && posts.length === 0 ? (
           [1, 2, 3].map(i => <PostSkeleton key={i} />)
         ) : posts.length === 0 ? (
-          <EmptyState 
-            icon={FileText} 
-            title="No posts yet" 
-            description={isOwnProfile ? "You haven't posted anything yet." : `@${profileUser.username} hasn't posted anything yet.`} 
+          <EmptyState
+            icon={FileText}
+            title="No posts yet"
+            description={isOwnProfile ? "You haven't posted anything yet." : `@${profileUser.username} hasn't posted anything yet.`}
           />
         ) : (
           <>
             <div className="divide-y divide-border">
               {posts.filter(post => post._id !== (profileUser?.pinnedPost?._id || profileUser?.pinnedPost)).map(post => (
-                <PostCard 
-                  key={post._id} 
-                  post={post} 
-                  currentUserId={currentUser?._id} 
-                  onDelete={handleDeletePost} 
-                  onLike={handleLikePost} 
+                <PostCard
+                  key={post._id}
+                  post={post}
+                  currentUserId={currentUser?._id}
+                  onDelete={handleDeletePost}
+                  onLike={handleLikePost}
                   isPinned={false}
                 />
               ))}
             </div>
-            
+
             <div ref={sentinelRef}>
-              <InfiniteScrollSentinel 
-                loading={postsLoading} 
-                hasMore={hasMore} 
-                error={postsError} 
-                onRetry={loadMore} 
+              <InfiniteScrollSentinel
+                loading={postsLoading}
+                hasMore={hasMore}
+                error={postsError}
+                onRetry={loadMore}
               />
             </div>
           </>
@@ -319,23 +344,23 @@ export default function ProfilePage() {
       </div>
       {/* Edit Profile Drawer */}
       {isOwnProfile && (
-        <EditProfileDrawer 
-          user={profileUser} 
-          open={editOpen} 
-          onOpenChange={setEditOpen} 
+        <EditProfileDrawer
+          user={profileUser}
+          open={editOpen}
+          onOpenChange={setEditOpen}
           onSave={handleEditSave}
         />
       )}
 
       {/* Follow list modal */}
-      <FollowListModal 
-        username={username} 
-        initialTab={followModalTab} 
-        followersCount={profileUser.followersCount} 
-        followingCount={profileUser.followingCount} 
-        open={followModal} 
-        onOpenChange={setFollowModal} 
-        currentUserId={currentUser?._id} 
+      <FollowListModal
+        username={username}
+        initialTab={followModalTab}
+        followersCount={profileUser.followersCount}
+        followingCount={profileUser.followingCount}
+        open={followModal}
+        onOpenChange={setFollowModal}
+        currentUserId={currentUser?._id}
       />
     </div>
   )
