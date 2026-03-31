@@ -47,7 +47,7 @@ export default function BroadcastManager({ currentBroadcast }) {
         <h3 className="text-sm font-semibold text-foreground">Broadcast to All Users</h3>
         {active && (
           <span className="ml-auto text-[10px] text-green-400 flex items-center gap-1">
-            <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
             Live
           </span>
         )}

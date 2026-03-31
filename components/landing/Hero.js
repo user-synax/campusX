@@ -57,7 +57,7 @@ export default function Hero() {
         {/* Gradient mesh */}
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl opacity-50" />
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl opacity-50" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-orange-500/5 rounded-full blur-3xl opacity-30" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-150 h-150 bg-orange-500/5 rounded-full blur-3xl opacity-30" />
         
         {/* Subtle grid */}
         <div 
@@ -76,7 +76,7 @@ export default function Hero() {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
           </span>
-          Exclusive for Indian College Students
+          Exclusive for College Students and learners
         </div>
 
         {/* Headline — GSAP animated on mount */}
@@ -100,8 +100,6 @@ export default function Hero() {
             </span>
           </h1>
         </div>
-
-        {/* Subheadline */}
         <p 
           ref={subRef} 
           className="text-lg md:text-xl lg:text-2xl text-white/60 max-w-2xl mx-auto leading-relaxed font-medium"
@@ -113,22 +111,22 @@ export default function Hero() {
         {/* CTA Buttons */}
         <div ref={ctaRef} className="flex flex-col sm:flex-row gap-4 justify-center items-center">
           <Link href="/signup" className="w-full sm:w-auto">
-            <Button size="lg" className="w-full sm:w-auto h-14 px-10 text-lg font-bold rounded-full bg-white text-black hover:bg-white/90 transition-all shadow-xl shadow-white/5">
+            <Button size="lg" className="w-full sm:w-auto h-14 px-10 text-lg font-bold rounded-full bg-white text-black hover:bg-white/90 hover:bg-linear-to-l hover:cursor-pointer transition-all shadow-xl shadow-white/5">
               Join CampusX Now
             </Button>
           </Link>
           <a href="#features" className="w-full sm:w-auto">
-            <Button size="lg" variant="outline" className="w-full sm:w-auto h-14 px-10 text-lg font-bold rounded-full border-white/10 bg-white/5 hover:bg-white/10 backdrop-blur-sm transition-all">
+            <Button size="lg" variant="outline" className="w-full sm:w-auto h-14 px-10 text-lg font-bold rounded-full border-white/10 hover:cursor-pointer bg-white/5 hover:bg-white/10 backdrop-blur-sm transition-all">
               Explore Features
             </Button>
           </a>
         </div>
 
         {/* Social proof */}
-        <div className="pt-8 flex flex-col items-center gap-4">
+        {/* <div className="pt-8 flex flex-col items-center gap-4">
           <div className="flex -space-x-3">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="w-10 h-10 rounded-full border-2 border-[#0f0f0f] bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center text-[10px] font-bold">
+              <div key={i} className="w-10 h-10 rounded-full border-2 border-[#0f0f0f] bg-linear-to-br from-gray-700 to-gray-900 flex items-center justify-center text-[10px] font-bold">
                 U{i}
               </div>
             ))}
@@ -139,7 +137,7 @@ export default function Hero() {
           <p className="text-sm font-medium text-white/40 uppercase tracking-widest">
             Trusted by students across 100+ colleges
           </p>
-        </div>
+        </div> */}
       </div>
     </section>
   )
