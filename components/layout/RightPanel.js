@@ -59,7 +59,7 @@ export default function RightPanel() {
   return (
     <aside className="hidden xl:block fixed right-0 top-0 h-screen w-87.5 p-4 overflow-y-auto custom-scrollbar">
       {/* Trending */}
-      <Card className="bg-top border-border">
+      <Card className="bg-top border-border mb-2">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg font-bold">Trending on CampusX</CardTitle>
         </CardHeader>
@@ -85,7 +85,7 @@ export default function RightPanel() {
       </Card>
 
       {/* Trending Hashtags */}
-      <Card className="bg-card/50 border-border">
+      <Card className="bg-card/50 border-border  mb-2">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg font-bold">Trending Hashtags</CardTitle>
         </CardHeader>
@@ -111,7 +111,7 @@ export default function RightPanel() {
       </Card>
 
       {/* Upcoming Events */}
-      <Card className="bg-card/50 border-border">
+      <Card className="bg-card/50 border-border  mb-2">
         <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
           <CardTitle className="text-lg font-bold">Upcoming Events</CardTitle>
           <Link href="/events" className="text-xs text-primary hover:underline font-medium">View all</Link>
@@ -151,7 +151,7 @@ export default function RightPanel() {
       </Card>
 
       {/* Suggestions */}
-      <Card className="bg-card/50 border-border">
+      <Card className="bg-card/50 border-border  mb-2">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg font-bold">Who to Follow</CardTitle>
         </CardHeader>
