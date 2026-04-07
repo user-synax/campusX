@@ -147,7 +147,7 @@ export default function ResourceCard({ resource, currentUserId }) {
                     </div>
 
                     {/* File size */}
-                    <p className="text-[10px] text-muted-foreground/60 font-mono font-bold flex-shrink-0">
+                    <p className="text-[10px] text-muted-foreground/60 font-mono font-bold shrink-0">
                         {formatFileSize(resource.fileSize)}
                     </p>
                 </div>
@@ -184,7 +184,7 @@ export default function ResourceCard({ resource, currentUserId }) {
                     </div>
 
                     {/* Engagement Stats */}
-                    <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground/50 flex-shrink-0">
+                    <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground/50  shrink-0">
                         <span
                             title="Downloads"
                             className="flex items-center gap-0.5"
