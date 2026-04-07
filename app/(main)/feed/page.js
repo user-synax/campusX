@@ -83,7 +83,7 @@ export default function FeedPage() {
       {/* Feed header */}
       <div className="sticky top-0 bg-background/80 backdrop-blur-md border-b border-border p-4 z-20">
         <h1 className="text-lg sm:text-2xl font-bold tracking-tight truncate">
-          Welcome back, {currentUser?.name || 'User'}
+          Hey, {currentUser?.name || 'User'}
         </h1>
       </div>
       
@@ -95,7 +95,7 @@ export default function FeedPage() {
 
       {/* New posts toast/button */}
       {newPostsAvailable > 0 && (
-        <div className="sticky top-[73px] z-10 flex justify-center py-2 animate-in fade-in slide-in-from-top-2">
+        <div className="sticky top-18.25 z-10 flex justify-center py-2 animate-in fade-in slide-in-from-top-2">
           <Button 
             variant="secondary" 
             size="sm" 

@@ -57,9 +57,9 @@ export default function RightPanel() {
   }
 
   return (
-    <aside className="hidden xl:block fixed right-0 top-0 h-screen w-[350px] p-4 overflow-y-auto custom-scrollbar">
+    <aside className="hidden xl:block fixed right-0 top-0 h-screen w-87.5 p-4 overflow-y-auto custom-scrollbar">
       {/* Trending */}
-      <Card className="bg-card/50 border-border">
+      <Card className="bg-top border-border">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg font-bold">Trending on CampusX</CardTitle>
         </CardHeader>

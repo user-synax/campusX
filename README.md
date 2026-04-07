@@ -65,7 +65,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 - `models/`: Mongoose schemas for User, Post, and Comment.
 - `public/`: Static assets.
 - `utils/`: Helper functions for formatting and validation.
-- `middleware.js`: Edge-compatible route protection.
+- `proxy.js`: Edge-compatible route protection.
 
 ## 📝 License
 MIT

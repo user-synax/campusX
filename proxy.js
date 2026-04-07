@@ -4,7 +4,7 @@ import { getClientIP } from './lib/rate-limit';
 
 const protectedRoutes = ['/feed', '/profile', '/community', '/bookmarks', '/wallet', '/shop'];
 
-export async function middleware(request) {
+export async function proxy(request) {
   const { pathname } = request.nextUrl;
 
   // 1. Check IP ban for ALL API routes
