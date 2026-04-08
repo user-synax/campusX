@@ -463,7 +463,7 @@ export default function WhiteboardPanel({ roomId, currentUser }) {
               Error: {tldrawError}
             </div>
           ) : store ? (
-            <Tldraw onMount={handleMount} inferDarkMode />
+            <Tldraw licenseKey="tldraw-2026-07-17/WyJOY3ZKcHhPUiIsWyIqIl0sMTYsIjIwMjYtMDctMTciXQ.AH+0Q+TBUc2oDioegRPpAHf4wLJmc1PvUeoJf2RCxDJ2aoBjQNW5vhHiprW8u8/hVBhXl2Fgc6aeFusofbMiTw" onMount={handleMount} inferDarkMode />
           ) : (
             <div className="flex items-center justify-center h-full text-zinc-500">
               Loading...

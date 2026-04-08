@@ -75,7 +75,7 @@ export default function Sidebar() {
     { label: "Chats", href: "/chats", icon: MessageSquare, badge: chatUnread },
     { label: "Communities", href: "/community", icon: GraduationCap },
     { label: "Events", href: "/events", icon: Calendar },
-    { label: "Study Rooms", href: "/study-rooms", icon: MonitorPlay },
+    { label: "Code Arena", href: "/study-rooms", icon: MonitorPlay },
     { label: "Whiteboard", href: "/whiteboard", icon: PencilLine },
     { label: "Leaderboard", href: "/leaderboard", icon: Trophy },
     { label: "Bookmarks", href: "/bookmarks", icon: Bookmark },

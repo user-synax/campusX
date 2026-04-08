@@ -4,6 +4,39 @@ import connectDB from '@/lib/db';
 import StudyRoom from '@/models/StudyRoom';
 import { validateObjectId } from '@/utils/validators';
 
+async function createSystemMessage(roomId, content) {
+  const RoomMessage = (await import('@/models/RoomMessage')).default;
+  const message = await RoomMessage.create({
+    roomId,
+    sender: 'system',
+    content,
+    type: 'system',
+  });
+  
+  try {
+    const Pusher = require('pusher');
+    const pusherInstance = new Pusher({
+      appId: process.env.PUSHER_APP_ID,
+      key: process.env.NEXT_PUBLIC_PUSHER_KEY,
+      secret: process.env.PUSHER_SECRET,
+      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
+      useTLS: true,
+    });
+    pusherInstance.trigger(`private-room-${roomId}`, 'new-room-message', {
+      id: message._id.toString(),
+      roomId: message.roomId.toString(),
+      sender: { _id: 'system', name: 'System' },
+      content: message.content,
+      type: message.type,
+      createdAt: message.createdAt.toISOString(),
+    });
+  } catch (e) {
+    console.error('[Sync-Canvas System Message Pusher]', e);
+  }
+  
+  return message;
+}
+
 export async function POST(request, { params }) {
   const { roomId } = await params;
   try {
@@ -17,7 +50,7 @@ export async function POST(request, { params }) {
     }
 
     const body = await request.json();
-    const { snapshot } = body;
+    const { snapshot, clear } = body;
 
     await connectDB();
 
@@ -38,6 +71,10 @@ export async function POST(request, { params }) {
 
     room.canvasSnapshot = snapshot;
     await room.save();
+    
+    if (clear) {
+      await createSystemMessage(roomId, `${currentUser.name} cleared the whiteboard`);
+    }
 
     return NextResponse.json({ ok: true });
   } catch (error) {

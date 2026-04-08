@@ -10,6 +10,7 @@ import {
   Globe,
   Lock,
   Loader2,
+  MessageSquare,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,7 @@ import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/comp
 import { cn } from "@/lib/utils";
 import DesktopOnly from "@/components/study-rooms/DesktopOnly";
 import CodeEditorPanel from "@/components/study-rooms/CodeEditorPanel";
+import ChatPanel from "@/components/study-rooms/ChatPanel";
 import useUser from "@/hooks/useUser";
 
 const CURSOR_COLORS = ["#60a5fa", "#f472b6", "#34d399", "#fb923c", "#a78bfa", "#facc15"];
@@ -44,6 +46,8 @@ export default function StudyRoomPage({ params }) {
   const [leaving, setLeaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [participants, setParticipants] = useState([]);
+  const [chatOpen, setChatOpen] = useState(true);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     setIsDesktop(window.innerWidth >= 1024);
@@ -113,6 +117,13 @@ export default function StudyRoomPage({ params }) {
       toast.error("Failed to delete room");
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handleChatToggle = (open) => {
+    setChatOpen(open);
+    if (open) {
+      setUnreadCount(0);
     }
   };
 
