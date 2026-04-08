@@ -23,25 +23,28 @@ export default function MainLayout({ children }) {
   
   // Check if we are in study rooms (list page or room page)
   const isStudyRoom = pathname.startsWith('/study-rooms')
+  
+  // Check if we are on whiteboard (full screen mode)
+  const isWhiteboard = pathname === '/whiteboard'
 
   return (
     <NotificationProvider>
-      <div className="flex min-h-screen bg-background text-foreground selection:bg-primary/20 overflow-x-hidden">
-        {/* Fixed Left Sidebar */}
-        <Sidebar />
+      <div className={`flex min-h-screen bg-zinc-950 text-foreground selection:bg-primary/20 overflow-hidden ${isWhiteboard ? 'fixed inset-0' : ''}`}>
+        {/* Fixed Left Sidebar - Hide for whiteboard */}
+        {!isWhiteboard && <Sidebar />}
 
         {/* Main Content Area */}
-        <main className={`flex-1 flex flex-col md:ml-[72px] lg:ml-[280px] ${isStudyRoom ? '' : 'xl:mr-[350px]'} ${isChatRoom ? 'pb-0 h-[100dvh] overflow-hidden' : 'pb-20 min-h-screen'} md:pb-0 overflow-x-hidden`}>
+        <main className={`flex-1 flex flex-col ${isWhiteboard ? 'm-0 w-screen h-screen' : 'md:ml-[72px] lg:ml-[280px]'} ${isStudyRoom || isWhiteboard ? '' : 'xl:mr-[350px]'} ${isChatRoom ? 'pb-0 h-[100dvh] overflow-hidden' : 'pb-20 min-h-screen'} md:pb-0 overflow-x-hidden`}>
           {/* Broadcast banner — site-wide announcement */}
-          {!isStudyRoom && <BroadcastBanner />}
+          {!isStudyRoom && !isWhiteboard && <BroadcastBanner />}
 
-          <div className={`w-full ${isStudyRoom ? 'max-w-7xl mx-auto' : 'max-w-2xl border-x'} border-border ${isChatRoom ? 'flex-1 h-full overflow-hidden' : 'min-h-screen'} bg-background/50 backdrop-blur-sm ${!isStudyRoom ? 'self-center' : ''}`}>
+          <div className={`w-full ${isStudyRoom ? 'max-w-7xl mx-auto' : isWhiteboard ? '' : 'max-w-2xl border-x'} border-border ${isChatRoom ? 'flex-1 h-full overflow-hidden' : isWhiteboard ? 'flex-1 h-full' : 'min-h-screen'} bg-background/50 backdrop-blur-sm ${!isStudyRoom && !isWhiteboard ? 'self-center' : ''}`}>
             {children}
           </div>
         </main>
 
-        {/* Fixed Right Panel - Hide for study rooms */}
-        {!isStudyRoom && <RightPanel />}
+        {/* Fixed Right Panel - Hide for study rooms and whiteboard */}
+        {!isStudyRoom && !isWhiteboard && <RightPanel />}
 
         {/* Mobile Bottom Navigation — Hide in chat room */}
         {!isChatRoom && <MobileNav />}

@@ -26,7 +26,7 @@ export default function WhiteboardPage() {
 
   if (loading || !isDesktop) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+      <div className="fixed inset-0 bg-zinc-950 flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-zinc-500" />
       </div>
     );
@@ -36,9 +36,5 @@ export default function WhiteboardPage() {
     return null;
   }
 
-  return (
-    <div className="h-[100dvh] overflow-hidden">
-      <PersonalWhiteboard />
-    </div>
-  );
+  return <PersonalWhiteboard />;
 }

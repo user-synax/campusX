@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { Tldraw, createTLStore, defaultShapeUtils, defaultBindingUtils } from "@tldraw/tldraw";
 import "@tldraw/tldraw/tldraw.css";
 import { toast } from "sonner";
@@ -9,6 +10,7 @@ import {
   Download,
   Undo,
   Redo,
+  ArrowLeft,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,6 +29,7 @@ export default function PersonalWhiteboard() {
   const [showClearDialog, setShowClearDialog] = useState(false);
   const editorRef = useRef(null);
   const storeRef = useRef(null);
+  const router = useRouter();
 
   const store = useMemo(() => {
     const newStore = createTLStore({
@@ -81,9 +84,21 @@ export default function PersonalWhiteboard() {
   }, []);
 
   return (
-    <div className="flex flex-col h-full overflow-hidden bg-zinc-950">
-      <div className="flex items-center justify-between px-4 py-2 border-b border-zinc-800 bg-zinc-900/80 shrink-0">
+    <div className="flex flex-col h-full w-full overflow-hidden bg-zinc-950">
+      <div className="flex items-center justify-between px-4 py-2 border-b border-zinc-800 bg-zinc-900/80 shrink-0 z-10">
         <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => router.push("/feed")}
+            className="text-zinc-400 hover:text-zinc-200"
+            title="Go Back"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
+
+          <div className="w-px h-6 bg-zinc-700 mx-1" />
+
           <AlertDialog open={showClearDialog} onOpenChange={setShowClearDialog}>
             <AlertDialogTrigger asChild>
               <Button variant="ghost" size="icon" className="text-zinc-400 hover:text-zinc-200">
@@ -143,10 +158,8 @@ export default function PersonalWhiteboard() {
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 overflow-hidden">
-        <div style={{ position: "absolute", inset: 0 }}>
-          <Tldraw store={store} onMount={handleMount} inferDarkMode />
-        </div>
+      <div className="flex-1 w-full h-full relative overflow-hidden">
+        <Tldraw store={store} onMount={handleMount} inferDarkMode />
       </div>
     </div>
   );
