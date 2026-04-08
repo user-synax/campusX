@@ -44,12 +44,13 @@ const nextConfig = {
             key: 'Content-Security-Policy', 
             value: [ 
               "default-src 'self'", 
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.youtube.com",  // Next.js needs unsafe-eval 
-              "style-src 'self' 'unsafe-inline'", 
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.youtube.com https://cdn.jsdelivr.net https://cdn.tldraw.com",  // Next.js needs unsafe-eval, Monaco, tldraw
+              "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.tldraw.com", 
               "img-src 'self' data: https: http: blob: https://utfs.io https://*.uploadthing.com https://*.ufs.sh",  // allow all external images
-              "connect-src 'self' https://api.anthropic.com wss://*.pusher.com https://*.pusher.com https://www.googleapis.com https://*.uploadthing.com https://*.ingest.uploadthing.com", 
-              "font-src 'self'", 
+              "connect-src 'self' https://api.anthropic.com wss://*.pusher.com https://*.pusher.com https://www.googleapis.com https://*.uploadthing.com https://*.ingest.uploadthing.com https://cdn.jsdelivr.net https://cdn.tldraw.com https://cdn.jsdelivr.net/npm/monaco-editor@0.55.1", 
+              "font-src 'self' https://cdn.jsdelivr.net https://cdn.tldraw.com data:", 
               "frame-src 'self' https://www.youtube.com", 
+              "worker-src 'self' blob:", 
             ].join('; ') 
           } 
         ] 
