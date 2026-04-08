@@ -1,14 +1,11 @@
 "use client";
 
-import { useState, useEffect, useRef, use } from "react";
+import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { createTLStore, defaultShapeUtils } from "@tldraw/tldraw";
 import {
   Code2,
-  PenLine,
   LogOut,
-  Users,
   BookOpen,
   Globe,
   Lock,
@@ -32,7 +29,6 @@ import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/comp
 import { cn } from "@/lib/utils";
 import DesktopOnly from "@/components/study-rooms/DesktopOnly";
 import CodeEditorPanel from "@/components/study-rooms/CodeEditorPanel";
-import WhiteboardPanel from "@/components/study-rooms/WhiteboardPanel";
 import useUser from "@/hooks/useUser";
 
 const CURSOR_COLORS = ["#60a5fa", "#f472b6", "#34d399", "#fb923c", "#a78bfa", "#facc15"];
@@ -45,14 +41,9 @@ export default function StudyRoomPage({ params }) {
   const [isDesktop, setIsDesktop] = useState(null);
   const [room, setRoom] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [mode, setMode] = useState("code");
   const [leaving, setLeaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [participants, setParticipants] = useState([]);
-  const whiteboardStoreRef = useRef(null);
-  if (!whiteboardStoreRef.current) {
-    whiteboardStoreRef.current = createTLStore({ shapeUtils: defaultShapeUtils });
-  }
 
   useEffect(() => {
     setIsDesktop(window.innerWidth >= 1024);
@@ -238,48 +229,13 @@ export default function StudyRoomPage({ params }) {
           </div>
         </div>
 
-        <div className="shrink-0 border-b border-zinc-800 bg-zinc-900/30">
-          <div className="flex items-center justify-center gap-2 py-2">
-            <Button
-              variant={mode === "code" ? "default" : "ghost"}
-              onClick={() => setMode("code")}
-              className={cn(
-                "rounded-full px-6",
-                mode === "code" ? "bg-blue-600" : "text-zinc-400"
-              )}
-            >
-              <Code2 className="w-4 h-4 mr-2" />
-              Code Editor
-            </Button>
-            <Button
-              variant={mode === "whiteboard" ? "default" : "ghost"}
-              onClick={() => setMode("whiteboard")}
-              className={cn(
-                "rounded-full px-6",
-                mode === "whiteboard" ? "bg-blue-600" : "text-zinc-400"
-              )}
-            >
-              <PenLine className="w-4 h-4 mr-2" />
-              Whiteboard
-            </Button>
-          </div>
-        </div>
-
         <div className="flex-1 min-h-0 overflow-hidden">
-          {mode === "code" ? (
-            <CodeEditorPanel
-              roomId={roomId}
-              currentUser={currentUser}
-              initialCode={room.codeSnapshot?.code}
-              initialLanguage={room.codeSnapshot?.language}
-            />
-          ) : (
-            <WhiteboardPanel
-              roomId={roomId}
-              currentUser={currentUser}
-              store={whiteboardStoreRef.current}
-            />
-          )}
+          <CodeEditorPanel
+            roomId={roomId}
+            currentUser={currentUser}
+            initialCode={room.codeSnapshot?.code}
+            initialLanguage={room.codeSnapshot?.language}
+          />
         </div>
 
         {canDelete && (

@@ -5,12 +5,14 @@ import dynamic from "next/dynamic";
 import { toast } from "sonner";
 import {
   Copy,
-  FlaskConical,
+  Play,
   Loader2,
   Users,
   Check,
   Wifi,
   WifiOff,
+  X,
+  Terminal,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -22,7 +24,7 @@ const MonacoEditor = dynamic(() => import("@monaco-editor/react"), { ssr: false 
 const CURSOR_COLORS = ["#60a5fa", "#f472b6", "#34d399", "#fb923c", "#a78bfa", "#facc15"];
 const LANGUAGES = [
   { value: "javascript", label: "JavaScript" },
-  { value: "python",: "Python" },
+  { value: "python", label: "Python" },
   { value: "cpp", label: "C++" },
   { value: "java", label: "Java" },
   { value: "rust", label: "Rust" },
@@ -36,6 +38,10 @@ export default function CodeEditorPanel({ roomId, currentUser, initialCode, init
   const [collaborators, setCollaborators] = useState([]);
   const [connectionStatus, setConnectionStatus] = useState("connecting");
   const [remoteCursors, setRemoteCursors] = useState({});
+  const [showOutput, setShowOutput] = useState(false);
+  const [output, setOutput] = useState([]);
+  const [executionError, setExecutionError] = useState(null);
+  const [isExecuting, setIsExecuting] = useState(false);
 
   const channelRef = useRef(null);
   const saveTimeoutRef = useRef(null);
@@ -61,6 +67,7 @@ export default function CodeEditorPanel({ roomId, currentUser, initialCode, init
     if (!userId) return;
 
     let mounted = true;
+    const channelName = `private-room-${roomId}`;
 
     const initChannel = async () => {
       try {
@@ -70,31 +77,43 @@ export default function CodeEditorPanel({ roomId, currentUser, initialCode, init
           return;
         }
 
-        const existingChannel = pusher.channel(`private-room-${roomId}`);
-        if (existingChannel) {
-          pusher.unsubscribe(`private-room-${roomId}`);
+        // Check connection state
+        if (pusher.connection.state !== 'connected') {
+          console.log("[Pusher] Waiting for connection...");
+          await new Promise((resolve) => {
+            pusher.connection.bind('connected', resolve);
+          });
         }
 
-        const channel = pusher.subscribe(`private-room-${roomId}`);
+        if (!mounted) return;
+
+        // Subscribe
+        const channel = pusher.subscribe(channelName);
         channelRef.current = channel;
 
+        // Handle subscription events
         channel.bind("pusher:subscription_succeeded", () => {
-          if (mounted) {
-            setConnectionStatus("connected");
-            setTimeout(() => {
-              if (channelRef.current) {
-                channelRef.current.trigger("client-user-joined", {
-                  id: userId,
-                  name: userName,
-                  avatar: userAvatar,
-                  color: myColorRef.current,
-                });
-              }
-            }, 500);
-          }
+          if (!mounted) return;
+          console.log("[Pusher] Subscription succeeded");
+          setConnectionStatus("connected");
+          
+          // Announce presence after a brief delay
+          const triggerPresence = () => {
+            if (channel.subscribed) {
+              channel.trigger("client-user-joined", {
+                id: userId,
+                name: userName,
+                avatar: userAvatar,
+                color: myColorRef.current,
+              });
+            }
+          };
+          
+          setTimeout(triggerPresence, 500);
         });
 
         channel.bind("pusher:subscription_error", (err) => {
+          console.error("[Pusher] Subscription error:", err);
           if (mounted) setConnectionStatus("disconnected");
         });
 
@@ -115,7 +134,6 @@ export default function CodeEditorPanel({ roomId, currentUser, initialCode, init
         channel.bind("client-user-left", (data) => {
           if (!mounted) return;
           setCollaborators((prev) => prev.filter((c) => c.id !== data.id));
-          // Remove cursor
           setRemoteCursors((prev) => {
             const next = { ...prev };
             delete next[data.id];
@@ -142,6 +160,7 @@ export default function CodeEditorPanel({ roomId, currentUser, initialCode, init
 
         channel.bind("client-cursor-update", (data) => {
           if (!mounted || data.userId === userId) return;
+          console.log("[Pusher] Cursor update from:", data.name, "at line", data.position?.lineNumber);
           setRemoteCursors((prev) => ({
             ...prev,
             [data.userId]: {
@@ -154,6 +173,7 @@ export default function CodeEditorPanel({ roomId, currentUser, initialCode, init
         });
 
       } catch (error) {
+        console.error("[Pusher] Init error:", error);
         if (mounted) setConnectionStatus("disconnected");
       }
     };
@@ -165,8 +185,16 @@ export default function CodeEditorPanel({ roomId, currentUser, initialCode, init
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
       
       if (channelRef.current) {
-        channelRef.current.trigger("client-user-left", { id: userId, name: userName });
-        channelRef.current.unsubscribe();
+        // Trigger leave event if subscribed
+        try {
+          if (channelRef.current.subscribed) {
+            channelRef.current.trigger("client-user-left", { id: userId, name: userName });
+          }
+        } catch (e) {}
+        
+        // Unsubscribe
+        getPusherClient()?.unsubscribe(channelName);
+        channelRef.current = null;
       }
     };
   }, [roomId, userId, userName, userAvatar]);
@@ -180,6 +208,8 @@ export default function CodeEditorPanel({ roomId, currentUser, initialCode, init
     const model = editor.getModel();
     if (!model) return;
 
+    console.log("[Cursors] Updating decorations for:", Object.keys(remoteCursors).length, "cursors");
+
     const newDecorations = [];
 
     Object.values(remoteCursors).forEach((cursor) => {
@@ -189,27 +219,30 @@ export default function CodeEditorPanel({ roomId, currentUser, initialCode, init
         const pos = cursor.position;
         const safePos = model.validatePosition(pos);
         
+        console.log("[Cursors] Adding cursor for", cursor.name, "at line", pos.lineNumber);
+        
         newDecorations.push({
-          range: new monaco.Range(safePos.lineNumber, safePos.column, safePos.lineNumber, safePos.column),
+          range: new monaco.Range(safePos.lineNumber, safePos.column, safePos.lineNumber, safePos.column + 1),
           options: {
             className: `remote-cursor-${cursor.userId}`,
-            beforeContentClassName: `remote-cursor-marker`,
-            hoverMessage: { value: cursor.name },
             stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
+            hoverMessage: { value: cursor.name },
+            afterContentClassName: `remote-cursor-label-${cursor.userId}`,
           },
         });
       } catch (e) {
-        // Skip invalid positions
+        console.error("[Cursors] Error:", e);
       }
     });
 
     decorationsRef.current = editor.deltaDecorations(decorationsRef.current, newDecorations);
 
-    // Add CSS for cursor colors
-    let styleEl = document.getElementById('remote-cursor-styles');
+    // Add CSS for cursor colors dynamically
+    const styleId = 'remote-cursor-styles-' + roomId;
+    let styleEl = document.getElementById(styleId);
     if (!styleEl) {
       styleEl = document.createElement('style');
-      styleEl.id = 'remote-cursor-styles';
+      styleEl.id = styleId;
       document.head.appendChild(styleEl);
     }
 
@@ -217,42 +250,67 @@ export default function CodeEditorPanel({ roomId, currentUser, initialCode, init
     Object.values(remoteCursors).forEach((cursor) => {
       css += `
         .remote-cursor-${cursor.userId} {
-          background-color: ${cursor.color};
+          position: relative;
         }
-        .remote-cursor-marker.remote-cursor-${cursor.userId}::before {
-          content: '${cursor.name}';
+        .remote-cursor-${cursor.userId}::after {
+          content: '';
           position: absolute;
-          top: -18px;
           left: 0;
+          top: 0;
+          bottom: 0;
+          width: 2px;
           background: ${cursor.color};
+          animation: cursor-blink 1s infinite;
+        }
+        .remote-cursor-label-${cursor.userId} {
+          content: '${cursor.name}';
           color: white;
+          background: ${cursor.color};
           padding: 1px 4px;
           border-radius: 3px;
           font-size: 10px;
+          margin-left: 4px;
           white-space: nowrap;
-          pointer-events: none;
+        }
+        @keyframes cursor-blink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
         }
       `;
     });
     styleEl.textContent = css;
 
-  }, [remoteCursors]);
+  }, [remoteCursors, roomId]);
 
   const handleEditorMount = useCallback((editor, monaco) => {
     editorRef.current = editor;
     monacoRef.current = monaco;
 
+    let lastCursorTrigger = 0;
+    const CURSOR_THROTTLE = 100; // Max 10 cursor updates per second
+
     // Track cursor position
     editor.onDidChangeCursorPosition((e) => {
-      if (!channelRef.current || !userId) return;
+      if (!userId) return;
 
-      channelRef.current.trigger("client-cursor-update", {
-        userId: userId,
-        name: userName,
-        color: myColorRef.current,
-        position: e.position,
-      });
+      const now = Date.now();
+      if (now - lastCursorTrigger < CURSOR_THROTTLE) return;
+      lastCursorTrigger = now;
+
+      try {
+        if (channelRef.current?.subscribed) {
+          channelRef.current.trigger("client-cursor-update", {
+            userId: userId,
+            name: userName,
+            color: myColorRef.current,
+            position: e.position,
+          });
+        }
+      } catch (e) {}
     });
+
+    let lastCodeTrigger = 0;
+    const CODE_THROTTLE = 300; // Max ~3 code syncs per second
 
     // Track content changes
     editor.onDidChangeModelContent(() => {
@@ -262,12 +320,19 @@ export default function CodeEditorPanel({ roomId, currentUser, initialCode, init
       setCode(newCode);
       setStateSaved(false);
 
-      if (channelRef.current) {
-        channelRef.current.trigger("client-code-change", {
-          code: newCode,
-          language,
-          senderId: userId,
-        });
+      const now = Date.now();
+      if (now - lastCodeTrigger >= CODE_THROTTLE) {
+        lastCodeTrigger = now;
+        
+        try {
+          if (channelRef.current?.subscribed) {
+            channelRef.current.trigger("client-code-change", {
+              code: newCode,
+              language,
+              senderId: userId,
+            });
+          }
+        } catch (e) {}
       }
 
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
@@ -291,13 +356,15 @@ export default function CodeEditorPanel({ roomId, currentUser, initialCode, init
     setLanguage(newLang);
     setStateSaved(false);
 
-    if (channelRef.current) {
-      channelRef.current.trigger("client-code-change", {
-        code: editorRef.current?.getValue() || code,
-        language: newLang,
-        senderId: userId,
-      });
-    }
+    try {
+      if (channelRef.current?.subscribed) {
+        channelRef.current.trigger("client-code-change", {
+          code: editorRef.current?.getValue() || code,
+          language: newLang,
+          senderId: userId,
+        });
+      }
+    } catch (e) {}
 
     try {
       await fetch(`/api/study-rooms/${roomId}/sync-code`, {
@@ -314,6 +381,36 @@ export default function CodeEditorPanel({ roomId, currentUser, initialCode, init
       await navigator.clipboard.writeText(code);
       toast.success("Copied!");
     } catch {}
+  };
+
+  const handleExecuteCode = async () => {
+    setIsExecuting(true);
+    setShowOutput(true);
+    setOutput([]);
+    setExecutionError(null);
+
+    try {
+      const res = await fetch(`/api/study-rooms/${roomId}/execute-code`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, language }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setOutput(data.output || []);
+        if (data.output?.length === 0) {
+          setOutput(["(No output)"]);
+        }
+      } else {
+        setExecutionError(data.error || "Execution failed");
+      }
+    } catch (error) {
+      setExecutionError("Failed to execute code");
+    } finally {
+      setIsExecuting(false);
+    }
   };
 
   return (
@@ -353,18 +450,53 @@ export default function CodeEditorPanel({ roomId, currentUser, initialCode, init
 
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" disabled className="text-zinc-600">
-                  <FlaskConical className="w-4 h-4" />
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={handleExecuteCode}
+                  disabled={isExecuting || language !== "javascript"}
+                  className={language === "javascript" ? "text-green-500 hover:text-green-400" : "text-zinc-600"}
+                >
+                  {isExecuting ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Play className="w-4 h-4" />
+                  )}
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Coming soon</TooltipContent>
+              <TooltipContent>
+                {language === "javascript" ? "Run Code" : "Only JS supported"}
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => setShowOutput(!showOutput)}
+                  className={showOutput ? "text-blue-400" : "text-zinc-400"}
+                >
+                  <Terminal className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Toggle Output</TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" onClick={handleCopyCode} className="text-zinc-400 hover:text-zinc-200">
+                  <Copy className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Copy</TooltipContent>
             </Tooltip>
           </div>
         </div>
 
-        <div className="flex-1 min-h-0 overflow-hidden relative">
+        <div className="flex-1 min-h-0 overflow-hidden relative flex flex-col">
           <MonacoEditor
-            height="100%"
+            height={showOutput ? "70%" : "100%"}
             language={language}
             value={code}
             onMount={handleEditorMount}
@@ -385,6 +517,42 @@ export default function CodeEditorPanel({ roomId, currentUser, initialCode, init
               padding: { top: 8, bottom: 8 },
             }}
           />
+
+          {showOutput && (
+            <div className="h-[30%] border-t border-zinc-700 bg-zinc-900 flex flex-col">
+              <div className="flex items-center justify-between px-3 py-1.5 border-b border-zinc-800">
+                <span className="text-xs font-medium text-zinc-400">Output</span>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-5 w-5 text-zinc-500 hover:text-zinc-300"
+                  onClick={() => setShowOutput(false)}
+                >
+                  <X className="w-3 h-3" />
+                </Button>
+              </div>
+              <div className="flex-1 overflow-auto px-3 py-2 font-mono text-xs">
+                {isExecuting ? (
+                  <div className="flex items-center gap-2 text-zinc-400">
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                    Running...
+                  </div>
+                ) : executionError ? (
+                  <div className="text-red-400 whitespace-pre-wrap">
+                    ❌ Error: {executionError}
+                  </div>
+                ) : output.length > 0 ? (
+                  <div className="space-y-1">
+                    {output.map((line, i) => (
+                      <div key={i} className="text-zinc-300 whitespace-pre-wrap">{line}</div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-zinc-500 italic">Run your code to see output</div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="flex items-center justify-between px-4 py-2 border-t border-zinc-800 bg-zinc-900/80 text-xs text-zinc-500 shrink-0">
