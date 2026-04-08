@@ -4,11 +4,12 @@ import connectDB from '@/lib/db';
 import StudyRoom from '@/models/StudyRoom';
 import { validateObjectId } from '@/utils/validators';
 
-async function createSystemMessage(roomId, content) {
+async function createSystemMessage(roomId, content, user) {
   const RoomMessage = (await import('@/models/RoomMessage')).default;
+  const senderId = user && user._id ? user._id : null;
   const message = await RoomMessage.create({
     roomId,
-    sender: 'system',
+    sender: senderId,
     content,
     type: 'system',
   });
@@ -25,7 +26,7 @@ async function createSystemMessage(roomId, content) {
     pusherInstance.trigger(`private-room-${roomId}`, 'new-room-message', {
       id: message._id.toString(),
       roomId: message.roomId.toString(),
-      sender: { _id: 'system', name: 'System' },
+      sender: { _id: senderId ? senderId.toString() : 'system', name: user?.name || 'System', avatar: user?.avatar || null },
       content: message.content,
       type: message.type,
       createdAt: message.createdAt.toISOString(),
@@ -62,7 +63,7 @@ export async function POST(request, { params }) {
       p => p.toString() !== userId
     );
     await room.save();
-    await createSystemMessage(roomId, `${currentUser.name} left the room`);
+    await createSystemMessage(roomId, `${currentUser.name} left the room`, currentUser);
 
     await room.populate('creator', 'name avatar username');
     await room.populate('participants', 'name avatar username');

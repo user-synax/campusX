@@ -27,6 +27,7 @@ import {
 
 export default function PersonalWhiteboard() {
   const [showClearDialog, setShowClearDialog] = useState(false);
+  const [loading, setLoading] = useState(true);
   const editorRef = useRef(null);
   const storeRef = useRef(null);
   const router = useRouter();
@@ -42,6 +43,7 @@ export default function PersonalWhiteboard() {
 
   const handleMount = useCallback((editor) => {
     editorRef.current = editor;
+    loadWhiteboard();
   }, []);
 
   const handleClearCanvas = useCallback(() => {
@@ -70,6 +72,61 @@ export default function PersonalWhiteboard() {
       toast.error("Export failed");
     }
   }, []);
+
+  // Load the user's single whiteboard
+  const loadWhiteboard = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await fetch('/api/whiteboards');
+      if (!res.ok) {
+        const err = await res.json().catch(() => null);
+        toast.error(err?.error || `Failed to load whiteboard (${res.status})`);
+        return;
+      }
+      const data = await res.json();
+
+      const rawSnapshot = data.snapshot;
+      if (!rawSnapshot || typeof rawSnapshot !== 'object') {
+        toast.error('Invalid whiteboard format');
+        return;
+      }
+
+      // Ensure snapshot has proper tldraw v4 structure
+      // Handle both old format (document-based) and new format (schemaVersion/store)
+      let snapshot;
+      if (rawSnapshot.document && rawSnapshot.document.store) {
+        // Old format - convert to new format
+        snapshot = {
+          schemaVersion: (rawSnapshot.document.schema && rawSnapshot.document.schema.schemaVersion) || 2,
+          store: rawSnapshot.document.store || {},
+          ...(rawSnapshot.session ? { session: rawSnapshot.session } : {}),
+        };
+      } else {
+        // New format or already correct
+        snapshot = {
+          schemaVersion: rawSnapshot.schemaVersion || 2,
+          store: rawSnapshot.store || {},
+          ...rawSnapshot
+        };
+      }
+
+      if (editorRef.current?.loadSnapshot) {
+        try {
+          editorRef.current.loadSnapshot(snapshot);
+        } catch (loadErr) {
+          console.error('Snapshot load error:', loadErr);
+          toast.error('Failed to load whiteboard format');
+        }
+      }
+    } catch (e) {
+      console.error('Load error:', e);
+      toast.error('Failed to load whiteboard');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // No save functionality for now.
 
   const handleUndo = useCallback(() => {
     if (editorRef.current) {
@@ -145,7 +202,12 @@ export default function PersonalWhiteboard() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 relative">
+          {loading && (
+            <div className="text-xs text-zinc-400 mr-2">Loading...</div>
+          )}
+
+
           <Button
             variant="ghost"
             size="icon"
@@ -159,7 +221,12 @@ export default function PersonalWhiteboard() {
       </div>
 
       <div className="flex-1 w-full h-full relative overflow-hidden">
-        <Tldraw store={store} onMount={handleMount} inferDarkMode />
+        <Tldraw
+          store={store}
+          onMount={handleMount}
+          inferDarkMode
+          licenseKey={process.env.NEXT_PUBLIC_TLDRAW_LICENSE ?? ""}
+        />
       </div>
     </div>
   );

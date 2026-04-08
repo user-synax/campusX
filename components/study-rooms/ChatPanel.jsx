@@ -193,10 +193,9 @@ export default function ChatPanel({ roomId, currentUser, isOpen, onToggle }) {
     }
   }, [userId, userName]);
 
-  if (!isOpen) return null;
 
   return (
-    <aside className="w-80 h-full border-l border-zinc-800 bg-zinc-900 flex flex-col shrink-0 transition-all duration-200">
+    <aside className={`h-full border-l border-zinc-800 bg-zinc-900 flex flex-col shrink-0 overflow-hidden transition-all duration-200 ${isOpen ? 'w-80 opacity-100' : 'w-0 opacity-0 pointer-events-none'}`}>
       <div className="h-12 flex items-center justify-between px-4 border-b border-zinc-800 shrink-0">
         <span className="text-sm font-semibold text-zinc-100">Room Chat</span>
         <Button

@@ -32,6 +32,7 @@ import DesktopOnly from "@/components/study-rooms/DesktopOnly";
 import CodeEditorPanel from "@/components/study-rooms/CodeEditorPanel";
 import ChatPanel from "@/components/study-rooms/ChatPanel";
 import useUser from "@/hooks/useUser";
+import { getPusherClient } from '@/lib/pusher-client';
 
 const CURSOR_COLORS = ["#60a5fa", "#f472b6", "#34d399", "#fb923c", "#a78bfa", "#facc15"];
 
@@ -127,6 +128,35 @@ export default function StudyRoomPage({ params }) {
     }
   };
 
+  // Listen for incoming room messages to increment unread counter when closed
+  useEffect(() => {
+    if (!roomId || !currentUser) return;
+    const pusher = getPusherClient();
+    if (!pusher) return;
+
+    const channelName = `private-room-${roomId}`;
+    const channel = pusher.subscribe(channelName);
+
+    const onNewMessage = (data) => {
+      try {
+        const senderId = data?.sender?._id || data?.sender;
+        if (String(senderId) === String(currentUser._id)) return;
+        if (!chatOpen) {
+          setUnreadCount((s) => Math.min(s + 1, 999));
+        }
+      } catch (e) {}
+    };
+
+    channel.bind('new-room-message', onNewMessage);
+
+    return () => {
+      try {
+        channel.unbind('new-room-message', onNewMessage);
+        pusher.unsubscribe(channelName);
+      } catch (e) {}
+    };
+  }, [roomId, currentUser, chatOpen]);
+
   if (isDesktop === null) return null;
   if (!isDesktop) return <DesktopOnly />;
 
@@ -209,6 +239,22 @@ export default function StudyRoomPage({ params }) {
               )}
             </div>
 
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => handleChatToggle(!chatOpen)}
+                className="relative text-zinc-400 hover:text-zinc-200"
+              >
+                <MessageSquare className="w-5 h-5" />
+                {!chatOpen && unreadCount > 0 ? (
+                  <span className="absolute -top-1 -right-1 inline-flex items-center justify-center h-5 min-w-[18px] px-1 text-[10px] font-semibold rounded-full bg-blue-500 text-white">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                ) : null}
+              </Button>
+            </div>
+
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="ghost" size="icon" className="text-zinc-400 hover:text-zinc-200">
@@ -240,12 +286,21 @@ export default function StudyRoomPage({ params }) {
           </div>
         </div>
 
-        <div className="flex-1 min-h-0 overflow-hidden">
-          <CodeEditorPanel
+        <div className="flex-1 min-h-0 overflow-hidden flex">
+          <div className="flex-1 min-h-0 overflow-hidden transition-all duration-200">
+            <CodeEditorPanel
+              roomId={roomId}
+              currentUser={currentUser}
+              initialCode={room.codeSnapshot?.code}
+              initialLanguage={room.codeSnapshot?.language}
+            />
+          </div>
+
+          <ChatPanel
             roomId={roomId}
             currentUser={currentUser}
-            initialCode={room.codeSnapshot?.code}
-            initialLanguage={room.codeSnapshot?.language}
+            isOpen={chatOpen}
+            onToggle={handleChatToggle}
           />
         </div>
 

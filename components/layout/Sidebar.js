@@ -71,16 +71,16 @@ export default function Sidebar() {
     { label: "Feed", href: "/feed", icon: Home },
     { label: "Search", href: "/search", icon: Search },
     { label: "Resources", href: "/resources", icon: BookOpen },
+    { label: "Whiteboard", href: "/whiteboard", icon: PencilLine },
     { label: "Notifications", href: "/notifications", icon: Bell, badge: unreadCount },
     { label: "Chats", href: "/chats", icon: MessageSquare, badge: chatUnread },
+    { label: "Code Area", href: "/study-rooms", icon: MonitorPlay },
     { label: "Communities", href: "/community", icon: GraduationCap },
     { label: "Events", href: "/events", icon: Calendar },
-    { label: "Code Arena", href: "/study-rooms", icon: MonitorPlay },
-    { label: "Whiteboard", href: "/whiteboard", icon: PencilLine },
     { label: "Leaderboard", href: "/leaderboard", icon: Trophy },
     { label: "Bookmarks", href: "/bookmarks", icon: Bookmark },
     { label: "Settings", href: "/settings", icon: Settings },
-    { label: "Profile", href: user?.username ? `/profile/${user.username}` : "/login", icon: User },
+    // { label: "Profile", href: user?.username ? `/profile/${user.username}` : "/login", icon: User },
   ]
 
   const handleLogout = async () => {
