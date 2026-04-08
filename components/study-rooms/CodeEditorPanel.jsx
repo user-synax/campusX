@@ -22,7 +22,7 @@ const MonacoEditor = dynamic(() => import("@monaco-editor/react"), { ssr: false 
 const CURSOR_COLORS = ["#60a5fa", "#f472b6", "#34d399", "#fb923c", "#a78bfa", "#facc15"];
 const LANGUAGES = [
   { value: "javascript", label: "JavaScript" },
-  { value: "python", label: "Python" },
+  { value: "python",: "Python" },
   { value: "cpp", label: "C++" },
   { value: "java", label: "Java" },
   { value: "rust", label: "Rust" },
@@ -35,6 +35,7 @@ export default function CodeEditorPanel({ roomId, currentUser, initialCode, init
   const [saved, setStateSaved] = useState(true);
   const [collaborators, setCollaborators] = useState([]);
   const [connectionStatus, setConnectionStatus] = useState("connecting");
+  const [remoteCursors, setRemoteCursors] = useState({});
 
   const channelRef = useRef(null);
   const saveTimeoutRef = useRef(null);
@@ -42,13 +43,12 @@ export default function CodeEditorPanel({ roomId, currentUser, initialCode, init
   const monacoRef = useRef(null);
   const isReceivingRef = useRef(false);
   const myColorRef = useRef(CURSOR_COLORS[0]);
+  const decorationsRef = useRef([]);
 
-  // Extract stable user values
   const userId = currentUser?._id || "";
   const userName = currentUser?.name || "Anonymous";
   const userAvatar = currentUser?.avatar || null;
 
-  // Assign color based on user ID
   useEffect(() => {
     if (userId) {
       const hash = userId.split("").reduce((a, c) => ((a << 5) - a + c.charCodeAt(0)) | 0, 0);
@@ -66,29 +66,23 @@ export default function CodeEditorPanel({ roomId, currentUser, initialCode, init
       try {
         const pusher = getPusherClient();
         if (!pusher) {
-          console.error("[Pusher] Client not available");
           if (mounted) setConnectionStatus("disconnected");
           return;
         }
 
-        // Unsubscribe if already subscribed
         const existingChannel = pusher.channel(`private-room-${roomId}`);
         if (existingChannel) {
           pusher.unsubscribe(`private-room-${roomId}`);
         }
 
-        console.log("[Pusher] Subscribing to private-room-" + roomId);
         const channel = pusher.subscribe(`private-room-${roomId}`);
         channelRef.current = channel;
 
         channel.bind("pusher:subscription_succeeded", () => {
-          console.log("[Pusher] Subscription succeeded! Channel:", channel.name);
           if (mounted) {
             setConnectionStatus("connected");
-            // Small delay to ensure channel is ready
             setTimeout(() => {
               if (channelRef.current) {
-                console.log("[Pusher] Triggering user-joined");
                 channelRef.current.trigger("client-user-joined", {
                   id: userId,
                   name: userName,
@@ -101,17 +95,14 @@ export default function CodeEditorPanel({ roomId, currentUser, initialCode, init
         });
 
         channel.bind("pusher:subscription_error", (err) => {
-          console.error("[Pusher] Subscription error:", err);
           if (mounted) setConnectionStatus("disconnected");
         });
 
-        // User join
         channel.bind("client-user-joined", (data) => {
           if (!mounted || data.id === userId) return;
-          console.log("[Pusher] User joined:", data);
           setCollaborators((prev) => {
             if (prev.find((c) => c.id === data.id)) return prev;
-            toast.success(`${data.name} joined the session`);
+            toast.success(`${data.name} joined`);
             return [...prev, {
               id: data.id,
               name: data.name,
@@ -121,58 +112,48 @@ export default function CodeEditorPanel({ roomId, currentUser, initialCode, init
           });
         });
 
-        // User leave
         channel.bind("client-user-left", (data) => {
           if (!mounted) return;
-          console.log("[Pusher] User left:", data);
-          setCollaborators((prev) => {
-            const filtered = prev.filter((c) => c.id !== data.id);
-            if (filtered.length !== prev.length) {
-              toast.info(`${data.name || "Someone"} left the session`);
-            }
-            return filtered;
+          setCollaborators((prev) => prev.filter((c) => c.id !== data.id));
+          // Remove cursor
+          setRemoteCursors((prev) => {
+            const next = { ...prev };
+            delete next[data.id];
+            return next;
           });
         });
 
-        // Code sync
         channel.bind("client-code-change", (data) => {
           if (!mounted || data.senderId === userId) return;
-          console.log("[Pusher] Code change from:", data.senderId);
           
-          // Mark as receiving to prevent re-broadcasting
           isReceivingRef.current = true;
-          
-          // Update state - React will handle updating the editor via value prop
           setCode(data.code || "");
           if (data.language) setLanguage(data.language);
           setStateSaved(false);
           
-          // Also directly update the editor to be sure
           if (editorRef.current) {
-            const currentValue = editorRef.current.getValue();
-            if (currentValue !== data.code) {
-              console.log("[Pusher] Updating editor directly");
-              const position = editorRef.current.getPosition();
-              editorRef.current.setValue(data.code || "");
-              if (position) {
-                editorRef.current.setPosition(position);
-              }
-            }
+            const position = editorRef.current.getPosition();
+            editorRef.current.setValue(data.code || "");
+            if (position) editorRef.current.setPosition(position);
           }
           
-          setTimeout(() => { 
-            isReceivingRef.current = false; 
-          }, 300);
+          setTimeout(() => { isReceivingRef.current = false; }, 300);
         });
 
-        // Cursor updates
         channel.bind("client-cursor-update", (data) => {
           if (!mounted || data.userId === userId) return;
-          updateRemoteCursor(data);
+          setRemoteCursors((prev) => ({
+            ...prev,
+            [data.userId]: {
+              userId: data.userId,
+              name: data.name,
+              color: data.color,
+              position: data.position,
+            },
+          }));
         });
 
       } catch (error) {
-        console.error("[Pusher] Init error:", error);
         if (mounted) setConnectionStatus("disconnected");
       }
     };
@@ -184,19 +165,14 @@ export default function CodeEditorPanel({ roomId, currentUser, initialCode, init
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
       
       if (channelRef.current) {
-        channelRef.current.trigger("client-user-left", {
-          id: userId,
-          name: userName,
-        });
+        channelRef.current.trigger("client-user-left", { id: userId, name: userName });
         channelRef.current.unsubscribe();
       }
-      
-      // Clean up all cursor elements
-      document.querySelectorAll('[id^="cursor-"]').forEach(el => el.remove());
     };
   }, [roomId, userId, userName, userAvatar]);
 
-  const updateRemoteCursor = (data) => {
+  // Update Monaco decorations when remote cursors change
+  useEffect(() => {
     if (!editorRef.current || !monacoRef.current) return;
     
     const editor = editorRef.current;
@@ -204,61 +180,69 @@ export default function CodeEditorPanel({ roomId, currentUser, initialCode, init
     const model = editor.getModel();
     if (!model) return;
 
-    const pos = data.position;
-    const safePos = model.validatePosition(pos);
+    const newDecorations = [];
 
-    // Create or update cursor element
-    let container = document.getElementById(`cursor-${data.userId}`);
-    if (!container) {
-      container = document.createElement('div');
-      container.id = `cursor-${data.userId}`;
-      container.style.cssText = `
-        position: absolute;
-        width: 2px;
-        height: 20px;
-        background: ${data.color || '#60a5fa'};
-        pointer-events: none;
-        z-index: 100;
-        transition: top 0.05s, left 0.05s;
-      `;
+    Object.values(remoteCursors).forEach((cursor) => {
+      if (!cursor.position) return;
       
-      const label = document.createElement('div');
-      label.id = `cursor-label-${data.userId}`;
-      label.style.cssText = `
-        position: absolute;
-        top: -20px;
-        left: 0;
-        background: ${data.color || '#60a5fa'};
-        color: white;
-        padding: 2px 6px;
-        border-radius: 3px;
-        font-size: 11px;
-        font-family: sans-serif;
-        white-space: nowrap;
-      `;
-      label.textContent = data.name;
-      container.appendChild(label);
-      
-      editor.getDomNode()?.appendChild(container);
+      try {
+        const pos = cursor.position;
+        const safePos = model.validatePosition(pos);
+        
+        newDecorations.push({
+          range: new monaco.Range(safePos.lineNumber, safePos.column, safePos.lineNumber, safePos.column),
+          options: {
+            className: `remote-cursor-${cursor.userId}`,
+            beforeContentClassName: `remote-cursor-marker`,
+            hoverMessage: { value: cursor.name },
+            stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
+          },
+        });
+      } catch (e) {
+        // Skip invalid positions
+      }
+    });
+
+    decorationsRef.current = editor.deltaDecorations(decorationsRef.current, newDecorations);
+
+    // Add CSS for cursor colors
+    let styleEl = document.getElementById('remote-cursor-styles');
+    if (!styleEl) {
+      styleEl = document.createElement('style');
+      styleEl.id = 'remote-cursor-styles';
+      document.head.appendChild(styleEl);
     }
 
-    // Calculate pixel position
-    const scrollTop = editor.getScrollTop();
-    const lineHeight = editor.getOption(monaco.editor.EditorOption.lineHeight);
-    const scrollLeft = editor.getScrollLeft();
-    
-    const top = (pos.lineNumber - 1) * lineHeight - scrollTop;
-    const left = editor.getScrolledVisibleColumn(pos) * editor.getOption(monaco.editor.EditorOption.fontInfo).typicalHalfwidthCharacterWidth - scrollLeft;
+    let css = '';
+    Object.values(remoteCursors).forEach((cursor) => {
+      css += `
+        .remote-cursor-${cursor.userId} {
+          background-color: ${cursor.color};
+        }
+        .remote-cursor-marker.remote-cursor-${cursor.userId}::before {
+          content: '${cursor.name}';
+          position: absolute;
+          top: -18px;
+          left: 0;
+          background: ${cursor.color};
+          color: white;
+          padding: 1px 4px;
+          border-radius: 3px;
+          font-size: 10px;
+          white-space: nowrap;
+          pointer-events: none;
+        }
+      `;
+    });
+    styleEl.textContent = css;
 
-    container.style.top = `${Math.max(0, top)}px`;
-    container.style.left = `${Math.max(0, left)}px`;
-  };
+  }, [remoteCursors]);
 
   const handleEditorMount = useCallback((editor, monaco) => {
     editorRef.current = editor;
     monacoRef.current = monaco;
 
-    // Track cursor position changes
+    // Track cursor position
     editor.onDidChangeCursorPosition((e) => {
       if (!channelRef.current || !userId) return;
 
@@ -270,36 +254,22 @@ export default function CodeEditorPanel({ roomId, currentUser, initialCode, init
       });
     });
 
-    // Track content changes - use onDidChangeModelContent for better handling
-    editor.onDidChangeModelContent((changes) => {
-      if (isReceivingRef.current) {
-        console.log("[Editor] Ignoring change (receiving)");
-        return;
-      }
+    // Track content changes
+    editor.onDidChangeModelContent(() => {
+      if (isReceivingRef.current) return;
       
       const newCode = editor.getValue();
-      console.log("[Editor] Content changed, length:", newCode.length);
       setCode(newCode);
       setStateSaved(false);
 
-      // Broadcast immediately to other clients
       if (channelRef.current) {
-        console.log("[Editor] Broadcasting change to channel");
-        try {
-          channelRef.current.trigger("client-code-change", {
-            code: newCode,
-            language,
-            senderId: userId,
-          });
-          console.log("[Editor] Trigger successful");
-        } catch (err) {
-          console.error("[Editor] Trigger failed:", err);
-        }
-      } else {
-        console.log("[Editor] No channel available");
+        channelRef.current.trigger("client-code-change", {
+          code: newCode,
+          language,
+          senderId: userId,
+        });
       }
 
-      // Debounce save to database
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
       saveTimeoutRef.current = setTimeout(async () => {
         setSaving(true);
@@ -310,8 +280,6 @@ export default function CodeEditorPanel({ roomId, currentUser, initialCode, init
             body: JSON.stringify({ code: newCode, language }),
           });
           if (res.ok) setStateSaved(true);
-        } catch (error) {
-          console.error("Save failed:", error);
         } finally {
           setSaving(false);
         }
@@ -338,24 +306,19 @@ export default function CodeEditorPanel({ roomId, currentUser, initialCode, init
         body: JSON.stringify({ code, language: newLang }),
       });
       setStateSaved(true);
-    } catch (error) {
-      console.error("Language change failed:", error);
-    }
+    } catch (e) {}
   };
 
   const handleCopyCode = async () => {
     try {
       await navigator.clipboard.writeText(code);
       toast.success("Copied!");
-    } catch {
-      toast.error("Failed");
-    }
+    } catch {}
   };
 
   return (
     <TooltipProvider>
       <div className="flex flex-col h-full overflow-hidden">
-        {/* Toolbar */}
         <div className="flex items-center justify-between px-4 py-2 border-b border-zinc-800 bg-zinc-900/80 shrink-0">
           <Select value={language} onValueChange={handleLanguageChange}>
             <SelectTrigger className="w-[140px] bg-zinc-800 border-zinc-700">
@@ -373,15 +336,9 @@ export default function CodeEditorPanel({ roomId, currentUser, initialCode, init
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5 text-xs">
               {connectionStatus === "connected" ? (
-                <>
-                  <Wifi className="w-3.5 h-3.5 text-green-500" />
-                  <span className="text-green-500">Live</span>
-                </>
+                <><Wifi className="w-3.5 h-3.5 text-green-500" /><span className="text-green-500">Live</span></>
               ) : (
-                <>
-                  <WifiOff className="w-3.5 h-3.5 text-red-500" />
-                  <span className="text-red-500">Offline</span>
-                </>
+                <><WifiOff className="w-3.5 h-3.5 text-red-500" /><span className="text-red-500">Offline</span></>
               )}
             </div>
 
@@ -405,7 +362,6 @@ export default function CodeEditorPanel({ roomId, currentUser, initialCode, init
           </div>
         </div>
 
-        {/* Editor */}
         <div className="flex-1 min-h-0 overflow-hidden relative">
           <MonacoEditor
             height="100%"
@@ -431,7 +387,6 @@ export default function CodeEditorPanel({ roomId, currentUser, initialCode, init
           />
         </div>
 
-        {/* Status Bar */}
         <div className="flex items-center justify-between px-4 py-2 border-t border-zinc-800 bg-zinc-900/80 text-xs text-zinc-500 shrink-0">
           <span className="font-medium uppercase">{language}</span>
 
@@ -451,9 +406,6 @@ export default function CodeEditorPanel({ roomId, currentUser, initialCode, init
                     title={c.name}
                   />
                 ))}
-                {collaborators.length > 5 && (
-                  <span className="text-zinc-400">+{collaborators.length - 5}</span>
-                )}
               </div>
             )}
           </div>

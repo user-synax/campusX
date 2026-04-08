@@ -20,6 +20,9 @@ export default function MainLayout({ children }) {
 
   // Check if we are inside a specific chat room
   const isChatRoom = pathname.startsWith('/chats/') && pathname !== '/chats'
+  
+  // Check if we are in study rooms (list page or room page)
+  const isStudyRoom = pathname.startsWith('/study-rooms')
 
   return (
     <NotificationProvider>
@@ -28,17 +31,17 @@ export default function MainLayout({ children }) {
         <Sidebar />
 
         {/* Main Content Area */}
-        <main className={`flex-1 flex flex-col md:ml-[72px] lg:ml-[280px] xl:mr-[350px] ${isChatRoom ? 'pb-0 h-[100dvh] overflow-hidden' : 'pb-20 min-h-screen'} md:pb-0 overflow-x-hidden`}>
+        <main className={`flex-1 flex flex-col md:ml-[72px] lg:ml-[280px] ${isStudyRoom ? '' : 'xl:mr-[350px]'} ${isChatRoom ? 'pb-0 h-[100dvh] overflow-hidden' : 'pb-20 min-h-screen'} md:pb-0 overflow-x-hidden`}>
           {/* Broadcast banner — site-wide announcement */}
-          <BroadcastBanner />
+          {!isStudyRoom && <BroadcastBanner />}
 
-          <div className={`w-full max-w-2xl border-x border-border ${isChatRoom ? 'flex-1 h-full overflow-hidden' : 'min-h-screen'} bg-background/50 backdrop-blur-sm self-center`}>
+          <div className={`w-full ${isStudyRoom ? 'max-w-7xl mx-auto' : 'max-w-2xl border-x'} border-border ${isChatRoom ? 'flex-1 h-full overflow-hidden' : 'min-h-screen'} bg-background/50 backdrop-blur-sm ${!isStudyRoom ? 'self-center' : ''}`}>
             {children}
           </div>
         </main>
 
-        {/* Fixed Right Panel */}
-        <RightPanel />
+        {/* Fixed Right Panel - Hide for study rooms */}
+        {!isStudyRoom && <RightPanel />}
 
         {/* Mobile Bottom Navigation — Hide in chat room */}
         {!isChatRoom && <MobileNav />}
