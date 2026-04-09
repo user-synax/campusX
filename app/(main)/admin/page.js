@@ -12,6 +12,7 @@ import { Loader2 } from "lucide-react"
 import AdminUsersTable from '@/components/admin/AdminUsersTable'
 import AdminReportedContent from '@/components/admin/AdminReportedContent'
 import AdminSecurityPanel from '@/components/admin/AdminSecurityPanel'
+import AdminVerifications from '@/components/admin/AdminVerifications'
 import AdminShopManager from '@/components/admin/AdminShopManager'
 import { formatDistanceToNow } from 'date-fns'
 
@@ -82,8 +83,9 @@ export default function AdminDashboard() {
 
   return (
     <div className="max-w-5xl mx-auto pb-20">
+      {/* Cache bust: {Date.now()} */}
       <div className="p-4 border-b border-border bg-background/50 backdrop-blur-md sticky top-0 z-10 flex items-center justify-between">
-        <h1 className="text-xl font-black tracking-tight">Admin Dashboard</h1>
+        <h1 className="text-xl font-black tracking-tight text-primary">Admin Dashboard (Live)</h1>
         <Button variant="ghost" size="sm" onClick={fetchOverviewData}>
           Refresh
         </Button>
@@ -94,6 +96,7 @@ export default function AdminDashboard() {
           <TabsList className="bg-muted/50 p-1 w-full justify-start overflow-x-auto no-scrollbar">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="verifications">Verify ID</TabsTrigger>
             <TabsTrigger value="content">Content</TabsTrigger>
             <TabsTrigger value="shop">Shop</TabsTrigger>
             <TabsTrigger value="security">Security</TabsTrigger>
@@ -158,6 +161,10 @@ export default function AdminDashboard() {
 
         <TabsContent value="users">
           <AdminUsersTable />
+        </TabsContent>
+
+        <TabsContent value="verifications">
+          <AdminVerifications />
         </TabsContent>
 
         <TabsContent value="content">
