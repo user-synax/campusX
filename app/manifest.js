@@ -1,0 +1,30 @@
+export default function manifest() {
+  return {
+    name: "CampusX",
+    short_name: "CampusX",
+    description: "The social platform exclusively for Indian college students",
+    start_url: "/",
+    display: "standalone",
+    background_color: "#0f0f0f",
+    theme_color: "#6c3bff",
+    orientation: "portrait",
+    icons: [
+      {
+        src: "/icon-192.png",
+        sizes: "192x192",
+        type: "image/png",
+      },
+      {
+        src: "/icon-512.png",
+        sizes: "512x512",
+        type: "image/png",
+      },
+      {
+        src: "/icon-512.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "maskable",
+      },
+    ],
+  };
+}
