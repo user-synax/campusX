@@ -1,71 +1,84 @@
-# CampusX - Student Social Media Platform
+# 🚀 CampusX: The Ultimate Student Network
 
-CampusX is a modern, responsive social media platform designed specifically for college students. It allows students to share updates, join college-specific communities, follow peers, and interact through likes and comments.
+CampusX is a premium, high-performance social ecosystem built for the modern college student. It seamlessly blends social connectivity, real-time collaboration, and a deep gamification engine into a single, cohesive experience.
+
+Built with **Next.js 16 (App Router)** and **React 19**, CampusX leverages a cutting-edge tech stack to deliver a "WOW" experience through smooth GSAP animations and instant micro-interactions.
+
+---
+
+## ✨ Features at a Glance
+
+### 📱 Dynamic Social Feed
+- **Rich Content Support**: Post text, multiple images (up to 6), hashtags, and native Polls.
+- **Micro-Interactions**: Express yourself with 6 unique reactions (Fire, Wow, Respect, etc.) and deep threaded comments.
+- **Privacy First**: Optional **Anonymous Posting** mode allows for open sharing without judgment.
+- **Interactive Previews**: Dynamic Link Previews and full Markdown rendering support.
+
+### 🎮 Gamification & Economy
+- **Progression System**: Earn XP for every interaction—level up and show off your status on the global **Leaderboard**.
+- **Stakes & Streaks**: Maintain active login streaks to earn bonus rewards.
+- **Campus Wallet**: A built-in economy powered by **Campus Coins**.
+- **Virtual Shop**: Purchase and equip digital items to customize your profile presence.
+- **Achievements**: Unlock specialized badges for reaching major platform milestones.
+
+### 🎓 Student Hub & Collaboration
+- **Verified Status**: Dual-layered verification (Student Email or ID Card upload) ensures a safe, peer-to-peer community.
+- **Collaborative Whiteboards**: Real-time canvas for brainstorming and quick sketches.
+- **Study Rooms**: Dedicated virtual spaces for academic interaction.
+- **Resource Sharing**: A centralized hub for exchanging notes and study materials.
+
+### 📡 Real-time Infrastructure
+- **SSE Notifications**: Instant, server-sent alerts for reactions, follows, and level-ups.
+- **Web Push Branding**: Receive critical updates even when the app is closed.
+- **Live Chats**: Integrated group and private messaging for seamless communication.
+
+### 🛡️ Enterprise Security
+- **Route Protection**: Edge-compatible Route Guard (`proxy.js`) with JWT session management.
+- **Moderation Engine**: Site-wide broadcasts, automated IP/Email banning, and RBAC (Role-Based Access Control).
+
+---
 
 ## 🚀 Tech Stack
 
-- **Framework**: Next.js 15 (App Router)
-- **Database**: MongoDB with Mongoose
-- **Authentication**: JWT (HTTP-only cookies) with Edge Middleware protection
-- **Styling**: Tailwind CSS v4
-- **UI Components**: shadcn/ui (Radix UI)
-- **Icons**: Lucide React
-- **Notifications**: Sonner
+- **Core**: Next.js 16 (App Router), React 19, MongoDB (Mongoose)
+- **Styling**: Tailwind CSS v4, Framer Motion, GSAP (Animations)
+- **Real-time**: Server-Sent Events (SSE), Pusher, Web Push API
+- **Infrastructure**: Cloudinary (Media), Redis (Rate Limiting/Cache), Nodemailer (OTP Mailer)
 
-## ✨ Features
+---
 
-- **Authentication**: Secure signup and login with hashed passwords.
-- **Dynamic Feed**: Real-time posts with support for anonymous posting.
-- **College Communities**: Automatic community discovery based on college tags.
-- **Interactions**: Like posts and comment on updates.
-- **Profile System**: Customizable user profiles with bio, college, and course details.
-- **Follow System**: Follow other students to see their updates.
-- **Responsive Design**: Fully optimized for mobile, tablet, and desktop views.
-- **Security**: Rate limiting on login, input sanitization, and ID validation.
-- **Performance**: Parallel data fetching and database query optimizations (`.lean()`).
+## 📂 Project Structure
 
-## 🛠️ Setup Instructions
+- `app/`: Next.js 16 architecture (optimized route groups).
+- `components/`: Atomic UI components split by feature (post, event, layout, ui).
+- `lib/`: Comprehensive core logic (Coins, XP, SSE, RBAC, etc.).
+- `models/`: 20+ Mongoose schemas defining the complex data architecture.
+- `proxy.js`: Root-level Edge-compatible security layer.
 
-### Prerequisites
-- Node.js 18+
-- MongoDB instance (local or Atlas)
+---
 
-### 1. Clone the repository
+## 🛠️ Getting Started
+
+### 1. Clone & Install
 ```bash
 git clone <repository-url>
-cd campusx
-```
-
-### 2. Install dependencies
-```bash
 npm install
 ```
 
-### 3. Environment Variables
-Create a `.env.local` file in the root directory and add the following:
+### 2. Environment Setup
+Create `.env.local`:
 ```env
-MONGODB_URI=your_mongodb_connection_string
-JWT_SECRET=your_secure_jwt_secret
-JWT_EXPIRES_IN=7d
-NODE_ENV=development
+MONGODB_URI=...
+JWT_SECRET=...
+CLOUDINARY_URL=...
+PUSHER_APP_ID=...
 ```
 
-### 4. Run the development server
+### 3. Launch
 ```bash
 npm run dev
 ```
-Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## 📂 Folder Structure Summary
+---
 
-- `app/`: Next.js App Router pages and API routes.
-- `components/`: Reusable UI components (layout, post, shared, user).
-- `hooks/`: Custom React hooks for data fetching and state management.
-- `lib/`: Core utilities (database connection, authentication helpers).
-- `models/`: Mongoose schemas for User, Post, and Comment.
-- `public/`: Static assets.
-- `utils/`: Helper functions for formatting and validation.
-- `proxy.js`: Edge-compatible route protection.
-
-## 📝 License
-MIT
+*Stay connected. Stay ahead. Welcome to CampusX.*

@@ -3,7 +3,7 @@ import Link from 'next/link'
 export default function Footer() {
   return (
     <footer className="py-16 px-4 border-t border-border bg-[#0f0f0f]">
-      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-5 gap-10">
         {/* Brand */}
         <div className="md:col-span-2 space-y-4">
           <div className="flex items-center gap-2">
@@ -30,6 +30,23 @@ export default function Footer() {
               {link}
             </Link>
           ))}
+        </div>
+
+        {/* Legal links */}
+        <div className="space-y-3">
+          <h4 className="font-semibold text-sm text-[#f0f0f0]">Legal</h4>
+          <Link href="/terms"
+            className="block text-sm text-muted-foreground hover:text-[#f0f0f0] transition-colors">
+            Terms of Service
+          </Link>
+          <Link href="/privacy"
+            className="block text-sm text-muted-foreground hover:text-[#f0f0f0] transition-colors">
+            Privacy Policy
+          </Link>
+          <a href="mailto:usersynax@gmail.com"
+            className="block text-sm text-muted-foreground hover:text-[#f0f0f0] transition-colors">
+            Contact Support
+          </a>
         </div>
 
         {/* Auth links */}

@@ -199,6 +199,13 @@ export default function SignupPage() {
                 <Button type="submit" className="w-full rounded-full" disabled={loading}>
                   {loading ? 'Sending code...' : 'Continue to Verification'}
                 </Button>
+
+                <p className="text-[10px] md:text-xs text-center text-muted-foreground mt-4 px-4">
+                  By signing up, you agree to our{' '}
+                  <Link href="/terms" className="text-primary hover:underline underline-offset-2">Terms of Service</Link>
+                  {' '}and{' '}
+                  <Link href="/privacy" className="text-primary hover:underline underline-offset-2">Privacy Policy</Link>.
+                </p>
               </form>
             ) : (
               <div className="space-y-6">
@@ -245,6 +252,13 @@ export default function SignupPage() {
                       Resend Code
                     </Button>
                   </div>
+
+                  <p className="text-[10px] md:text-xs text-center text-muted-foreground mt-4 px-4">
+                    By verifying, you agree to our{' '}
+                    <Link href="/terms" className="text-primary hover:underline underline-offset-2">Terms of Service</Link>
+                    {' '}and{' '}
+                    <Link href="/privacy" className="text-primary hover:underline underline-offset-2">Privacy Policy</Link>.
+                  </p>
                 </form>
 
                 <div className="text-center pt-2">

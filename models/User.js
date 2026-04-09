@@ -185,6 +185,7 @@ const userSchema = new mongoose.Schema({
   // Password reset fields
   resetToken: { type: String, default: null },
   resetTokenExpiry: { type: Date, default: null },
+  // Onboarding status
 }, { timestamps: true });
 
 userSchema.methods.comparePassword = async function (plainPassword) {
