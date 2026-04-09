@@ -7,6 +7,7 @@ import MobileNav from "@/components/layout/MobileNav"
 import MobileFAB from "@/components/layout/MobileFAB"
 import { Toaster } from "@/components/ui/sonner"
 import BroadcastBanner from "@/components/founder/BroadcastBanner"
+import VerificationBanner from "@/components/shared/VerificationBanner"
 import useUser from "@/hooks/useUser"
 import { NotificationProvider } from "@/context/NotificationContext"
 import { usePushNotifications } from "@/hooks/usePushNotifications"
@@ -37,6 +38,8 @@ export default function MainLayout({ children }) {
         <main className={`flex-1 flex flex-col ${isWhiteboard ? 'm-0 w-screen h-screen' : 'md:ml-[72px] lg:ml-[280px]'} ${isStudyRoom || isWhiteboard ? '' : 'xl:mr-[350px]'} ${isChatRoom ? 'pb-0 h-[100dvh] overflow-hidden' : 'pb-20 min-h-screen'} md:pb-0 overflow-x-hidden`}>
           {/* Broadcast banner — site-wide announcement */}
           {!isStudyRoom && !isWhiteboard && <BroadcastBanner />}
+          {/* Verification prompt for unverified students */}
+          {!isStudyRoom && !isWhiteboard && <VerificationBanner />}
 
           <div className={`w-full ${isStudyRoom ? 'max-w-7xl mx-auto' : isWhiteboard ? '' : 'max-w-2xl border-x'} border-border ${isChatRoom ? 'flex-1 h-full overflow-hidden' : isWhiteboard ? 'flex-1 h-full' : 'min-h-screen'} bg-background/50 backdrop-blur-sm ${!isStudyRoom && !isWhiteboard ? 'self-center' : ''}`}>
             {children}

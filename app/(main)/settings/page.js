@@ -9,12 +9,16 @@ import {
   Eye, 
   User, 
   Shield, 
+  ShieldCheck,
   Smartphone, 
   LogOut, 
   ChevronRight,
   Loader2,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Clock,
+  Upload,
+  AlertTriangle,
 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
@@ -143,6 +147,106 @@ export default function SettingsPage() {
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </button>
+          </div>
+        </section>
+
+        {/* Verification Status Section */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 text-primary">
+            <ShieldCheck className="w-5 h-5" />
+            <h2 className="font-bold uppercase tracking-wider text-xs">Verification</h2>
+          </div>
+          <div className="bg-card rounded-3xl border border-border overflow-hidden">
+            <div className="p-4">
+              {user?.isVerified && user?.verificationStatus === 'verified' ? (
+                /* ── Verified ── */
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: '#22c55e15' }}>
+                      <CheckCircle2 className="w-5 h-5 text-green-500" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-sm text-foreground">Verified Student</p>
+                      <p className="text-xs text-muted-foreground">
+                        {user?.verificationType === 'college_email' ? 'Verified via college email' : 'Verified via college ID'}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full"
+                    style={{ background: '#22c55e15', color: '#4ade80', border: '1px solid #22c55e30' }}>
+                    <CheckCircle2 className="w-3 h-3" /> Verified
+                  </span>
+                </div>
+
+              ) : user?.verificationStatus === 'pending' ? (
+                /* ── Pending ── */
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: '#facc1515' }}>
+                      <Clock className="w-5 h-5 text-yellow-500" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-sm text-foreground">Under Review</p>
+                      <p className="text-xs text-muted-foreground">Your college ID is being verified</p>
+                    </div>
+                  </div>
+                  <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full"
+                    style={{ background: '#facc1515', color: '#facc15', border: '1px solid #facc1530' }}>
+                    <Clock className="w-3 h-3" /> Pending
+                  </span>
+                </div>
+
+              ) : user?.verificationStatus === 'rejected' ? (
+                /* ── Rejected ── */
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: '#ef444415' }}>
+                        <AlertTriangle className="w-5 h-5 text-red-400" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-sm text-foreground">Verification Rejected</p>
+                        <p className="text-xs text-muted-foreground">You can resubmit with a different ID</p>
+                      </div>
+                    </div>
+                    <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full"
+                      style={{ background: '#ef444415', color: '#f87171', border: '1px solid #ef444430' }}>
+                      Rejected
+                    </span>
+                  </div>
+                  {user?.verificationRejectedReason && (
+                    <div className="ml-[52px] p-3 rounded-xl text-xs text-muted-foreground leading-relaxed"
+                      style={{ background: '#ef444408', border: '1px solid #ef444420' }}>
+                      <span className="font-semibold text-red-400">Reason: </span>{user.verificationRejectedReason}
+                    </div>
+                  )}
+                  <button
+                    onClick={() => router.push('/verify-student')}
+                    className="ml-[52px] flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all duration-200 hover:scale-[1.02]"
+                    style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)', color: '#fff', boxShadow: '0 2px 8px #ef444440' }}>
+                    <Upload className="w-3 h-3" /> Resubmit ID
+                  </button>
+                </div>
+
+              ) : (
+                /* ── Not verified ── */
+                <button
+                  onClick={() => router.push('/verify-student')}
+                  className="w-full flex items-center justify-between group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: '#22c55e10' }}>
+                      <ShieldCheck className="w-5 h-5 text-green-500/60" />
+                    </div>
+                    <div className="flex flex-col items-start">
+                      <span className="font-semibold text-sm group-hover:text-green-400 transition-colors">Get Verified</span>
+                      <span className="text-xs text-muted-foreground">Upload your college ID to get a badge</span>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:translate-x-1 transition-transform" />
+                </button>
+              )}
+            </div>
           </div>
         </section>
 
