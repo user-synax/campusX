@@ -1,0 +1,42 @@
+import mongoose from 'mongoose'
+
+const otpSchema = new mongoose.Schema({
+  email: {
+    type: String,
+    required: true,
+    lowercase: true,
+    trim: true,
+    index: true,
+  },
+  otp: {
+    type: String,
+    required: true,
+  },
+  purpose: {
+    type: String,
+    enum: ['signup', 'verification', 'forgot_password'],
+    required: true,
+  },
+  attempts: {
+    type: Number,
+    default: 0,
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+    expires: 600, // TTL index — auto-deletes after 10 minutes
+  },
+})
+
+// Compound index for lookups: find OTP by email + purpose
+otpSchema.index({ email: 1, purpose: 1 })
+
+// In development, Next.js hot-reloads files, but Mongoose keeps the old model in its cache.
+// Deleting it from mongoose.models forces it to re-compile with the new schema (including the forgot_password enum).
+if (mongoose.models.Otp) {
+  delete mongoose.models.Otp
+}
+
+const Otp = mongoose.model('Otp', otpSchema)
+
+export default Otp
