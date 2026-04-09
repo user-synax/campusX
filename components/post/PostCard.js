@@ -35,6 +35,7 @@ import FormattedTime from "@/components/shared/FormattedTime"
 import AvatarWithFrame from '@/components/coins/AvatarWithFrame' 
 import CoinUsername from '@/components/coins/CoinUsername' 
 import CoinBadge from '@/components/coins/CoinBadge' 
+import VerifiedBadge from '@/components/shared/VerifiedBadge'
 
 import { REACTIONS as REACTION_EMOJIS } from "@/lib/reaction-utils"
 
@@ -225,6 +226,9 @@ const PostCard = memo(function PostCard({ post, currentUserId, onDelete, onLike,
                     equipped={authorEquipped} 
                     className="font-bold text-foreground" 
                   />
+                  {post.author?.isVerified && (
+                    <VerifiedBadge size="sm" verificationType={post.author.verificationType} />
+                  )}
                   <CoinBadge equipped={authorEquipped} />
                 </Link>
                 {isPostFounder && (

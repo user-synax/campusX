@@ -5,6 +5,7 @@ import { X } from "lucide-react"
 import AvatarWithFrame from '@/components/coins/AvatarWithFrame'
 import CoinUsername from '@/components/coins/CoinUsername'
 import CoinBadge from '@/components/coins/CoinBadge'
+import VerifiedBadge from '@/components/shared/VerifiedBadge'
 import { renderContentWithMentions } from "@/utils/hashtags"
 import UserMention from "@/components/shared/UserMention"
 import FormattedTime from "@/components/shared/FormattedTime"
@@ -45,6 +46,9 @@ export default function CommentItem({ comment, currentUserId, onDelete }) {
                 equipped={comment.author?.equipped} 
                 className="text-xs font-bold text-foreground" 
               />
+              {comment.author?.isVerified && (
+                <VerifiedBadge size="sm" verificationType={comment.author.verificationType} />
+              )}
               <CoinBadge equipped={comment.author?.equipped} />
             </Link>
             <FormattedTime date={comment.createdAt} className="text-[10px] text-muted-foreground" />

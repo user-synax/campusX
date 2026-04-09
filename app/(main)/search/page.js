@@ -9,6 +9,7 @@ import PostCard from "@/components/post/PostCard"
 import PostSkeleton from "@/components/post/PostSkeleton"
 import UserAvatar from "@/components/user/UserAvatar"
 import FollowButton from "@/components/user/FollowButton"
+import VerifiedBadge from '@/components/shared/VerifiedBadge'
 import EmptyState from "@/components/shared/EmptyState"
 import useUser from "@/hooks/useUser"
 import { slugifyCollege } from "@/utils/formatters"
@@ -271,7 +272,12 @@ export default function SearchPage() {
                   </Link>
                   <div className="flex-1 min-w-0"> 
                     <Link href={`/profile/${user.username}`}>
-                      <p className="font-semibold hover:underline truncate">{user.name}</p> 
+                      <p className="font-semibold hover:underline truncate flex items-center gap-1.5">
+                        {user.name}
+                        {user.isVerified && (
+                          <VerifiedBadge size="sm" verificationType={user.verificationType} />
+                        )}
+                      </p> 
                       <p className="text-sm text-muted-foreground truncate">@{user.username}</p> 
                     </Link>
                     {user.college && (
@@ -349,7 +355,12 @@ export default function SearchPage() {
                         </span> 
                         <UserAvatar user={item} size="sm" /> 
                         <div className="flex-1 min-w-0"> 
-                          <p className="font-bold truncate">{item.name}</p> 
+                          <p className="font-bold truncate flex items-center gap-1.5">
+                            {item.name}
+                            {item.isVerified && (
+                              <VerifiedBadge size="sm" verificationType={item.verificationType} />
+                            )}
+                          </p> 
                           <p className="text-xs text-muted-foreground truncate">
                             @{item.username} · {item.postCount} posts
                           </p> 

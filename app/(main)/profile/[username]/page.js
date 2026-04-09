@@ -10,6 +10,7 @@ import { toast } from "sonner"
 import AvatarWithFrame from '@/components/coins/AvatarWithFrame'
 import CoinUsername from '@/components/coins/CoinUsername'
 import CoinBadge from '@/components/coins/CoinBadge'
+import VerifiedBadge from '@/components/shared/VerifiedBadge'
 import FollowButton from "@/components/user/FollowButton"
 import PostCard from "@/components/post/PostCard"
 import PostSkeleton from "@/components/post/PostSkeleton"
@@ -220,6 +221,9 @@ export default function ProfilePage() {
                 equipped={profileUser.equipped}
                 className="text-xl font-bold text-foreground"
               />
+              {profileUser?.isVerified && (
+                <VerifiedBadge size="lg" showText verificationType={profileUser.verificationType} />
+              )}
               <CoinBadge equipped={profileUser.equipped} />
             </div>
             <p className="text-muted-foreground text-sm">@{profileUser.username}</p>

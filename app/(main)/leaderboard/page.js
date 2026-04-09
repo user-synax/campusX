@@ -9,6 +9,7 @@ import Link from 'next/link'
 import { cn } from "@/lib/utils"
 import CoinUsername from '@/components/coins/CoinUsername'
 import CoinBadge from '@/components/coins/CoinBadge'
+import VerifiedBadge from '@/components/shared/VerifiedBadge'
 
 
 export default function LeaderboardPage() {
@@ -97,11 +98,14 @@ export default function LeaderboardPage() {
                   </div>
                   <div className="text-center flex flex-col items-center gap-1">
                     <div className="flex items-center gap-1.5 justify-center">
-                      <Link href={`/profile/${user.username}`} className="hover:underline max-w-[150px] truncate">
+                      <Link href={`/profile/${user.username}`} className="hover:underline max-w-[150px] truncate flex items-center gap-1">
                         <CoinUsername user={user} className={cn(
-                          "font-black tracking-tight",
+                          "font-black tracking-tight flex-shrink-0",
                           isFirst ? "text-lg" : "text-base"
                         )} />
+                        {user.isVerified && (
+                          <VerifiedBadge size="sm" verificationType={user.verificationType} />
+                        )}
                       </Link>
                       <CoinBadge user={user} size="sm" />
                     </div>
@@ -162,6 +166,9 @@ export default function LeaderboardPage() {
                         <div className="min-w-0">
                           <div className="flex items-center gap-1.5">
                             <CoinUsername user={user} className="font-bold text-sm group-hover:underline truncate" />
+                            {user.isVerified && (
+                              <VerifiedBadge size="sm" verificationType={user.verificationType} />
+                            )}
                             <CoinBadge user={user} size="xs" />
                           </div>
                           <p className="text-[10px] text-muted-foreground truncate">{user.college}</p>

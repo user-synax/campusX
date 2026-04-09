@@ -3,6 +3,7 @@
 import Link from 'next/link' 
 import AvatarWithFrame from '@/components/coins/AvatarWithFrame' 
 import { formatRelativeTime } from '@/utils/formatters' 
+import VerifiedBadge from '@/components/shared/VerifiedBadge'
  
 export default function NotificationItem({ notification, onRead, compact }) { 
   return ( 
@@ -48,9 +49,12 @@ export default function NotificationItem({ notification, onRead, compact }) {
  
       {/* Right: text + time */} 
       <div className="flex-1 min-w-0"> 
-        <p className={`text-sm leading-snug ${!notification.read ? 'font-medium text-foreground' : 'text-muted-foreground'}`}> 
-          {notification.text} 
-        </p> 
+        <div className={`text-sm leading-snug inline-flex flex-wrap items-center gap-1.5 ${!notification.read ? 'font-medium text-foreground' : 'text-muted-foreground'}`}> 
+          <span>{notification.text}</span>
+          {notification.sender?.isVerified && (
+            <VerifiedBadge size="sm" verificationType={notification.sender.verificationType} />
+          )}
+        </div> 
  
         {/* Post preview if available */} 
         {notification.postId && notification.meta?.postPreview && ( 

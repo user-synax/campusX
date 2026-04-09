@@ -3,6 +3,7 @@
 import Link from "next/link"
 import UserAvatar from "@/components/user/UserAvatar"
 import FollowButton from "@/components/user/FollowButton"
+import VerifiedBadge from "@/components/shared/VerifiedBadge"
 
 export default function FollowListItem({ user, currentUserId, isOwnProfile, onClose }) {
   return (
@@ -15,7 +16,12 @@ export default function FollowListItem({ user, currentUserId, isOwnProfile, onCl
         <UserAvatar user={user} size="md" /> 
         <div className="min-w-0"> 
           <div className="flex items-center gap-1"> 
-            <p className="font-medium text-sm truncate text-foreground">{user.name}</p> 
+            <p className="font-medium text-sm truncate text-foreground flex items-center gap-1.5">
+              {user.name}
+              {user.isVerified && (
+                <VerifiedBadge size="sm" verificationType={user.verificationType} />
+              )}
+            </p> 
           </div> 
           <p className="text-xs text-muted-foreground truncate">@{user.username}</p> 
           {user.college && ( 
