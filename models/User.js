@@ -111,11 +111,37 @@ const userSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  // ── Student Verification System ──
   isVerified: {
     type: Boolean,
-    default: true
+    default: false,
   },
-  verifiedAt: Date,
+  verificationStatus: {
+    type: String,
+    enum: ['none', 'pending', 'verified', 'rejected'],
+    default: 'none',
+  },
+  verificationType: {
+    type: String,
+    enum: ['college_email', 'id_card'],
+  },
+  collegeEmail: {
+    type: String,
+    lowercase: true,
+    trim: true,
+  },
+  collegeIdUrl: {
+    type: String, // Cloudinary URL for uploaded college ID card
+  },
+  verificationRejectedReason: {
+    type: String,
+  },
+  verificationRequestedAt: {
+    type: Date,
+  },
+  verificationApprovedAt: {
+    type: Date,
+  },
   pinnedPost: { type: mongoose.Schema.Types.ObjectId, ref: 'Post', default: null },
   // Moderation fields 
   isBanned: { type: Boolean, default: false }, 
@@ -156,6 +182,9 @@ const userSchema = new mongoose.Schema({
     github:    { type: String, default: '' },
     website:   { type: String, default: '' },
   },
+  // Password reset fields
+  resetToken: { type: String, default: null },
+  resetTokenExpiry: { type: Date, default: null },
 }, { timestamps: true });
 
 userSchema.methods.comparePassword = async function (plainPassword) {
@@ -180,7 +209,15 @@ userSchema.index({ college: 1, weeklyXP: -1 });
 // Moderation index 
 userSchema.index({ isBanned: 1 }) 
 userSchema.index({ isDeleted: 1, createdAt: -1 }) 
+// Verification indexes
+userSchema.index({ collegeEmail: 1 }, { unique: true, sparse: true })
+userSchema.index({ verificationStatus: 1, verificationRequestedAt: -1 })
 
-const User = mongoose.models.User || mongoose.model('User', userSchema);
+// Force re-compilation of the User model in development to pick up schema changes
+if (mongoose.models.User) {
+  delete mongoose.models.User;
+}
+
+const User = mongoose.model('User', userSchema);
 
 export default User;
