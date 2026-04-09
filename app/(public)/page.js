@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import Hero from "@/components/landing/Hero";
+import HeroClient from '@/components/landing/HeroClient'
 import Features from "@/components/landing/Features";
 import Stats from "@/components/landing/Stats";
 import Footer from "@/components/landing/Footer";
@@ -8,6 +8,7 @@ import connectDB from "@/lib/db";
 import User from "@/models/User";
 import Post from "@/models/Post";
 import Resource from "@/models/Resource";
+import StudyRoom from '@/models/StudyRoom';
 import { verifyToken } from "@/lib/auth-edge";
 
 export const metadata = {
@@ -40,22 +41,22 @@ export const metadata = {
 async function getLandingStats() {
   try {
     await connectDB();
-    const [users, posts, resources, colleges] = await Promise.all([
+    const [users, posts, resources, studyRooms] = await Promise.all([
       User.countDocuments().lean(),
       Post.countDocuments().lean(),
       Resource.countDocuments({ status: 'approved' }).lean(),
-      User.distinct('college').lean()
+      StudyRoom.countDocuments().lean()
     ]);
 
     return {
       users: users || 0,
       posts: posts || 0,
       resources: resources || 0,
-      communities: colleges.filter(c => c && c.trim() !== '').length || 0
+      codeAreas: studyRooms || 0
     };
   } catch (error) {
     console.error('[Landing Stats Fetch Error]:', error);
-    return { users: 0, posts: 0, resources: 0, communities: 0 };
+    return { users: 0, posts: 0, resources: 0, codeAreas: 0 };
   }
 }
 
@@ -75,12 +76,12 @@ export default async function LandingPage() {
 
   return (
     <main>
-      <Hero />
+      <HeroClient />
       <Stats 
-        users={stats.users} 
-        posts={stats.posts} 
-        resources={stats.resources} 
-        communities={stats.communities} 
+        users={stats.users}
+        posts={stats.posts}
+        resources={stats.resources}
+        codeAreas={stats.codeAreas}
       />
       <Features />
       <Footer />
