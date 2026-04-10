@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 import {
   ShieldCheck,
   Upload,
@@ -291,11 +292,13 @@ export default function VerifyStudentPage() {
             // ── File preview ──
             <div className="flex flex-col items-center justify-center p-6 gap-4">
               {preview ? (
-                <div className="relative w-full max-w-xs">
-                  <img
+                <div className="relative w-full max-w-xs aspect-video">
+                  <Image
                     src={preview}
                     alt="ID Preview"
-                    className="rounded-xl border border-border shadow-lg max-h-48 w-full object-contain bg-black/30"
+                    fill
+                    unoptimized
+                    className="rounded-xl border border-border shadow-lg object-contain bg-black/30"
                   />
                 </div>
               ) : (

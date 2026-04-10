@@ -12,18 +12,18 @@ import StudyRoom from '@/models/StudyRoom';
 import { verifyToken } from "@/lib/auth-edge";
 
 export const metadata = {
-  title: 'CampusX — India ka Student Social Network',
-  description: 'Posts, chats, notes, events — sab ek jagah. Sirf apne college waalon ke saath.',
-  keywords: ['student social network', 'college community', 'IIT', 'NIT', 'campus'],
+  title: "CampusX — Social Network for Indian College Students",
+  description: "Join your campus community, share posts, access resources, and stay connected with your college mates exclusively on CampusX.",
+  keywords: ["student social network", "college community", "IIT", "NIT", "campus", "indian students"],
   openGraph: {
     type: 'website',
     locale: 'en_IN',
-    url: process.env.NEXT_PUBLIC_APP_URL,
+    url: 'https://campus-x-rho.vercel.app',
     siteName: 'CampusX',
-    title: 'CampusX — India ka Student Social Network',
-    description: 'Posts, chats, notes, events — sab ek jagah.',
+    title: 'CampusX — Social Network for Indian College Students',
+    description: 'Join your campus community, share posts, access resources, and stay connected.',
     images: [{
-      url: '/og/default.png',
+      url: '/og-image.png',
       width: 1200,
       height: 630,
       alt: 'CampusX — Student Social Network'
@@ -31,9 +31,9 @@ export const metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'CampusX — India ka Student Social Network',
-    description: 'Posts, chats, notes, events — sab ek jagah.',
-    images: [`${process.env.NEXT_PUBLIC_APP_URL}/og/default.png`]
+    title: 'CampusX — Social Network for Indian College Students',
+    description: 'Join your campus community exclusively on CampusX.',
+    images: ['/og-image.png']
   }
 };
 
