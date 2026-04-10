@@ -1,8 +1,8 @@
 import LegalLayout from "@/components/shared/LegalLayout";
 
 export const metadata = {
-  title: "Terms of Service | CampusX",
-  description: "Read the Terms of Service for CampusX, the social media platform for Indian college students.",
+  title: "Terms of Service",
+  description: "Read the Terms of Service for CampusX, the exclusive social media platform for Indian college students.",
 };
 
 const sections = [
@@ -31,7 +31,7 @@ export default function TermsPage() {
         <h2 className="text-3xl md:text-4xl font-black text-white mb-8 tracking-tight">1. Eligibility</h2>
         <div className="space-y-6">
           <p>
-            CampusX is exclusively for students currently enrolled in Indian colleges and universities. 
+            CampusX is exclusively for students currently enrolled in Indian colleges and universities.
           </p>
           <ul className="grid gap-4 list-none pl-0">
             {[

@@ -1,24 +1,18 @@
 export default function sitemap() {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://campusx.vercel.app'
+  const baseUrl = 'https://campus-x-rho.vercel.app'
   
-  return [
-    {
-      url: baseUrl,
-      lastModified: new Date(),
-      changeFrequency: 'daily',
-      priority: 1,
-    },
-    {
-      url: `${baseUrl}/login`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/signup`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-  ]
+  const routes = [
+    '',
+    '/login',
+    '/signup',
+    '/terms',
+    '/privacy',
+  ].map((route) => ({
+    url: `${baseUrl}${route}`,
+    lastModified: new Date().toISOString().split('T')[0],
+    changeFrequency: route === '' ? 'daily' : 'monthly',
+    priority: route === '' ? 1 : 0.8,
+  }))
+
+  return routes
 }

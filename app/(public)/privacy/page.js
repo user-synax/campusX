@@ -1,7 +1,7 @@
 import LegalLayout from "@/components/shared/LegalLayout";
 
 export const metadata = {
-  title: "Privacy Policy | CampusX",
+  title: "Privacy Policy",
   description: "Learn about how CampusX collects, uses, and protects your personal data.",
 };
 
