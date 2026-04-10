@@ -66,7 +66,7 @@ const AvatarWithFrame = memo(function AvatarWithFrame({
           src={user.avatar || user.image} 
           alt={user.name || 'User'} 
           fill
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          sizes="(max-width: 768px) 48px, 48px"
           className="object-cover" 
         /> 
       ) : ( 

@@ -64,7 +64,7 @@ function ImageCell({ url, ratio, onClick }) {
         alt=""
         fill
         loading="lazy"
-        sizes="(max-width: 640px) 100vw, 50vw"
+        sizes="(max-width: 768px) 100vw, 600px"
         className="object-cover"
         onError={(e) => { e.currentTarget.style.display = 'none' }}
       />
