@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:is(.dark *));
+
+
 @theme {
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
@@ -23,30 +26,32 @@
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
+
+
 }
 
 @layer base {
   :root {
-    --background: 0 0% 6%;
-    --foreground: 0 0% 94%;
-    --card: 0 0% 10%;
-    --card-foreground: 0 0% 94%;
-    --popover: 0 0% 10%;
-    --popover-foreground: 0 0% 94%;
-    --primary: 0 0% 94%;
-    --primary-foreground: 0 0% 6%;
-    --secondary: 0 0% 15%;
-    --secondary-foreground: 0 0% 94%;
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 53%;
-    --accent: 0 0% 12%;
-    --accent-foreground: 0 0% 94%;
+    --background: 222 14% 7%;
+    --foreground: 210 20% 95%;
+    --card: 222 14% 10%;
+    --card-foreground: 210 20% 95%;
+    --popover: 222 14% 10%;
+    --popover-foreground: 210 20% 95%;
+    --primary: 153 60% 53%;
+    --primary-foreground: 222 14% 7%;
+    --secondary: 222 14% 14%;
+    --secondary-foreground: 210 20% 95%;
+    --muted: 222 14% 14%;
+    --muted-foreground: 215 15% 55%;
+    --accent: 222 14% 16%;
+    --accent-foreground: 210 20% 95%;
     --destructive: 0 62% 50%;
-    --destructive-foreground: 0 0% 94%;
-    --border: 0 0% 16%;
-    --input: 0 0% 10%;
-    --ring: 0 0% 94%;
-    --radius: 0.75rem;
+    --destructive-foreground: 210 20% 95%;
+    --border: 222 14% 16%;
+    --input: 222 14% 12%;
+    --ring: 153 60% 53%;
+    --radius: 0.5rem;
   }
 }
 
@@ -54,9 +59,24 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground overflow-x-hidden;
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.050;
+    pointer-events: none;
+    z-index: 9999;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-size: 128px 128px;
   }
 
   /* Custom Scrollbar */
@@ -86,64 +106,119 @@
   }
 }
 
-@keyframes founder-ring { 
-  0%   { --angle: 0deg; } 
-  100% { --angle: 360deg; } 
-} 
+@keyframes founder-ring {
+  0% {
+    --angle: 0deg;
+  }
 
-@property --angle { 
-  syntax: '<angle>'; 
-  initial-value: 0deg; 
-  inherits: false; 
-} 
+  100% {
+    --angle: 360deg;
+  }
+}
 
-.founder-ring { 
-  background: conic-gradient(from var(--angle), #f59e0b, #fcd34d, #f59e0b); 
-  animation: founder-ring 3s linear infinite; 
-} 
+@property --angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
 
-/* Campus Coins — Shop item animations */ 
- 
-@keyframes spin-gradient { 
-  0%   { background-position: 0% 50%; } 
-  50%  { background-position: 100% 50%; } 
-  100% { background-position: 0% 50%; } 
-} 
- 
-@keyframes name-shift { 
-  0%   { background-position: 0% center; } 
-  100% { background-position: 200% center; } 
-} 
- 
-@keyframes banner-pulse { 
-  0%, 100% { background-position: 0% 50%; } 
-  50%       { background-position: 100% 50%; } 
-} 
+.founder-ring {
+  background: conic-gradient(from var(--angle), #f59e0b, #fcd34d, #f59e0b);
+  animation: founder-ring 3s linear infinite;
+}
+
+/* Campus Coins — Shop item animations */
+
+@keyframes spin-gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes name-shift {
+  0% {
+    background-position: 0% center;
+  }
+
+  100% {
+    background-position: 200% center;
+  }
+}
+
+@keyframes banner-pulse {
+
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+}
 
 @keyframes gradient-shift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 @keyframes shimmer {
-  0%   { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 @keyframes rainbow-rotate {
-  0%   { filter: hue-rotate(0deg); }
-  100% { filter: hue-rotate(360deg); }
+  0% {
+    filter: hue-rotate(0deg);
+  }
+
+  100% {
+    filter: hue-rotate(360deg);
+  }
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 5px currentColor, 0 0 10px currentColor; }
-  50%       { box-shadow: 0 0 15px currentColor, 0 0 25px currentColor; }
+
+  0%,
+  100% {
+    box-shadow: 0 0 5px currentColor, 0 0 10px currentColor;
+  }
+
+  50% {
+    box-shadow: 0 0 15px currentColor, 0 0 25px currentColor;
+  }
 }
 
 @keyframes glow-spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Shop Item Classes */
@@ -201,10 +276,14 @@
   border: 1px solid rgba(255, 0, 0, 0.3);
   background: linear-gradient(135deg, rgba(255, 0, 0, 0.05) 0%, rgba(139, 0, 0, 0.1) 100%);
 }
+
 .shop-item-card.mythic::after {
   content: '';
   position: absolute;
-  top: -50%; left: -50%; width: 200%; height: 200%;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
   background: conic-gradient(transparent, transparent, transparent, rgba(255, 0, 0, 0.1));
   animation: glow-spin 4s linear infinite;
   z-index: -1;
@@ -223,42 +302,44 @@
 .avatar-frame-rainbow {
   border: 2px solid transparent;
   background: linear-gradient(var(--background), var(--background)) padding-box,
-              linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet) border-box;
+    linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet) border-box;
   animation: rainbow-rotate 5s linear infinite;
 }
 
 .avatar-frame-gold {
   border: 2px solid transparent;
   background: linear-gradient(var(--background), var(--background)) padding-box,
-              linear-gradient(45deg, #f59e0b, #fef3c7, #f59e0b) border-box;
+    linear-gradient(45deg, #f59e0b, #fef3c7, #f59e0b) border-box;
   box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
 }
 
-/* Reduce motion support */ 
-@media (prefers-reduced-motion: reduce) { 
-  [style*="spin-gradient"], 
-  [style*="name-shift"], 
+/* Reduce motion support */
+@media (prefers-reduced-motion: reduce) {
+
+  [style*="spin-gradient"],
+  [style*="name-shift"],
   [style*="banner-pulse"],
   .rarity-mythic,
   .rarity-legendary,
   .avatar-frame-rainbow,
-  .avatar-frame-gold { 
-    animation: none !important; 
-    background-position: 0% 50% !important; 
+  .avatar-frame-gold {
+    animation: none !important;
+    background-position: 0% 50% !important;
     filter: none !important;
-  } 
-} 
+  }
+}
 
-.founder-ring-inner { 
-  background: #0f0f0f; 
-  border-radius: 50%; 
-  padding: 2px; 
-} 
+.founder-ring-inner {
+  background: #0f0f0f;
+  border-radius: 50%;
+  padding: 2px;
+}
 
 @layer utilities {
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
+
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -268,46 +349,95 @@
   .custom-scrollbar::-webkit-scrollbar {
     width: 4px;
   }
+
   .custom-scrollbar::-webkit-scrollbar-thumb {
     background: hsl(var(--muted-foreground) / 0.15);
   }
+
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: hsl(var(--muted-foreground) / 0.3);
   }
 }
 
-/* ━━━ FOUNDER EXCLUSIVE ANIMATIONS ━━━ */ 
- 
- /* Avatar frame — rotating gradient ring */ 
- @keyframes founder-frame-spin { 
-   0%   { background-position: 0% 50%; } 
-   50%  { background-position: 100% 50%; } 
-   100% { background-position: 0% 50%; } 
- } 
- 
- /* Username — shifting gradient */ 
- @keyframes founder-name-shift { 
-   0%   { background-position: 0% center; } 
-   100% { background-position: 200% center; } 
- } 
- 
- /* Profile banner — breathing pulse */ 
- @keyframes founder-banner-pulse { 
-   0%, 100% { 
-     background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); 
-   } 
-   50% { 
-     background: linear-gradient(135deg, #1a1744, #3d378a, #312f5a); 
-   } 
- } 
- 
- /* Post badge glow */ 
- @keyframes founder-badge-glow { 
-   0%, 100% { box-shadow: 0 0 4px #f59e0b40; } 
-   50%       { box-shadow: 0 0 10px #f59e0b80; } 
- } 
- 
- /* Applied via className */ 
- .founder-badge-animated { 
-   animation: founder-badge-glow 2s ease infinite; 
- } 
+/* ━━━ FOUNDER EXCLUSIVE ANIMATIONS ━━━ */
+
+/* Avatar frame — rotating gradient ring */
+@keyframes founder-frame-spin {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Username — shifting gradient */
+@keyframes founder-name-shift {
+  0% {
+    background-position: 0% center;
+  }
+
+  100% {
+    background-position: 200% center;
+  }
+}
+
+/* Profile banner — breathing pulse */
+@keyframes founder-banner-pulse {
+
+  0%,
+  100% {
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  }
+
+  50% {
+    background: linear-gradient(135deg, #1a1744, #3d378a, #312f5a);
+  }
+}
+
+/* Post badge glow */
+@keyframes founder-badge-glow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 4px #f59e0b40;
+  }
+
+  50% {
+    box-shadow: 0 0 10px #f59e0b80;
+  }
+}
+
+/* Applied via className */
+.founder-badge-animated {
+  animation: founder-badge-glow 2s ease infinite;
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+.blob-1 {
+  animation: float 6s ease-in-out infinite;
+}
+
+.blob-2 {
+  animation: float 8s ease-in-out infinite 2s;
+}
+
+.blob-3 {
+  animation: float 7s ease-in-out infinite 4s;
+}
