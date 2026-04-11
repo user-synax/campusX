@@ -19,7 +19,7 @@ export async function GET(request) {
 
     await connectDB();
 
-    const query = {};
+    const query = { isDeleted: { $ne: true } };
     if (community) {
       const escapedCommunity = community.toString().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       query.community = { $regex: new RegExp(`^${escapedCommunity}$`, 'i') };
