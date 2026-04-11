@@ -89,7 +89,13 @@ const postSchema = new mongoose.Schema({
   deletedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   isHidden: { type: Boolean, default: false },
   isFeatured: { type: Boolean, default: false },
-  reportCount: { type: Number, default: 0, min: 0 }
+  reportCount: { type: Number, default: 0, min: 0 },
+  shareCount: { type: Number, default: 0, min: 0 },
+  viewCount: { type: Number, default: 0, min: 0 },
+  viewedBy: [{
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    viewedAt: { type: Date, default: Date.now }
+  }]
 }, { 
   timestamps: true,toJSON: { virtuals: true },
   toObject: { virtuals: true },
@@ -107,6 +113,8 @@ postSchema.index({ 'reactions.user': 1 });
 postSchema.index({ reportCount: -1, isDeleted: 1 });
 postSchema.index({ isFeatured: 1, createdAt: -1 });
 postSchema.index({ isDeleted: 1, createdAt: -1 });
+postSchema.index({ viewCount: -1 });
+postSchema.index({ 'viewedBy.viewedAt': -1 });
 
 postSchema.virtual('reactionCount').get(function () {
   return this.reactions.length;
