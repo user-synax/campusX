@@ -149,6 +149,10 @@ const userSchema = new mongoose.Schema({
   deletedAt: { type: Date, default: null },
   tokenVersion: { type: Number, default: 0 }, // For force logout
 
+  // Mute/Block
+  mutedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', default: [] }],
+  blockedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', default: [] }],
+
   // Coin display preference 
   showCoinsOnProfile: { type: Boolean, default: true }, 
   
@@ -210,6 +214,8 @@ userSchema.index({ college: 1, weeklyXP: -1 });
 // Moderation index 
 userSchema.index({ isBanned: 1 }) 
 userSchema.index({ isDeleted: 1, createdAt: -1 }) 
+userSchema.index({ mutedUsers: 1 })
+userSchema.index({ blockedUsers: 1 }) 
 // Verification indexes
 userSchema.index({ collegeEmail: 1 }, { unique: true, sparse: true })
 userSchema.index({ verificationStatus: 1, verificationRequestedAt: -1 })
