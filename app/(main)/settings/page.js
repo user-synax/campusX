@@ -24,6 +24,10 @@ import {
   KeyRound,
   Mail,
   RefreshCw,
+  Monitor,
+  Tablet,
+  AlertOctagon,
+  Laptop
 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
@@ -90,6 +94,46 @@ export default function SettingsPage() {
     privateProfile: false,
     showOnlineStatus: true,
   })
+
+  // Login history state
+  const [loginHistory, setLoginHistory] = useState([])
+  const [loadingHistory, setLoadingHistory] = useState(false)
+  const [loggingOutAll, setLoggingOutAll] = useState(false)
+
+  // Fetch login history
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        setLoadingHistory(true)
+        const res = await fetch('/api/users/login-history')
+        const data = await res.json()
+        if (res.ok) setLoginHistory(data.logins || [])
+      } catch (err) {
+        console.error('Failed to fetch login history:', err)
+      } finally {
+        setLoadingHistory(false)
+      }
+    }
+    fetchHistory()
+  }, [])
+
+  const handleLogoutAll = async () => {
+    if (!window.confirm('This will log you out from all devices. Continue?')) return
+    try {
+      setLoggingOutAll(true)
+      const res = await fetch('/api/auth/logout-all', { method: 'POST' })
+      if (res.ok) {
+        toast.success('Logged out from all devices')
+        window.location.href = '/login'
+      } else {
+        toast.error('Failed to logout')
+      }
+    } catch (err) {
+      toast.error('Network error')
+    } finally {
+      setLoggingOutAll(false)
+    }
+  }
 
   // ── Countdown Timer Logic ──
   useEffect(() => {
@@ -379,6 +423,55 @@ export default function SettingsPage() {
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:translate-x-1 transition-transform" />
             </button>
+
+            {/* Login History */}
+            <div className="p-4 bg-card rounded-2xl border border-border space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-sm">Recent Logins</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleLogoutAll}
+                  disabled={loggingOutAll}
+                  className="text-xs text-destructive hover:text-destructive"
+                >
+                  {loggingOutAll ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Logout all'}
+                </Button>
+              </div>
+              
+              {loadingHistory ? (
+                <div className="text-xs text-muted-foreground">Loading...</div>
+              ) : loginHistory.length === 0 ? (
+                <p className="text-xs text-muted-foreground">No login history</p>
+              ) : (
+                <div className="space-y-2">
+                  {loginHistory.map((login, idx) => (
+                    <div key={idx} className="flex items-center gap-3 p-2 rounded-lg bg-accent/30">
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                        {login.device === 'Mobile' ? <Smartphone className="w-4 h-4 text-muted-foreground" /> :
+                         login.device === 'Tablet' ? <Tablet className="w-4 h-4 text-muted-foreground" /> :
+                         <Monitor className="w-4 h-4 text-muted-foreground" />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium">
+                          {login.browser} on {login.device}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground">
+                          {new Date(login.createdAt).toLocaleDateString('en-IN', { 
+                            day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' 
+                          })}
+                        </p>
+                      </div>
+                      {login.isSuspicious && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-500/20 text-red-400 border border-red-500/30">
+                          Suspicious
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </section>
 

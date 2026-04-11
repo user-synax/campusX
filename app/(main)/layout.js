@@ -11,6 +11,13 @@ import VerificationBanner from "@/components/shared/VerificationBanner"
 import useUser from "@/hooks/useUser"
 import { NotificationProvider } from "@/context/NotificationContext"
 import { usePushNotifications } from "@/hooks/usePushNotifications"
+import { useTabTitle } from "@/hooks/useTabTitle"
+
+// Component to initialize tab title
+function TabTitleInitializer() {
+  useTabTitle()
+  return null
+}
 
 export default function MainLayout({ children }) {
   const { user } = useUser()
@@ -30,6 +37,7 @@ export default function MainLayout({ children }) {
 
   return (
     <NotificationProvider>
+      <TabTitleInitializer />
       <div className={`flex min-h-screen bg-zinc-950 text-foreground selection:bg-primary/20 overflow-hidden ${isWhiteboard ? 'fixed inset-0' : ''}`}>
         {/* Fixed Left Sidebar - Hide for whiteboard */}
         {!isWhiteboard && <Sidebar />}
