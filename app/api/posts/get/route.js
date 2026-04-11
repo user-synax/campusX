@@ -67,7 +67,13 @@ export async function GET(request) {
         },
         { $sort: { createdAt: -1 } },
         { $skip: skip },
-        { $limit: limit }
+        { $limit: limit },
+        {
+          $addFields: {
+            viewCount: { $ifNull: ['$viewCount', 0] },
+            shareCount: { $ifNull: ['$shareCount', 0] }
+          }
+        }
       ];
 
       posts = await Post.aggregate(pipeline);
@@ -98,6 +104,8 @@ export async function GET(request) {
       return {
         ...postData,
         likesCount: post.likesCount ?? post.likes?.length ?? 0,
+        viewCount: post.viewCount ?? 0,
+        shareCount: post.shareCount ?? 0,
         author: sanitizeUser(author),
         _reactionSummary: summary,
         _userReaction: userReaction,
