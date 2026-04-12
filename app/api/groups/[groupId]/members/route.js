@@ -110,7 +110,7 @@ export async function POST(request, { params }) {
       groupId: group._id,
       meta: { groupName: group.name },
       dedupe: false
-    }).catch(() => {})
+    }).catch(err => console.error('Operation failed:', err))
 
     // 8. Trigger Pusher events
     // Trigger on group channel for existing members
@@ -125,10 +125,10 @@ export async function POST(request, { params }) {
         joinedAt: new Date()
       },
       message: systemMessage
-    }).catch(() => {})
+    }).catch(err => console.error('Operation failed:', err))
 
     // Trigger on user's personal channel to notify them about being added
-    triggerPusher(`user-${userId}`, 'group-joined', group).catch(() => {})
+    triggerPusher(`user-${userId}`, 'group-joined', group).catch(err => console.error('Operation failed:', err))
 
     return NextResponse.json({ 
       success: true, 
@@ -255,10 +255,10 @@ export async function DELETE(request, { params }) {
     triggerPusher(`private-group-${groupId}`, 'member-removed', {
       userId: targetUserIdStr,
       message: systemMessage
-    }).catch(() => {})
+    }).catch(err => console.error('Operation failed:', err))
 
     // Trigger on user's personal channel to notify them about being removed/left
-    triggerPusher(`user-${targetUserIdStr}`, 'group-left', { groupId: group._id }).catch(() => {})
+    triggerPusher(`user-${targetUserIdStr}`, 'group-left', { groupId: group._id }).catch(err => console.error('Operation failed:', err))
 
     return NextResponse.json({ success: true })
 

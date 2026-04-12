@@ -121,7 +121,7 @@ export async function PATCH(request, { params }) {
     await group.save()
 
     // Trigger Pusher for group update
-    triggerPusher(`private-group-${groupId}`, 'group-updated', group).catch(() => {})
+    triggerPusher(`private-group-${groupId}`, 'group-updated', group).catch(err => console.error('Operation failed:', err))
 
     return NextResponse.json(group)
 
@@ -196,7 +196,7 @@ export async function DELETE(request, { params }) {
     triggerPusher(`private-group-${groupId}`, 'group-deleted', {
       groupId: group._id,
       deletedBy: currentUser.name
-    }).catch(() => {})
+    }).catch(err => console.error('Operation failed:', err))
 
     return NextResponse.json({ success: true })
 

@@ -160,7 +160,7 @@ export async function POST(request) {
 
     // Trigger Pusher for all members to notify them about the new group
     for (const memberId of [currentUser._id, ...validMemberIds]) {
-      triggerPusher(`user-${memberId}`, 'group-created', group).catch(() => {})
+      triggerPusher(`user-${memberId}`, 'group-created', group).catch(err => console.error('Operation failed:', err))
     }
 
     return NextResponse.json(group, { status: 201 })

@@ -63,7 +63,7 @@ export async function GET(request, { params }) {
     GroupChat.findOneAndUpdate(
       { _id: groupId, 'members.userId': currentUser._id },
       { $set: { 'members.$.lastReadAt': new Date() } }
-    ).catch(() => {})
+    ).catch(err => console.error('Operation failed:', err))
 
     return NextResponse.json({
       messages: messagesWithEquipped,
@@ -171,7 +171,7 @@ export async function POST(request, { params }) {
         type
       },
       $inc: { messageCount: 1 }
-    }).catch(() => {})
+    }).catch(err => console.error('Operation failed:', err))
 
     // 7. Trigger Pusher
     // We await this to ensure delivery before function ends in serverless environment
