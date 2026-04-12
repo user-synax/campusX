@@ -9,9 +9,19 @@ import {
   BadRequestError, 
   UnauthorizedError 
 } from '@/lib/api-response';
+import { applyRateLimit } from '@/lib/rate-limit';
 
 export async function POST(request) {
   try {
+    // Rate limit account deletion - 1 attempt per hour per user
+    const { blocked, response: rateLimitResponse } = applyRateLimit(
+      request,
+      'delete_account',
+      1,
+      60 * 60 * 1000
+    );
+    if (blocked) return rateLimitResponse;
+
     await connectDB();
     
     const currentUser = await getCurrentUser(request);

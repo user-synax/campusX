@@ -9,9 +9,19 @@ import {
   BadRequestError, 
   UnauthorizedError 
 } from '@/lib/api-response';
+import { applyRateLimit } from '@/lib/rate-limit';
 
 export async function POST(request) {
   try {
+    // Rate limit password changes - 3 attempts per hour per user
+    const { blocked, response: rateLimitResponse } = applyRateLimit(
+      request,
+      'change_password',
+      3,
+      60 * 60 * 1000
+    );
+    if (blocked) return rateLimitResponse;
+
     await connectDB();
     
     const user = await getCurrentUser(request);
