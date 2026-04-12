@@ -92,7 +92,7 @@ export async function POST(request) {
       resource.reviewedAt = new Date()
 
       // Award coins for resource approval
-      awardCoins(resource.uploadedBy, 'resource_approved', resource._id).catch(() => {});
+      awardCoins(resource.uploadedBy, 'resource_approved', resource._id).catch(err => console.error('Operation failed:', err));
     }
 
     await resource.save()

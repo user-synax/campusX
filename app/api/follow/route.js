@@ -8,6 +8,7 @@ import { awardXP } from '@/lib/xp';
 
 import { applyRateLimit } from '@/lib/rate-limit';
 import { sanitizeMongoInput } from '@/lib/sanitize';
+import { followSchema, validateRequest } from '@/utils/schemas';
 
 export async function POST(request) {
   try {
@@ -25,19 +26,15 @@ export async function POST(request) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    let body;
-    try {
-      body = await request.json();
-    } catch (e) {
-      return NextResponse.json({ message: 'Invalid request body' }, { status: 400 });
+    const validation = await validateRequest(followSchema)(request);
+    if (!validation.valid) {
+      return NextResponse.json(
+        { message: 'Validation failed', errors: validation.errors },
+        { status: 400 }
+      );
     }
 
-    const cleanBody = sanitizeMongoInput(body);
-    const { targetUserId } = cleanBody;
-
-    if (!validateObjectId(targetUserId)) {
-      return NextResponse.json({ message: 'Invalid User ID' }, { status: 400 });
-    }
+    const { targetUserId } = validation.data;
 
     if (targetUserId === currentUserInfo._id.toString()) {
       return NextResponse.json({ message: 'You cannot follow yourself' }, { status: 400 });
@@ -66,7 +63,7 @@ export async function POST(request) {
         sender: currentUser._id,
         recipient: targetUserId,
         type: 'follow'
-      }).catch(() => {});
+      }).catch(err => console.error('Operation failed:', err));
     } else {
       // Follow
       currentUser.following.push(targetUserId);
@@ -81,7 +78,7 @@ export async function POST(request) {
         recipient: targetUserId,
         sender: currentUser._id,
         type: 'follow'
-      }).catch(() => {});
+      }).catch(err => console.error('Operation failed:', err));
 
       // Award XP for following someone
       xpResult = await awardXP(currentUser._id, 'follow');

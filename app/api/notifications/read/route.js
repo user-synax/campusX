@@ -12,7 +12,7 @@ export async function PATCH(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) 
     } 
  
-    const { notificationId } = await request.json().catch(() => ({})) 
+    const { notificationId } = await request.json().catch(err => { console.error('Failed to parse request body:', err); return {} }) 
  
     await connectDB() 
  
@@ -40,7 +40,7 @@ export async function PATCH(request) {
       `private-notifications-${currentUser._id}`, 
       'notifications-read', 
       { notificationId: notificationId || 'all' } 
-    ).catch(() => {}) 
+    ).catch(err => console.error('Operation failed:', err)) 
  
     return NextResponse.json({ success: true }) 
  

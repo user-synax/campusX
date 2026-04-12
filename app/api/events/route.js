@@ -147,7 +147,7 @@ export async function POST(request) {
     await event.populate('organizer', 'name username avatar');
 
     // Award coins for event creation
-    awardCoins(currentUser._id, 'event_created', event._id).catch(() => {});
+    awardCoins(currentUser._id, 'event_created', event._id).catch(err => console.error('Operation failed:', err));
 
     return NextResponse.json(event, { status: 201 });
   } catch (error) {
