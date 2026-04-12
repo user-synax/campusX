@@ -311,7 +311,7 @@ Live on dual deployment for maximum reliability:
 | Platform | URL | Status |
 |---|---|---|
 | Vercel (Primary) | campus-x-rho.vercel.app | ✅ Live |
-| Netlify (Backup) | campusx.netlify.app | ✅ Live |
+| Netlify (Backup) | campus-x-rho.netlify.app | ✅ Live |
 
 Both deployments pull from the same GitHub repo — if one goes down, the other handles traffic.
 
