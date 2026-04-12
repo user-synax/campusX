@@ -37,6 +37,21 @@ const nextConfig = {
   },
   async headers() { 
     return [ 
+      // Static assets — cache aggressively
+      {
+        source: '/_next/static/(.*)',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }]
+      },
+      // Images — cache for 1 day
+      {
+        source: '/images/(.*)',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=86400, stale-while-revalidate=3600' }]
+      },
+      // API routes — no cache by default (important for gamification data accuracy)
+      {
+        source: '/api/(.*)',
+        headers: [{ key: 'Cache-Control', value: 'no-store' }]
+      },
       { 
         source: '/(.*)', 
         headers: [ 
@@ -77,5 +92,5 @@ const nextConfig = {
 };
 
 export default withBundleAnalyzer({
-  enabled: process.env.ANALYZE === 'true',
+  enabled: process.env.ANALYZE === 'true' && process.env.NODE_ENV !== 'production',
 })(nextConfig);
