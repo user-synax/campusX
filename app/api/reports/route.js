@@ -68,6 +68,7 @@ export async function GET(request) {
       .populate('reportedBy', 'name username')
       .sort({ createdAt: -1 })
       .limit(50)
+      .lean()
 
     return NextResponse.json({ reports })
   } catch (error) {

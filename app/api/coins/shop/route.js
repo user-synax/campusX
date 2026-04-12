@@ -1928,10 +1928,6 @@ export async function GET(request) {
       ]
     })
 
-    if (deleteResult.deletedCount > 0) {
-      console.log(`[API Shop] Cleaned up ${deleteResult.deletedCount} old/invalid items.`)
-    }
-
     for (const item of seedItems) {
       await ShopItem.findOneAndUpdate({ slug: item.slug }, item, { upsert: true })
     }
