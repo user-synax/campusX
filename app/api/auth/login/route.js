@@ -7,6 +7,7 @@ import { applyRateLimit, rateLimit } from '@/lib/rate-limit';
 import { sanitizeUser, sanitizeMongoInput } from '@/lib/sanitize';
 import { awardCoins } from '@/lib/coins';
 import { sendSuspiciousLoginEmail } from '@/lib/email-templates';
+import { loginSchema, validateRequest } from '@/utils/schemas';
 
 function parseUserAgent(userAgent = '') {
   const device = /Mobile|Android|iPhone|iPad/i.test(userAgent) ? 'Mobile' 
@@ -39,16 +40,15 @@ export async function POST(request) {
     );
     if (blocked) return rateLimitResponse;
 
-    let body;
-    try {
-      body = await request.json();
-    } catch (e) {
-      return NextResponse.json({ message: 'Invalid request body' }, { status: 400 });
+    const validation = await validateRequest(loginSchema)(request);
+    if (!validation.valid) {
+      return NextResponse.json(
+        { message: 'Validation failed', errors: validation.errors },
+        { status: 400 }
+      );
     }
 
-    // Sanitize against MongoDB Injection
-    const cleanBody = sanitizeMongoInput(body);
-    const { email, password } = cleanBody;
+    const { email, password } = validation.data;
 
 
 
@@ -124,11 +124,11 @@ export async function POST(request) {
         userAgent,
         ipAddress,
         createdAt: new Date()
-      }).catch(() => {})
+      }).catch(err => console.error('Operation failed:', err))
     }
 
     // Award daily login coins (fire-and-forget)
-    awardCoins(user._id, 'daily_login').catch(() => {});
+    awardCoins(user._id, 'daily_login').catch(err => console.error('Operation failed:', err));
 
     return response;
   } catch (error) {

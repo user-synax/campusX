@@ -155,11 +155,11 @@ export async function POST(request) {
     )
 
     await setAuthCookie(response, token)
-    notifyAdminNewUser(user).catch(() => {})
+    notifyAdminNewUser(user).catch(err => console.error('Operation failed:', err))
 
     import('@/lib/globalGroup').then(({ autoJoinGlobalGroup }) => {
-      autoJoinGlobalGroup(user._id).catch(() => {})
-    }).catch(() => {})
+      autoJoinGlobalGroup(user._id).catch(err => console.error('Operation failed:', err))
+    }).catch(err => console.error('Operation failed:', err))
 
     return response
   } catch (error) {
