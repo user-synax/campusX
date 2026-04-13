@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Post from '@/models/Post';
-import AnonymousPost from '@/models/AnonymousPost';
-import { findPostById } from '@/lib/post-utils';
 import { validateObjectId } from '@/utils/validators';
 import { sanitizeUser, sanitizeMongoInput } from '@/lib/sanitize';
 
@@ -20,18 +18,13 @@ export async function GET(request, { params }) {
 
     await connectDB();
 
-    const { post, model: PostModel } = await findPostById(postId);
+    const post = await Post.findById(postId);
     if (!post) {
       return NextResponse.json({ message: 'Post not found' }, { status: 404 });
     }
 
-    // Anonymous posts don't show user reactions publicly for privacy
-    if (PostModel === AnonymousPost) {
-      return NextResponse.json({ reactions: [] });
-    }
-
-    // Use the model returned by findPostById to fetch the full populated post
-    const populatedPost = await PostModel.findById(postId)
+    // Use the Post model to fetch the full populated post
+    const populatedPost = await Post.findById(postId)
       .populate('reactions.user', 'name username avatar college')
       .populate('likes', 'name username avatar college')
       .lean();

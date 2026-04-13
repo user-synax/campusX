@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server'
 import connectDB from '@/lib/db'
 import Post from '@/models/Post'
-import AnonymousPost from '@/models/AnonymousPost'
-import { findPostById } from '@/lib/post-utils'
 import { getCurrentUser } from '@/lib/auth'
 import { validateObjectId } from '@/utils/validators'
 
@@ -16,7 +14,7 @@ export async function POST(request, { params }) {
 
     await connectDB()
 
-    const { post, model: PostModel } = await findPostById(postId)
+    const post = await Post.findById(postId)
 
     if (!post) {
       return NextResponse.json({ message: 'Post not found' }, { status: 404 })
@@ -24,11 +22,11 @@ export async function POST(request, { params }) {
 
     const currentUser = await getCurrentUser(request)
 
-    if (PostModel === Post && currentUser && post.author && post.author.toString() === currentUser._id.toString()) {
+    if (currentUser && post.author && post.author.toString() === currentUser._id.toString()) {
       return NextResponse.json({ viewCount: post.viewCount || 0 })
     }
 
-    const updatedPost = await PostModel.findByIdAndUpdate(
+    const updatedPost = await Post.findByIdAndUpdate(
       postId, 
       { $inc: { viewCount: 1 } }, 
       { new: true }

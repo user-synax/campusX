@@ -1,16 +1,12 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Post from '@/models/Post';
-import AnonymousPost from '@/models/AnonymousPost';
-import { findPostById } from '@/lib/post-utils';
 import Comment from '@/models/Comment';
 import { getCurrentUser } from '@/lib/auth';
 import { validateObjectId } from '@/utils/validators';
 import { createNotification } from '@/lib/notifications';
 import { applyRateLimit } from '@/lib/rate-limit';
 import { sanitizeText } from '@/lib/sanitize';
-import { awardCoins } from '@/lib/coins';
-import { attachEquippedToItems } from '@/lib/equipped-helpers';
 
 // GET /api/posts/[postId]/comments
 export async function GET(request, { params }) {
@@ -28,9 +24,7 @@ export async function GET(request, { params }) {
       .populate('author', 'name username avatar')
       .lean();
 
-    const commentsWithEquipped = await attachEquippedToItems(comments);
-
-    return NextResponse.json({ comments: commentsWithEquipped });
+    return NextResponse.json({ comments });
   } catch (error) {
     console.error('Comment fetching error:', error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
@@ -78,7 +72,7 @@ export async function POST(request, { params }) {
 
     await connectDB();
 
-    const { post, model: PostModel } = await findPostById(postId);
+    const post = await Post.findById(postId);
     if (!post) {
        return NextResponse.json({ message: 'Post not found' }, { status: 404 });
     }
@@ -99,17 +93,7 @@ export async function POST(request, { params }) {
       }
     };
 
-    const [commentWithEquipped] = await attachEquippedToItems([populated]);
-
-    await PostModel.findByIdAndUpdate(postId, { $inc: { commentsCount: 1 } });
-
-    // Award coins for comment created
-    awardCoins(currentUser._id, 'comment_created', postId).catch(err => console.error('Operation failed:', err));
-
-    // Award coins for comment received (if not own post)
-    if (post.author && post.author.toString() !== currentUser._id.toString()) {
-      awardCoins(post.author, 'comment_received', postId).catch(err => console.error('Operation failed:', err));
-    }
+    await Post.findByIdAndUpdate(postId, { $inc: { commentsCount: 1 } });
 
     // Notification - ONLY if not anonymous
     if (post && !post.isAnonymous && post.author && post.author.toString() !== currentUser._id.toString()) {
@@ -126,7 +110,7 @@ export async function POST(request, { params }) {
       }).catch(err => console.error('Operation failed:', err));
     }
 
-    return NextResponse.json(commentWithEquipped, { status: 201 });
+    return NextResponse.json(populated, { status: 201 });
   } catch (error) {
     console.error('Comment creation error:', error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
