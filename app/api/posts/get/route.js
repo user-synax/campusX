@@ -10,8 +10,6 @@ import { getCurrentUser } from '@/lib/auth';
 
 import { sanitizeMongoInput, sanitizeUser } from '@/lib/sanitize';
 
-import { attachEquippedToItems } from '@/lib/equipped-helpers';
-
 
 
 export async function GET(request) {
@@ -123,15 +121,9 @@ export async function GET(request) {
 
 
 
-    // Attach equipped visuals in batch
-
-    const postsWithEquipped = await attachEquippedToItems(postsWithReactions);
-
-
-
     return NextResponse.json({
 
-      posts: postsWithEquipped,
+      posts: postsWithReactions,
 
       hasMore: skip + posts.length < total,
 
