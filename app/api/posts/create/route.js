@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Post from '@/models/Post';
-import AnonymousPost from '@/models/AnonymousPost';
 import { getCurrentUser } from '@/lib/auth';
 import { sanitizeString } from '@/utils/validators';
 import { extractHashtags } from '@/utils/hashtags';
@@ -37,7 +36,7 @@ export async function POST(request) {
       return NextResponse.json({ message: 'Invalid request body' }, { status: 400 });
     }
 
-    const { content, community, isAnonymous, poll, linkPreview, images, isMarkdown } = body;
+    const { content, community, poll, linkPreview, images, isMarkdown } = body;
 
     await connectDB();
     // Auto-create community agar exist nahi karti
@@ -83,13 +82,9 @@ export async function POST(request) {
       };
     }
 
-    const isAnon = isAnonymous === true;
-    const Model = isAnon ? AnonymousPost : Post;
-
     const postData = {
       content: sanitizedContent,
       community: sanitizeText(community) || '',
-      isAnonymous: isAnon,
       poll: pollData,
       hashtags,
       images: Array.isArray(images) ? images : [],
@@ -99,18 +94,13 @@ export async function POST(request) {
         image: linkPreview.image,
         url: linkPreview.url
       } : null,
-      isMarkdown: isMarkdown === true
+      isMarkdown: isMarkdown === true,
+      author: currentUser._id
     };
 
-    if (!isAnon) {
-      postData.author = currentUser._id;
-    }
+    const post = await Post.create(postData);
 
-    const post = await Model.create(postData);
-
-    if (!isAnon) {
-      await post.populate('author', 'name username avatar college');
-    }
+    await post.populate('author', 'name username avatar college');
 
     // Invalidate community-related caches
     deleteCachePattern('communities_');
@@ -127,7 +117,7 @@ export async function POST(request) {
     // Check first post of day
     const dayStart = new Date();
     dayStart.setHours(0, 0, 0, 0);
-    const postsToday = await Model.countDocuments({
+    const postsToday = await Post.countDocuments({
       author: currentUser._id,
       createdAt: { $gte: dayStart }
     });
@@ -145,7 +135,7 @@ export async function POST(request) {
       type: 'new_post',
       postId: post._id,
       community: post.community,
-      author: post.isAnonymous ? 'Anonymous' : post.author.name
+      author: post.author.name
     });
 
     return NextResponse.json({

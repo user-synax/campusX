@@ -209,7 +209,7 @@ export default function PostDetailClient({ postId }) {
     )
   }
 
-  const isPostFounder = !post.isAnonymous && post.author && isFounder(post.author.username)
+  const isPostFounder = post.author && isFounder(post.author.username)
 
   return (
     <div className="flex flex-col min-h-screen bg-background pb-20">
@@ -225,35 +225,23 @@ export default function PostDetailClient({ postId }) {
       <div className="p-4 border-b border-border">
         {/* Author row */}
         <div className="flex items-center gap-3 mb-4">
-          {post.isAnonymous ? (
-            <div className="w-12 h-12 rounded-full bg-accent flex items-center justify-center text-xl font-bold text-muted-foreground">
-              ?
-            </div>
-          ) : (
-            <Link href={`/profile/${post.author.username}`}>
-              <AvatarWithFrame user={post.author} size="lg" equipped={post.author?.equipped} />
-            </Link>
-          )}
+          <Link href={`/profile/${post.author.username}`}>
+            <AvatarWithFrame user={post.author} size="lg" equipped={post.author?.equipped} />
+          </Link>
           <div>
             <div className="flex items-center gap-2">
-              {post.isAnonymous ? (
-                <span className="font-bold text-lg">Anonymous</span>
-              ) : (
-                <>
-                  <Link href={`/profile/${post.author.username}`} className="hover:underline flex items-center gap-1">
-                    <CoinUsername 
-                      name={post.author.name} 
-                      equipped={post.author?.equipped} 
-                      className="font-bold text-lg text-foreground" 
-                    />
-                    <CoinBadge equipped={post.author?.equipped} />
-                  </Link>
-                  {isPostFounder && <FounderBadges size="sm" />}
-                </>
-              )}
+              <Link href={`/profile/${post.author.username}`} className="hover:underline flex items-center gap-1">
+                <CoinUsername
+                  name={post.author.name}
+                  equipped={post.author?.equipped}
+                  className="font-bold text-lg text-foreground"
+                />
+                <CoinBadge equipped={post.author?.equipped} />
+              </Link>
+              {isPostFounder && <FounderBadges size="sm" />}
             </div>
             <p className="text-sm text-muted-foreground">
-              {!post.isAnonymous && `@${post.author.username} · `}
+              @{post.author.username} ·
               <FormattedTime date={post.createdAt} type="full" />
             </p>
           </div>

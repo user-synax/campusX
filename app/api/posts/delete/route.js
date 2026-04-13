@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Post from '@/models/Post';
-import AnonymousPost from '@/models/AnonymousPost';
-import { findPostById } from '@/lib/post-utils';
 import User from '@/models/User';
 import Comment from '@/models/Comment';
 import { getCurrentUser } from '@/lib/auth';
@@ -44,26 +42,18 @@ export async function DELETE(request) {
 
     await connectDB();
 
-    const { post, model: PostModel } = await findPostById(postId);
+    const post = await Post.findById(postId);
     if (!post) {
       return NextResponse.json({ message: 'Post not found' }, { status: 404 });
     }
 
-    // Anonymous posts don't have an author field, so only admins (if they exist) can delete them
-    // For now, let's assume regular users can't delete anonymous posts because we can't verify ownership
-    if (post.isAnonymous || !post.author) {
-       // Check if user is an admin (this is a placeholder, you might want to implement real admin check)
-       const isAdmin = currentUser.role === 'admin' || currentUser.username === 'admin'; 
-       if (!isAdmin) {
-         return NextResponse.json({ message: 'Forbidden: Anonymous posts can only be deleted by administrators' }, { status: 403 });
-       }
-    } else if (post.author.toString() !== currentUser._id.toString()) {
+    if (post.author.toString() !== currentUser._id.toString()) {
       return NextResponse.json({ message: 'Forbidden: You are not the author of this post' }, { status: 403 });
     }
 
     await Promise.all([
       Comment.deleteMany({ post: postId }),
-      PostModel.findByIdAndDelete(postId),
+      Post.findByIdAndDelete(postId),
       deletePostNotifications(postId),
     ]);
 

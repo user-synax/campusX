@@ -38,8 +38,7 @@ export default function CreateCommunityDialog({ trigger, onCreated }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           content: firstPost,
-          community: collegeName,
-          isAnonymous: false
+          community: collegeName
         }),
       })
 

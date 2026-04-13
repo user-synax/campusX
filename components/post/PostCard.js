@@ -67,31 +67,27 @@ const PostCard = memo(function PostCard({ post, currentUserId, onDelete, onLike,
     }
   }, [isBookmarked, onBookmark, post._id])
 
-  const isPostFounder = !post.isAnonymous && post.author && typeof post.author === 'object' && isFounder(post.author.username)
+  const isPostFounder = post.author && typeof post.author === 'object' && isFounder(post.author.username)
   const authorEquipped = post.author?.equipped || null
 
   return (
-    <div 
+    <div
       ref={postRef}
       className="border-b border-border p-4 hover:bg-accent/10 transition-colors cursor-pointer group"
       onClick={() => router.push(`/post/${post._id}`)}
     >
       <div className="flex gap-3">
-        <AvatarWithFrame user={post.isAnonymous || typeof post.author !== 'object' ? null : post.author} size="md" equipped={authorEquipped} />
-        
+        <AvatarWithFrame user={post.author} size="md" equipped={authorEquipped} />
+
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap text-sm">
-            {post.isAnonymous || !post.author || typeof post.author !== 'object' ? (
-              <span className="font-bold text-foreground">Anonymous</span>
-            ) : (
-              <>
-                <Link 
-                  href={`/profile/${post.author.username}`} 
-                  className="hover:underline flex items-center gap-1"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <CoinUsername 
-                    name={post.author.name} 
+            <Link
+              href={`/profile/${post.author.username}`}
+              className="hover:underline flex items-center gap-1"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <CoinUsername
+                name={post.author.name} 
                     equipped={authorEquipped} 
                     className="font-bold text-foreground" 
                   />
@@ -106,8 +102,6 @@ const PostCard = memo(function PostCard({ post, currentUserId, onDelete, onLike,
                   </span>
                 )}
                 <span className="text-muted-foreground truncate">@{post.author.username}</span>
-              </>
-            )}
             <span className="text-muted-foreground">·</span>
             <Link 
               href={`/post/${post._id}`} 

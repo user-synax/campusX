@@ -9,39 +9,32 @@ import CoinBadge from '@/components/coins/CoinBadge'
 
 const PostMeta = memo(function PostMeta({
   author,
-  isAnonymous,
   createdAt,
   community,
   equipped
 }) {
-  const isPostFounder = !isAnonymous && author && typeof author === 'object' && isFounder(author.username)
+  const isPostFounder = author && typeof author === 'object' && isFounder(author.username)
 
   return (
     <div className="flex items-center gap-2 flex-wrap text-sm">
-      {isAnonymous || !author || typeof author !== 'object' ? (
-        <span className="font-bold text-foreground">Anonymous</span>
-      ) : (
-        <>
-          <Link 
-            href={`/profile/${author.username}`} 
-            className="hover:underline flex items-center gap-1"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <CoinUsername 
-              name={author.name} 
-              equipped={equipped} 
-              className="font-bold text-foreground" 
-            />
-            <CoinBadge equipped={equipped} />
-          </Link>
-          {isPostFounder && (
-            <span className="flex-shrink-0">
-              <FounderBadges size="sm" />
-            </span>
-          )}
-          <span className="text-muted-foreground truncate">@{author.username}</span>
-        </>
+      <Link
+        href={`/profile/${author.username}`}
+        className="hover:underline flex items-center gap-1"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <CoinUsername
+          name={author.name}
+          equipped={equipped}
+          className="font-bold text-foreground"
+        />
+        <CoinBadge equipped={equipped} />
+      </Link>
+      {isPostFounder && (
+        <span className="flex-shrink-0">
+          <FounderBadges size="sm" />
+        </span>
       )}
+      <span className="text-muted-foreground truncate">@{author.username}</span>
       <span className="text-muted-foreground">·</span>
       <Link 
         href={`/post/${createdAt._id || ''}`} 

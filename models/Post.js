@@ -48,9 +48,6 @@ const postSchema = new mongoose.Schema({
     type: String,
     trim: true,
     default: '',
-  },isAnonymous: {
-    type: Boolean,
-    default: false,
   },
   poll: {
     options: [{
@@ -99,7 +96,6 @@ postSchema.index({ hashtags: 1, createdAt: -1 });
 postSchema.index({ studyGroup: 1, createdAt: -1 });
 postSchema.index({ likes: 1 });
 postSchema.index({ content: 'text' });
-postSchema.index({ author: 1, isAnonymous: 1, createdAt: -1 });
 postSchema.index({ reportCount: -1, isDeleted: 1 });
 postSchema.index({ isFeatured: 1, createdAt: -1 });
 postSchema.index({ isDeleted: 1, createdAt: -1 });

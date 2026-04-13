@@ -17,8 +17,6 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import UserAvatar from "@/components/user/UserAvatar";
@@ -97,7 +95,6 @@ export default function PostComposer({
 }) {
     const { user: currentUser } = useUser();
     const [content, setContent] = useState("");
-    const [isAnonymous, setIsAnonymous] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [showTagInput, setShowTagInput] = useState(false);
     const [manualCommunity, setManualCommunity] = useState("");
@@ -253,7 +250,6 @@ export default function PostComposer({
         const payload = {
             content,
             community: defaultCommunity || manualCommunity,
-            isAnonymous,
             poll: showPoll ? pollOptions.filter((o) => o.trim()) : null,
             images: uploadedImageUrls,
             linkPreview: linkPreview
@@ -282,7 +278,6 @@ export default function PostComposer({
             }
 
             setContent("");
-            setIsAnonymous(false);
             setManualCommunity("");
             setShowTagInput(false);
             setShowPoll(false);
@@ -311,7 +306,7 @@ export default function PostComposer({
             )}
         >
             <div className="flex gap-3">
-                <UserAvatar user={isAnonymous ? null : currentUser} size="md" />
+                <UserAvatar user={currentUser} size="md" />
                 <div className="flex-1">
                     {/* Markdown preview/edit toggle */}
                     {content && (
@@ -592,21 +587,6 @@ export default function PostComposer({
                                 >
                                     <FileCode className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                 </Button>
-                            </div>
-
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground ml-0 sm:ml-2">
-                                <Switch
-                                    id="anon-mode"
-                                    checked={isAnonymous}
-                                    onCheckedChange={setIsAnonymous}
-                                    className="scale-75 sm:scale-100"
-                                />
-                                <Label
-                                    htmlFor="anon-mode"
-                                    className="cursor-pointer font-normal text-[10px] sm:text-xs"
-                                >
-                                    Anonymous
-                                </Label>
                             </div>
                         </div>
 

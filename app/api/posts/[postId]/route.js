@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server'
 import connectDB from '@/lib/db'
 import Post from '@/models/Post'
-import AnonymousPost from '@/models/AnonymousPost'
-import { findPostById } from '@/lib/post-utils'
 import { getCurrentUser } from '@/lib/auth'
 import { sanitizeMongoInput } from '@/lib/sanitize'
 import { validateObjectId } from '@/utils/validators'
@@ -20,28 +18,22 @@ export async function GET(request, { params }) {
 
     await connectDB()
 
-    const { post, model: PostModel } = await findPostById(postId)
+    const post = await Post.findById(postId)
+      .populate('author', 'name username avatar college')
+      .lean()
+
     if (!post) {
       return NextResponse.json({ message: 'Post not found' }, { status: 404 })
     }
 
-    let populatedPost = post
-    if (PostModel === Post) {
-      populatedPost = await Post.findById(postId)
-        .populate('author', 'name username avatar college')
-        .lean()
-    } else {
-      populatedPost = post.toObject ? post.toObject() : post
-    }
+    const isLiked = currentUser ? post.likes?.some(id => id.toString() === currentUser._id.toString()) : false
 
-    const isLiked = currentUser ? populatedPost.likes?.some(id => id.toString() === currentUser._id.toString()) : false
-
-    const { likes, author, ...postData } = populatedPost
+    const { likes, author, ...postData } = post
 
     const postResponse = {
       ...postData,
-      likesCount: populatedPost.likesCount ?? populatedPost.likes?.length ?? 0,
-      shareCount: populatedPost.shareCount ?? 0,
+      likesCount: post.likesCount ?? post.likes?.length ?? 0,
+      shareCount: post.shareCount ?? 0,
       author: author ? sanitizeUser(author) : null,
       _isLiked: isLiked
     }

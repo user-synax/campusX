@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Post from '@/models/Post';
-import AnonymousPost from '@/models/AnonymousPost';
-import { findPostById } from '@/lib/post-utils';
 import { getCurrentUser } from '@/lib/auth';
 import { validateObjectId } from '@/utils/validators';
 import { createNotification, deleteNotification } from '@/lib/notifications';
@@ -42,7 +40,7 @@ export async function POST(request) {
 
     await connectDB();
 
-    const { post, model: PostModel } = await findPostById(postId);
+    const post = await Post.findById(postId);
     if (!post) {
       return NextResponse.json({ message: 'Post not found' }, { status: 404 });
     }
@@ -53,9 +51,9 @@ export async function POST(request) {
     let updatedPost;
     if (isLiked) {
       // Unlike optimized: $pull and $inc -1
-      updatedPost = await PostModel.findOneAndUpdate(
+      updatedPost = await Post.findOneAndUpdate(
         { _id: postId },
-        { 
+        {
           $pull: { likes: currentUser._id },
           $inc: { likesCount: -1 }
         },
@@ -71,17 +69,17 @@ export async function POST(request) {
       }).catch(err => console.error('Notification error:', err));
     } else {
       // Like optimized: $addToSet and $inc +1
-      updatedPost = await PostModel.findOneAndUpdate(
+      updatedPost = await Post.findOneAndUpdate(
         { _id: postId },
-        { 
+        {
           $addToSet: { likes: currentUser._id },
           $inc: { likesCount: 1 }
         },
         { new: true }
       );
 
-      // Create notification - ONLY if it's not an anonymous post or if it has an author
-      if (!post.isAnonymous && post.author && post.author.toString() !== currentUserIdStr) {
+      // Create notification - only if author is not the current user
+      if (post.author && post.author.toString() !== currentUserIdStr) {
         await createNotification({
           recipient: post.author,
           sender: currentUser._id,
