@@ -11,7 +11,6 @@ import { applyRateLimit } from '@/lib/rate-limit';
 import { sanitizeText } from '@/lib/sanitize';
 import { awardCoins } from '@/lib/coins';
 import { attachEquippedToItems } from '@/lib/equipped-helpers';
-import { commentSchema, validateRequest } from '@/utils/schemas';
 
 // GET /api/posts/[postId]/comments
 export async function GET(request, { params }) {
@@ -60,17 +59,22 @@ export async function POST(request, { params }) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    const validation = await validateRequest(commentSchema)(request);
-    if (!validation.valid) {
-      return NextResponse.json(
-        { message: 'Validation failed', errors: validation.errors },
-        { status: 400 }
-      );
+    let body;
+    try {
+      body = await request.json();
+    } catch (e) {
+      return NextResponse.json({ message: 'Invalid request body' }, { status: 400 });
     }
 
-    const { content } = validation.data;
+    const { content } = body;
+    if (!content || !content.trim()) {
+      return NextResponse.json({ message: 'Comment content is required' }, { status: 400 });
+    }
 
     const sanitizedContent = sanitizeText(content);
+    if (sanitizedContent.length > 280) {
+      return NextResponse.json({ message: 'Comment too long' }, { status: 400 });
+    }
 
     await connectDB();
 
