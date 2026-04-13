@@ -24,7 +24,7 @@ export default function Footer() {
         {/* Platform links */}
         <div className="space-y-3">
           <h4 className="font-semibold text-sm text-[#f0f0f0]">Platform</h4>
-          {['Feed', 'Communities', 'Events', 'Resources', 'Leaderboard'].map(link => (
+          {['Feed', 'Communities', 'Events', 'Resources'].map(link => (
             <Link key={link} href={`/${link.toLowerCase()}`}
               className="block text-sm text-muted-foreground hover:text-[#f0f0f0] transition-colors">
               {link}

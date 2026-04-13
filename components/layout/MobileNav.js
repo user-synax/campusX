@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, GraduationCap, PlusSquare, User, Bell, Bookmark, LogOut, Menu, Search, Calendar, Trophy, Settings, MessageSquare, Shield, BookOpen, ShoppingBag, Wallet, BarChart2 } from "lucide-react"
+import { Home, GraduationCap, PlusSquare, User, Bell, Bookmark, LogOut, Menu, Search, Calendar, Settings, MessageSquare, Shield, BookOpen, ShoppingBag, Wallet, BarChart2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import {
@@ -158,18 +158,6 @@ export default function MobileNav() {
                   <span className="text-base font-medium">Search</span>
                 </Button>
               </Link> */}
-              <Link href="/leaderboard" onClick={() => setOpen(false)}>
-                <Button
-                  variant="ghost"
-                  className={cn(
-                    "w-full justify-start gap-4 h-12 px-3",
-                    pathname === "/leaderboard" ? "bg-accent text-accent-foreground" : "text-muted-foreground"
-                  )}
-                >
-                  <Trophy className="w-5 h-5" />
-                  <span className="text-base font-medium">Leaderboard</span>
-                </Button>
-              </Link>
               <Link href="/resources" onClick={() => setOpen(false)}>
                 <Button
                   variant="ghost"
