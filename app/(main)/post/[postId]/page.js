@@ -48,8 +48,8 @@ export async function generateMetadata({ params }) {
       ? firstLine.slice(0, 57) + '...'
       : firstLine;
 
-    // OG image URL — generated dynamically
-    const ogImageUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/og/post?id=${postId}`;
+    // OG image URL — static fallback
+    const ogImageUrl = `${process.env.NEXT_PUBLIC_APP_URL}/og-image.png`;
     const postUrl = `${process.env.NEXT_PUBLIC_APP_URL}/post/${postId}`;
 
     return {
