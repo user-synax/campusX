@@ -13,9 +13,7 @@ import FounderBadges from './FounderBadges'
 import RoadmapWidget from './RoadmapWidget'
 import FollowButton from '@/components/user/FollowButton'
 import BroadcastManager from './BroadcastManager'
-import AvatarWithFrame from '@/components/coins/AvatarWithFrame'
-import CoinUsername from '@/components/coins/CoinUsername'
-import CoinBadge from '@/components/coins/CoinBadge'
+import UserAvatar from '@/components/user/UserAvatar'
 import EditProfileDrawer from '@/components/user/EditProfileDrawer'
 
 export default function FounderProfileHeader({ user, isOwnProfile, stats, onFollowClick, onSave }) {
@@ -52,7 +50,7 @@ export default function FounderProfileHeader({ user, isOwnProfile, stats, onFoll
     
         {/* Avatar + Actions row */} 
         <div className="flex justify-between items-start mb-4"> 
-          <AvatarWithFrame user={user} size="xl" equipped={user?.equipped} /> 
+          <UserAvatar user={user} size="xl" /> 
           {isOwnProfile ? ( 
             <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} 
               className="border-amber-500/30 text-amber-400 hover:bg-amber-500/10 rounded-full px-6"> 
