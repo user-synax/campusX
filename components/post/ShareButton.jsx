@@ -40,9 +40,11 @@ export default function ShareButton({ post, size = "sm" }) {
     }
   }, [post._id])
 
-  const handleNativeShare = useCallback(async () => {
+  const handleNativeShare = useCallback(async (e) => {
+    e.preventDefault()
+    e.stopPropagation()
     if (!navigator.share) return
-    
+
     setIsSharing(true)
     try {
       await navigator.share({
@@ -60,7 +62,9 @@ export default function ShareButton({ post, size = "sm" }) {
     }
   }, [getAuthorName, getShareText, getShareUrl, trackShare])
 
-  const handleCopyLink = useCallback(async () => {
+  const handleCopyLink = useCallback(async (e) => {
+    e.preventDefault()
+    e.stopPropagation()
     try {
       await navigator.clipboard.writeText(getShareUrl())
       toast.success('Link copied! 🔗')
@@ -71,7 +75,9 @@ export default function ShareButton({ post, size = "sm" }) {
     }
   }, [getShareUrl, trackShare])
 
-  const handleTwitterShare = useCallback(() => {
+  const handleTwitterShare = useCallback((e) => {
+    e.preventDefault()
+    e.stopPropagation()
     const text = encodeURIComponent(`${getShareText()} - via @CampusX`)
     const url = encodeURIComponent(getShareUrl())
     window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank')
@@ -79,7 +85,9 @@ export default function ShareButton({ post, size = "sm" }) {
     setOpen(false)
   }, [getShareText, getShareUrl, trackShare])
 
-  const handleWhatsAppShare = useCallback(() => {
+  const handleWhatsAppShare = useCallback((e) => {
+    e.preventDefault()
+    e.stopPropagation()
     const text = encodeURIComponent(`${getShareText()}\n\n${getShareUrl()}`)
     window.open(`https://wa.me/?text=${text}`, '_blank')
     trackShare()
@@ -110,6 +118,10 @@ export default function ShareButton({ post, size = "sm" }) {
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button
+          onClick={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+          }}
           className={`flex items-center gap-1.5 text-xs transition-all hover:text-green-400 hover:bg-green-400/10 ${buttonPadding} rounded-full active:scale-95`}
         >
           <Share2 className={iconSize} />
