@@ -25,7 +25,7 @@ export async function GET(request) {
       createdAt: { $gte: dayAgo },
       isDeleted: { $ne: true }
     })
-    .select('content author likesCount commentsCount viewCount community createdAt')
+    .select('content author likesCount commentsCount community createdAt')
     .populate('author', 'name username')
     .lean()
 
@@ -33,8 +33,7 @@ export async function GET(request) {
     const scoredPosts = posts.map(post => {
       const likes = post.likesCount || 0
       const comments = post.commentsCount || 0
-      const views = post.viewCount || 0
-      const score = (likes * 3) + (comments * 2) + (views * 1)
+      const score = (likes * 3) + (comments * 2)
       return {
         ...post,
         score,
@@ -53,7 +52,6 @@ export async function GET(request) {
         author: post.author ? sanitizeUser(post.author) : null,
         likesCount: post.likesCount || 0,
         commentsCount: post.commentsCount || 0,
-        viewCount: post.viewCount || 0,
         community: post.community || null
       }))
 

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, memo, useCallback } from 'react'
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Heart, MessageCircle, Bookmark, Eye } from "lucide-react"
+import { Heart, MessageCircle, Bookmark } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import { toast } from "sonner"
@@ -24,7 +24,6 @@ import { formatRelativeTime } from "@/utils/formatters"
 import { formatCount } from "@/utils/formatters"
 import { cn } from "@/lib/utils"
 import useUser from "@/hooks/useUser"
-import usePostView from "@/hooks/usePostView"
 import { isFounder } from "@/lib/founder"
 import FounderBadges from "@/components/founder/FounderBadges"
 import FormattedTime from "@/components/shared/FormattedTime"
@@ -46,8 +45,6 @@ const PostCard = memo(function PostCard({ post, currentUserId, onDelete, onLike,
   const [showComments, setShowComments] = useState(false)
   const [isBookmarked, setIsBookmarked] = useState(post._isBookmarked || false)
   const postRef = useRef(null)
-
-  usePostView(post._id, postRef)
 
   // useEffect for bookmark checking removed (handled by API)
 
@@ -196,10 +193,6 @@ const PostCard = memo(function PostCard({ post, currentUserId, onDelete, onLike,
                 🎓 {post.community}
               </Badge>
             )}
-            <span className="ml-auto flex items-center gap-1 text-xs text-muted-foreground/80">
-              <Eye className="w-3.5 h-3.5" />
-              <span>{formatCount(post.viewCount || 0)}</span>
-            </span>
           </div>
           
           <div className="mt-1">

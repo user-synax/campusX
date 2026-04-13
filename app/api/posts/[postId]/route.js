@@ -44,7 +44,6 @@ export async function GET(request, { params }) {
     const postResponse = {
       ...postData,
       likesCount: populatedPost.likesCount ?? populatedPost.likes?.length ?? 0,
-      viewCount: populatedPost.viewCount ?? 0,
       shareCount: populatedPost.shareCount ?? 0,
       author: author ? sanitizeUser(author) : null,
       _reactionSummary: summary,

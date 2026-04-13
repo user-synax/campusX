@@ -71,11 +71,6 @@ const anonymousPostSchema = new mongoose.Schema({
     description: String,
     image: String,
     url: String
-  },
-  viewCount: {
-    type: Number,
-    default: 0,
-    min: 0
   }
 }, { 
   timestamps: true,

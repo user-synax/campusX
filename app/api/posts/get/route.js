@@ -142,8 +142,6 @@ export async function GET(request) {
 
           $addFields: {
 
-            viewCount: { $ifNull: ['$viewCount', 0] },
-
             shareCount: { $ifNull: ['$shareCount', 0] }
 
           }
@@ -209,8 +207,6 @@ export async function GET(request) {
         ...postData,
 
         likesCount: post.likesCount ?? post.likes?.length ?? 0,
-
-        viewCount: post.viewCount ?? 0,
 
         shareCount: post.shareCount ?? 0,
 
