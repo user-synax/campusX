@@ -6,12 +6,10 @@ import { sanitizeString } from '@/utils/validators';
 import { extractHashtags } from '@/utils/hashtags';
 import { indexHashtags } from '@/lib/hashtag-utils';
 import { awardXP } from '@/lib/xp';
-import { awardCoins } from '@/lib/coins';
 import { deleteCachePattern } from '@/lib/cache';
 import { applyRateLimit } from '@/lib/rate-limit';
 import { sanitizeText } from '@/lib/sanitize';
 import Community from '@/models/Community';
-import { broadcastEvent } from '@/lib/notificationStream';
 
 export async function POST(request) {
   try {
@@ -88,12 +86,7 @@ export async function POST(request) {
       poll: pollData,
       hashtags,
       images: Array.isArray(images) ? images : [],
-      linkPreview: linkPreview ? {
-        title: sanitizeText(linkPreview.title),
-        description: sanitizeText(linkPreview.description),
-        image: linkPreview.image,
-        url: linkPreview.url
-      } : null,
+      linkPreview: linkPreview?.url ? { url: linkPreview.url } : null,
       isMarkdown: isMarkdown === true,
       author: currentUser._id
     };
@@ -110,33 +103,6 @@ export async function POST(request) {
 
     // Award XP for posting
     const xpResult = await awardXP(currentUser._id, 'post');
-
-    // Award Coins for posting
-    awardCoins(currentUser._id, 'post_created', post._id).catch(() => { });
-
-    // Check first post of day
-    const dayStart = new Date();
-    dayStart.setHours(0, 0, 0, 0);
-    const postsToday = await Post.countDocuments({
-      author: currentUser._id,
-      createdAt: { $gte: dayStart }
-    });
-    if (postsToday === 1) {
-      awardCoins(currentUser._id, 'first_post_of_day', post._id).catch(() => { });
-    }
-
-    // Award Coins for poll creation
-    if (post.poll) {
-      awardCoins(currentUser._id, 'poll_created', post._id).catch(() => { });
-    }
-
-    // Broadcast new post event
-    broadcastEvent({
-      type: 'new_post',
-      postId: post._id,
-      community: post.community,
-      author: post.author.name
-    });
 
     return NextResponse.json({
       ...post.toObject(),
