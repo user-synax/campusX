@@ -13,8 +13,6 @@ import {
 import User from '@/models/User'
 import Post from '@/models/Post'
 import Comment from '@/models/Comment'
-import Wallet from '@/models/Wallet'
-import CoinTransaction from '@/models/CoinTransaction'
 import Resource from '@/models/Resource'
 import GroupChat from '@/models/GroupChat'
 import Event from '@/models/Event'
@@ -165,77 +163,6 @@ async function getContentAnalytics(range) {
     reportedPosts,
     topHashtags: topHashtagsRaw,
     timeSeries: startDate ? buildTimeSeries(timeSeriesRaw, startDate, now) : timeSeriesRaw,
-  }
-}
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// SECTION: COINS
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-async function getCoinAnalytics(range) {
-  const startDate = getRangeStartDate(range)
-  const now = new Date()
-  const rangeMatch = startDate ? { createdAt: { $gte: startDate } } : {}
-
-  const [
-    walletTotals,
-    volumeRaw,
-    adminAdjustCount,
-    byReasonRaw,
-    topEarnersRaw,
-    topSpendersRaw,
-    timeSeriesRaw,
-  ] = await Promise.all([
-    Wallet.aggregate([
-      { $group: { _id: null, circulation: { $sum: '$balance' }, earned: { $sum: '$totalEarned' }, spent: { $sum: '$totalSpent' } } },
-    ]),
-    CoinTransaction.aggregate([
-      { $match: rangeMatch },
-      { $group: { _id: null, total: { $sum: '$amount' } } },
-    ]),
-    CoinTransaction.countDocuments({ type: 'admin_adjust', ...rangeMatch }),
-    CoinTransaction.aggregate([
-      { $match: rangeMatch },
-      { $group: { _id: '$reason', total: { $sum: '$amount' } } },
-      { $sort: { total: -1 } },
-      { $project: { _id: 0, reason: '$_id', total: 1 } },
-    ]),
-    Wallet.aggregate([
-      { $sort: { totalEarned: -1 } },
-      { $limit: 5 },
-      { $lookup: { from: 'users', localField: 'userId', foreignField: '_id', as: 'user' } },
-      { $project: { _id: 0, username: { $arrayElemAt: ['$user.username', 0] }, totalEarned: 1 } },
-    ]),
-    Wallet.aggregate([
-      { $sort: { totalSpent: -1 } },
-      { $limit: 5 },
-      { $lookup: { from: 'users', localField: 'userId', foreignField: '_id', as: 'user' } },
-      { $project: { _id: 0, username: { $arrayElemAt: ['$user.username', 0] }, totalSpent: 1 } },
-    ]),
-    startDate
-      ? CoinTransaction.aggregate([
-          { $match: { createdAt: { $gte: startDate } } },
-          { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } }, total: { $sum: '$amount' } } },
-          { $sort: { _id: 1 } },
-          { $project: { _id: 0, date: '$_id', total: 1 } },
-        ])
-      : Promise.resolve([]),
-  ])
-
-  const wt = walletTotals[0] ?? { circulation: 0, earned: 0, spent: 0 }
-
-  // Normalize time series to { date, count } shape
-  const tsNormalized = timeSeriesRaw.map(d => ({ date: d.date, count: d.total }))
-
-  return {
-    totalCirculation: wt.circulation,
-    lifetimeEarned: wt.earned,
-    lifetimeSpent: wt.spent,
-    volumeInRange: volumeRaw[0]?.total ?? 0,
-    adminAdjustCount,
-    byReason: byReasonRaw,
-    topEarners: topEarnersRaw,
-    topSpenders: topSpendersRaw,
-    timeSeries: startDate ? buildTimeSeries(tsNormalized, startDate, now) : tsNormalized,
   }
 }
 
@@ -460,10 +387,9 @@ export async function GET(request) {
     const range = VALID_RANGES.includes(rawRange) ? rawRange : '30d'
 
     // ── Run all sections in parallel ──
-    const [users, content, coins, resources, chats, events, moderation] = await Promise.all([
+    const [users, content, resources, chats, events, moderation] = await Promise.all([
       getUserAnalytics(range),
       getContentAnalytics(range),
-      getCoinAnalytics(range),
       getResourceAnalytics(range),
       getChatAnalytics(range),
       getEventAnalytics(range),
@@ -475,7 +401,6 @@ export async function GET(request) {
       range,
       users,
       content,
-      coins,
       resources,
       chats,
       events,
