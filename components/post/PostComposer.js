@@ -114,12 +114,10 @@ export default function PostComposer({
 
     // Link preview state
     const [linkPreview, setLinkPreview] = useState(null);
-    const [isPreviewLoading, setIsPreviewLoading] = useState(false);
-    const debouncedContent = useDebounce(content, 800);
+    const debouncedContent = useDebounce(content, 500);
 
-    // Detect and fetch link preview
+    // Detect URL for link preview
     useEffect(() => {
-        // Improved regex to avoid trailing punctuation like ) or .
         const urlRegex = /(https?:\/\/[^\s)]+)/g;
         const match = debouncedContent.match(urlRegex);
         let url = match ? match[0] : null;
@@ -129,29 +127,12 @@ export default function PostComposer({
             url = url.replace(/[.,;!]+$/, "");
         }
 
-        if (url && (!linkPreview || linkPreview.originalUrl !== url)) {
-            fetchPreview(url);
-        } else if (!url) {
+        if (url) {
+            setLinkPreview({ url });
+        } else {
             setLinkPreview(null);
         }
     }, [debouncedContent]);
-
-    const fetchPreview = async (url) => {
-        setIsPreviewLoading(true);
-        try {
-            const res = await fetch(
-                `/api/posts/preview?url=${encodeURIComponent(url)}`,
-            );
-            const data = await res.json();
-            if (res.ok) {
-                setLinkPreview({ ...data, originalUrl: url });
-            }
-        } catch (error) {
-            console.error("Failed to fetch preview:", error);
-        } finally {
-            setIsPreviewLoading(false);
-        }
-    };
 
     const getCounterColor = (len) => {
         if (len > 2000) return "text-destructive font-bold";
@@ -252,14 +233,7 @@ export default function PostComposer({
             community: defaultCommunity || manualCommunity,
             poll: showPoll ? pollOptions.filter((o) => o.trim()) : null,
             images: uploadedImageUrls,
-            linkPreview: linkPreview
-                ? {
-                    title: linkPreview.title,
-                    description: linkPreview.description,
-                    image: linkPreview.image,
-                    url: linkPreview.url,
-                }
-                : null,
+            linkPreview: linkPreview?.url ? { url: linkPreview.url } : null,
             isMarkdown: containsMd,
         };
 
@@ -369,55 +343,16 @@ export default function PostComposer({
                     )}
 
                     {/* Link Preview */}
-                    {isPreviewLoading && (
-                        <div className="mt-2 p-3 border border-border rounded-xl flex items-center gap-3 bg-accent/10 animate-pulse">
-                            <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                            <span className="text-xs text-muted-foreground">
-                                Fetching link preview...
-                            </span>
-                        </div>
-                    )}
-
-                    {linkPreview && !isPreviewLoading && (
-                        <Card className="mt-2 overflow-hidden border-border bg-accent/10 group relative">
+                    {linkPreview && (
+                        <div className="mt-2 flex items-center gap-2">
+                            <LinkPreview url={linkPreview.url} clickable={false} />
                             <button
                                 onClick={() => setLinkPreview(null)}
-                                className="absolute top-2 right-2 z-10 p-1 rounded-full bg-background/80 hover:bg-background text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                                className="p-1 rounded-full hover:bg-accent text-muted-foreground transition-colors"
                             >
                                 <X className="w-3 h-3" />
                             </button>
-                            <div className="flex flex-col sm:flex-row gap-3">
-                                {linkPreview.image && (
-                                    <div className="w-full sm:w-32 h-32 sm:h-auto shrink-0 bg-secondary relative overflow-hidden">
-                                        <img
-                                            src={linkPreview.image}
-                                            alt=""
-                                            className="w-full h-full object-cover"
-                                            onError={(e) =>
-                                            (e.currentTarget.style.display =
-                                                "none")
-                                            }
-                                        />
-                                    </div>
-                                )}
-                                <div className="p-3 flex-1 min-w-0 flex flex-col justify-center">
-                                    <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-1">
-                                        <Link2 className="w-3 h-3" />
-                                        <span className="truncate">
-                                            {linkPreview.siteName ||
-                                                new URL(linkPreview.url)
-                                                    .hostname}
-                                        </span>
-                                    </div>
-                                    <h4 className="font-bold text-sm line-clamp-1 mb-1">
-                                        {linkPreview.title}
-                                    </h4>
-                                    <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-                                        {linkPreview.description}
-                                    </p>
-                                </div>
-                            </div>
-                        </Card>
+                        </div>
                     )}
 
                     {/* Manual Tag Input */}
