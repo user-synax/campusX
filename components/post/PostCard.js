@@ -26,9 +26,6 @@ import useUser from "@/hooks/useUser"
 import { isFounder } from "@/lib/founder"
 import FounderBadges from "@/components/founder/FounderBadges"
 import FormattedTime from "@/components/shared/FormattedTime"
-import AvatarWithFrame from '@/components/coins/AvatarWithFrame' 
-import CoinUsername from '@/components/coins/CoinUsername' 
-import CoinBadge from '@/components/coins/CoinBadge' 
 import VerifiedBadge from '@/components/shared/VerifiedBadge'
 
 const PostCard = memo(function PostCard({ post, currentUserId, onDelete, onLike, onBookmark, isPinned = false }) {
@@ -68,7 +65,6 @@ const PostCard = memo(function PostCard({ post, currentUserId, onDelete, onLike,
   }, [isBookmarked, onBookmark, post._id])
 
   const isPostFounder = post.author && typeof post.author === 'object' && isFounder(post.author.username)
-  const authorEquipped = post.author?.equipped || null
 
   return (
     <div
@@ -77,7 +73,7 @@ const PostCard = memo(function PostCard({ post, currentUserId, onDelete, onLike,
       onClick={() => router.push(`/post/${post._id}`)}
     >
       <div className="flex gap-3">
-        <AvatarWithFrame user={post.author} size="md" equipped={authorEquipped} />
+        <UserAvatar user={post.author} size="md" />
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap text-sm">
@@ -86,15 +82,10 @@ const PostCard = memo(function PostCard({ post, currentUserId, onDelete, onLike,
               className="hover:underline flex items-center gap-1"
               onClick={(e) => e.stopPropagation()}
             >
-              <CoinUsername
-                name={post.author.name} 
-                    equipped={authorEquipped} 
-                    className="font-bold text-foreground" 
-                  />
+              <span className="font-bold text-foreground">{post.author.name}</span>
                   {post.author?.isVerified && (
                     <VerifiedBadge size="sm" verificationType={post.author.verificationType} />
                   )}
-                  <CoinBadge equipped={authorEquipped} />
                 </Link>
                 {isPostFounder && (
                   <span className="shrink-0">
