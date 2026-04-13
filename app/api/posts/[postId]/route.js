@@ -6,7 +6,6 @@ import { findPostById } from '@/lib/post-utils'
 import { getCurrentUser } from '@/lib/auth'
 import { sanitizeMongoInput } from '@/lib/sanitize'
 import { validateObjectId } from '@/utils/validators'
-import { computeReactionSummary, getUserReaction } from '@/lib/reaction-utils'
 import { attachEquippedToItems } from '@/lib/equipped-helpers'
 import { sanitizeUser } from '@/lib/sanitize'
 
@@ -35,19 +34,15 @@ export async function GET(request, { params }) {
       populatedPost = post.toObject ? post.toObject() : post
     }
 
-    const summary = computeReactionSummary(populatedPost.reactions, populatedPost.likes)
-    const userReaction = currentUser ? getUserReaction(populatedPost.reactions, currentUser._id, populatedPost.likes) : null
     const isLiked = currentUser ? populatedPost.likes?.some(id => id.toString() === currentUser._id.toString()) : false
 
-    const { reactions, likes, author, ...postData } = populatedPost
-    
+    const { likes, author, ...postData } = populatedPost
+
     const postResponse = {
       ...postData,
       likesCount: populatedPost.likesCount ?? populatedPost.likes?.length ?? 0,
       shareCount: populatedPost.shareCount ?? 0,
       author: author ? sanitizeUser(author) : null,
-      _reactionSummary: summary,
-      _userReaction: userReaction,
       _isLiked: isLiked
     }
 

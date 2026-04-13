@@ -3,7 +3,6 @@ import connectDB from '@/lib/db';
 import Post from '@/models/Post';
 import AnonymousPost from '@/models/AnonymousPost';
 import { getCurrentUser } from '@/lib/auth';
-import { computeReactionSummary, getUserReaction } from '@/lib/reaction-utils';
 import { applyRateLimit } from '@/lib/rate-limit';
 import { sanitizeMongoInput, sanitizeUser } from '@/lib/sanitize';
 import { attachEquippedToItems } from '@/lib/equipped-helpers';
@@ -87,20 +86,15 @@ export async function GET(request) {
       total = regPostCount + regAnonCount;
     }
 
-    // Add reaction summary and user reaction status
     const postsWithReactions = posts.map(post => {
-      const summary = computeReactionSummary(post.reactions, post.likes);
-      const userReaction = currentUser ? getUserReaction(post.reactions, currentUser._id, post.likes) : null;
       const isLiked = currentUser ? post.likes?.some(id => id.toString() === currentUser._id.toString()) : false;
-      
-      const { reactions, likes, author, ...postData } = post;
-      
+
+      const { likes, author, ...postData } = post;
+
       return {
         ...postData,
         likesCount: post.likesCount ?? post.likes?.length ?? 0,
         author: sanitizeUser(author),
-        _reactionSummary: summary,
-        _userReaction: userReaction,
         _isLiked: isLiked
       };
     });

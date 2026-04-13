@@ -35,10 +35,6 @@ const anonymousPostSchema = new mongoose.Schema({
     default: 0,
     min: 0,
   },
-  reactions: [{
-    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    type: { type: String, enum: ['like', 'funny', 'wow', 'sad', 'respect', 'fire'], required: true }
-  }],
   commentsCount: {
     type: Number,
     default: 0,
@@ -83,11 +79,6 @@ anonymousPostSchema.index({ community: 1, createdAt: -1 });
 anonymousPostSchema.index({ hashtags: 1, createdAt: -1 });
 anonymousPostSchema.index({ likes: 1 });
 anonymousPostSchema.index({ content: 'text' });
-anonymousPostSchema.index({ 'reactions.user': 1 });
-
-anonymousPostSchema.virtual('reactionCount').get(function () {
-  return this.reactions.length;
-});
 
 // Check if model already exists before creating it
 export default mongoose.models.AnonymousPost || mongoose.model('AnonymousPost', anonymousPostSchema);

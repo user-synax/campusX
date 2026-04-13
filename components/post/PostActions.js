@@ -24,8 +24,6 @@ const PostActions = memo(function PostActions({
           onLike={onLike}
         />
 
-        <PostReactionsButton />
-
         <button 
           onClick={onCommentClick}
           className="flex items-center gap-1.5 text-xs hover:text-blue-400 transition-colors group/comment"
@@ -89,18 +87,8 @@ const LikeButton = memo(function LikeButton({
   )
 })
 
-const PostReactionsButton = memo(function PostReactionsButton() {
-  return (
-    <div className="relative">
-      <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground p-2 rounded-full transition-colors">
-        <span className="text-base leading-none">😀</span>
-      </button>
-    </div>
-  )
-})
-
 const PostMoreMenu = memo(function PostMoreMenu({ postId }) {
   return null
 })
 
-export { PostActions, LikeButton, PostReactionsButton, PostMoreMenu }
+export { PostActions, LikeButton, PostMoreMenu }

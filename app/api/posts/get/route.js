@@ -10,8 +10,6 @@ import User from '@/models/User';
 
 import { getCurrentUser } from '@/lib/auth';
 
-import { computeReactionSummary, getUserReaction } from '@/lib/reaction-utils';
-
 import { sanitizeMongoInput, sanitizeUser } from '@/lib/sanitize';
 
 import { attachEquippedToItems } from '@/lib/equipped-helpers';
@@ -180,13 +178,7 @@ export async function GET(request) {
 
 
 
-    // Add reaction summary and user reaction status
-
     const postsWithReactions = posts.map(post => {
-
-      const summary = computeReactionSummary(post.reactions, post.likes);
-
-      const userReaction = currentUser ? getUserReaction(post.reactions, currentUser._id, post.likes) : null;
 
       const isLiked = currentUser ? post.likes?.some(id => id.toString() === currentUser._id.toString()) : false;
 
@@ -196,9 +188,9 @@ export async function GET(request) {
 
       
 
-      // Remove raw reactions and likes for privacy/payload size
+      // Remove raw likes for privacy/payload size
 
-      const { reactions, likes, author, ...postData } = post;
+      const { likes, author, ...postData } = post;
 
       
 
@@ -211,10 +203,6 @@ export async function GET(request) {
         shareCount: post.shareCount ?? 0,
 
         author: sanitizeUser(author),
-
-        _reactionSummary: summary,
-
-        _userReaction: userReaction,
 
         _isLiked: isLiked,
 

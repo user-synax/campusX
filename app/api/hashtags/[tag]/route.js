@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Post from '@/models/Post';
 import { getCurrentUser } from '@/lib/auth';
-import { computeReactionSummary, getUserReaction } from '@/lib/reaction-utils';
 import { sanitizeMongoInput } from '@/lib/sanitize';
 
 export async function GET(request, { params }) {
@@ -28,19 +27,14 @@ export async function GET(request, { params }) {
 
     const total = await Post.countDocuments({ hashtags: tag });
 
-    // Add reaction summary and user reaction status
     const postsWithReactions = posts.map(post => {
-      const summary = computeReactionSummary(post.reactions, post.likes);
-      const userReaction = currentUser ? getUserReaction(post.reactions, currentUser._id, post.likes) : null;
       const isLiked = currentUser ? post.likes?.some(id => id.toString() === currentUser._id.toString()) : false;
-      
-      const { reactions, likes, ...postData } = post;
-      
+
+      const { likes, ...postData } = post;
+
       return {
         ...postData,
         likesCount: post.likesCount ?? post.likes?.length ?? 0,
-        _reactionSummary: summary,
-        _userReaction: userReaction,
         _isLiked: isLiked
       };
     });

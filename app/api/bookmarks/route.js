@@ -4,7 +4,6 @@ import User from '@/models/User';
 import Post from '@/models/Post';
 import { getCurrentUser } from '@/lib/auth';
 import { validateObjectId } from '@/utils/validators';
-import { computeReactionSummary, getUserReaction } from '@/lib/reaction-utils';
 import { sanitizeMongoInput, sanitizeUser } from '@/lib/sanitize';
 
 // POST /api/bookmarks - Toggle bookmark
@@ -93,18 +92,14 @@ export async function GET(request) {
 
     // Preserve the order of bookmarks and sanitize users
     const postsMap = posts.reduce((acc, post) => {
-      const summary = computeReactionSummary(post.reactions, post.likes);
-      const userReaction = currentUserInfo ? getUserReaction(post.reactions, currentUserInfo._id, post.likes) : null;
       const isLiked = currentUserInfo ? post.likes?.some(id => id.toString() === currentUserInfo._id.toString()) : false;
-      
-      const { reactions, likes, author, ...postData } = post;
-      
+
+      const { likes, author, ...postData } = post;
+
       acc[post._id.toString()] = {
         ...postData,
         likesCount: post.likesCount ?? post.likes?.length ?? 0,
         author: sanitizeUser(author),
-        _reactionSummary: summary,
-        _userReaction: userReaction,
         _isLiked: isLiked
       };
       return acc;
@@ -126,21 +121,8 @@ export async function GET(request) {
       ).catch(err => console.error('Background bookmark cleanup error:', err));
     }
 
-    const sortedPosts = orderedPosts.map(post => {
-      const summary = computeReactionSummary(post.reactions, post.likes);
-      const userReaction = getUserReaction(post.reactions, currentUserInfo._id, post.likes);
-      
-      const { reactions, likes, ...postData } = post;
-      
-      return {
-        ...postData,
-        _reactionSummary: summary,
-        _userReaction: userReaction
-      };
-    });
-
     return NextResponse.json({
-      posts: sortedPosts,
+      posts: orderedPosts,
       hasMore: skip + paginatedIds.length < total,
       total
     });
