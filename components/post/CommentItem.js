@@ -2,9 +2,7 @@
 
 import Link from "next/link"
 import { X } from "lucide-react"
-import AvatarWithFrame from '@/components/coins/AvatarWithFrame'
-import CoinUsername from '@/components/coins/CoinUsername'
-import CoinBadge from '@/components/coins/CoinBadge'
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import VerifiedBadge from '@/components/shared/VerifiedBadge'
 import { renderContentWithMentions } from "@/utils/hashtags"
 import UserMention from "@/components/shared/UserMention"
@@ -20,36 +18,24 @@ import FormattedTime from "@/components/shared/FormattedTime"
  */
 export default function CommentItem({ comment, currentUserId, onDelete }) {
   const isOwner = comment.author?._id === currentUserId || comment.author === currentUserId
-  const chatBubbleVisual = comment.author?.equipped?.chatBubble
-
-  const bubbleStyle = chatBubbleVisual ? { 
-    background: chatBubbleVisual.background || chatBubbleVisual.gradient, 
-    color: chatBubbleVisual.textColor || 'inherit',
-    borderColor: chatBubbleVisual.background ? 'transparent' : undefined
-  } : {}
 
   return (
     <div className="flex gap-3 group animate-in fade-in slide-in-from-bottom-1 duration-300">
-      <AvatarWithFrame user={comment.author} size="sm" className="mt-0.5" equipped={comment.author?.equipped} />
+      <Avatar className="h-8 w-8 mt-0.5">
+        <AvatarImage src={comment.author?.avatar} alt={comment.author?.name} />
+        <AvatarFallback>{comment.author?.name?.charAt(0)?.toUpperCase()}</AvatarFallback>
+      </Avatar>
       <div className="flex-1 min-w-0">
-        <div 
-          style={bubbleStyle}
-          className={`rounded-2xl px-4 py-2 inline-block max-w-full ${!chatBubbleVisual ? 'bg-secondary/40' : 'border'}`}
-        >
+        <div className="rounded-2xl px-4 py-2 inline-block max-w-full bg-secondary/40">
           <div className="flex items-center gap-2 mb-0.5">
             <Link 
               href={`/profile/${comment.author?.username}`} 
               className="hover:underline flex items-center gap-1"
             >
-              <CoinUsername 
-                name={comment.author?.name || 'User'} 
-                equipped={comment.author?.equipped} 
-                className="text-xs font-bold text-foreground" 
-              />
+              <span className="text-xs font-bold text-foreground">{comment.author?.name || 'User'}</span>
               {comment.author?.isVerified && (
                 <VerifiedBadge size="sm" verificationType={comment.author.verificationType} />
               )}
-              <CoinBadge equipped={comment.author?.equipped} />
             </Link>
             <FormattedTime date={comment.createdAt} className="text-[10px] text-muted-foreground" />
           </div>
