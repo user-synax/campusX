@@ -7,9 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
-import AvatarWithFrame from '@/components/coins/AvatarWithFrame'
-import CoinUsername from '@/components/coins/CoinUsername'
-import CoinBadge from '@/components/coins/CoinBadge'
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import VerifiedBadge from '@/components/shared/VerifiedBadge'
 import FollowButton from "@/components/user/FollowButton"
 import PostCard from "@/components/post/PostCard"
@@ -124,8 +122,6 @@ export default function ProfileClient({ username: initialUsername }) {
       isMe: prev.isMe,
       isFounder: prev.isFounder,
       pinnedPost: prev.pinnedPost,
-      equipped: prev.equipped,
-      equippedVisuals: prev.equippedVisuals,
     }))
     refetchCurrentUser()
   }
@@ -175,41 +171,14 @@ export default function ProfileClient({ username: initialUsername }) {
         />
       ) : (
         <div className="flex flex-col">
-          <div className="h-32 bg-[#1a1a1a] relative overflow-hidden">
-            {profileUser.equipped?.profileBanner?.background ? (
-              <Image
-                src={profileUser.equipped.profileBanner.background}
-                alt="Profile Banner"
-                fill
-                priority
-                className={cn(
-                  "object-cover",
-                  profileUser.equipped.profileBanner.animation === 'pulse' && "animate-pulse"
-                )}
-                sizes="100vw"
-              />
-            ) : (
-              <div 
-                className="absolute inset-0"
-                style={profileUser.equipped?.profileBanner ? {
-                  background: profileUser.equipped.profileBanner.gradient || profileUser.equipped.profileBanner.color,
-                  backgroundColor: profileUser.equipped.profileBanner.backgroundColor,
-                  backgroundSize: profileUser.equipped.profileBanner.backgroundSize || 'cover',
-                  animation: profileUser.equipped.profileBanner.animation || 'none',
-                  opacity: profileUser.equipped.profileBanner.opacity
-                } : {}}
-              />
-            )}
-          </div>
+          <div className="h-32 bg-[#1a1a1a] relative overflow-hidden" />
 
           <div className="px-4 pb-4">
             <div className="flex justify-between items-end -mt-16 mb-3 relative z-10">
-              <AvatarWithFrame
-                user={profileUser}
-                size="lg"
-                className="w-32 h-32 border-4 border-background shadow-xl ring-2 ring-black/10"
-                equipped={profileUser.equipped}
-              />
+              <Avatar className="w-32 h-32 border-4 border-background shadow-xl ring-2 ring-black/10">
+                <AvatarImage src={profileUser.avatar} alt={profileUser.name} />
+                <AvatarFallback>{profileUser.name?.charAt(0)?.toUpperCase()}</AvatarFallback>
+              </Avatar>
 
               {isOwnProfile ? (
                 <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="rounded-full">
@@ -229,15 +198,10 @@ export default function ProfileClient({ username: initialUsername }) {
             </div>
 
             <div className="flex items-center gap-2 flex-wrap">
-              <CoinUsername
-                name={profileUser.name}
-                equipped={profileUser.equipped}
-                className="text-xl font-bold text-foreground"
-              />
+              <span className="text-xl font-bold text-foreground">{profileUser.name}</span>
               {profileUser?.isVerified && (
                 <VerifiedBadge size="lg" showText verificationType={profileUser.verificationType} />
               )}
-              <CoinBadge equipped={profileUser.equipped} />
             </div>
             <p className="text-muted-foreground text-sm">@{profileUser.username}</p>
 
