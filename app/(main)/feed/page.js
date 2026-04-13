@@ -9,12 +9,9 @@ import EmptyState from "@/components/shared/EmptyState"
 import { usePosts } from "@/hooks/usePosts"
 import useUser from "@/hooks/useUser"
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll"
-import { useFeedUpdates } from "@/hooks/useFeedUpdates"
 import { useNotifications } from "@/hooks/useNotifications"
 import InfiniteScrollSentinel from "@/components/shared/InfiniteScrollSentinel"
 import PushPromptManager from "@/components/notifications/PushPromptManager"
-import { RefreshCw } from "lucide-react"
-import { Button } from "@/components/ui/button"
 
 // Lazy load heavy components
 const PostComposer = dynamic(
@@ -46,14 +43,12 @@ export default function FeedPage() {
     refresh: refreshPosts
   } = usePosts()
 
-  const { newPostsAvailable, resetNewPosts } = useFeedUpdates()
   const { newNotification } = useNotifications()
 
   const handleRefreshFeed = useCallback(() => {
     refreshPosts()
-    resetNewPosts()
     window.scrollTo({ top: 0, behavior: 'smooth' })
-  }, [refreshPosts, resetNewPosts])
+  }, [refreshPosts])
 
   const { sentinelRef } = useInfiniteScroll({
     fetchMore: loadMore,
@@ -92,21 +87,6 @@ export default function FeedPage() {
 
       {/* Push permission banner */}
       <PushPromptManager newNotification={newNotification} />
-
-      {/* New posts toast/button */}
-      {newPostsAvailable > 0 && (
-        <div className="sticky top-18.25 z-10 flex justify-center py-2 animate-in fade-in slide-in-from-top-2">
-          <Button
-            variant="secondary"
-            size="sm"
-            className="rounded-full shadow-lg border border-primary/20 bg-primary/10 text-primary hover:bg-primary/20 gap-2 font-bold"
-            onClick={handleRefreshFeed}
-          >
-            <RefreshCw className="w-4 h-4" />
-            {newPostsAvailable} new post{newPostsAvailable > 1 ? 's' : ''}
-          </Button>
-        </div>
-      )}
 
       {/* Posts list */}
       <div className="flex-1">
