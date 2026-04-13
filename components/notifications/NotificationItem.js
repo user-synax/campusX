@@ -1,7 +1,7 @@
 "use client" 
  
 import Link from 'next/link' 
-import AvatarWithFrame from '@/components/coins/AvatarWithFrame' 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { formatRelativeTime } from '@/utils/formatters' 
 import VerifiedBadge from '@/components/shared/VerifiedBadge'
  
@@ -23,7 +23,10 @@ export default function NotificationItem({ notification, onRead, compact }) {
       <div className="relative shrink-0 mt-0.5"> 
         {notification.sender ? ( 
           <div className="relative"> 
-            <AvatarWithFrame user={notification.sender} size={compact ? "sm" : "md"} equipped={notification.sender.equipped} /> 
+            <Avatar className={compact ? "h-8 w-8" : "h-10 w-10"}>
+              <AvatarImage src={notification.sender.avatar} alt={notification.sender.name} />
+              <AvatarFallback>{notification.sender.name?.charAt(0)?.toUpperCase()}</AvatarFallback>
+            </Avatar>
             {/* Notification type icon overlay */} 
             <span className=" 
               absolute -top-1 -right-1 
