@@ -29,9 +29,6 @@ import MarkdownRenderer from "@/components/shared/MarkdownRenderer"
 import { containsMarkdown } from "@/utils/markdown"
 import useUser from "@/hooks/useUser"
 import { isFounder } from "@/lib/founder"
-import AvatarWithFrame from '@/components/coins/AvatarWithFrame'
-import CoinUsername from '@/components/coins/CoinUsername'
-import CoinBadge from '@/components/coins/CoinBadge'
 import FounderBadges from "@/components/founder/FounderBadges"
 import { cn } from "@/lib/utils"
 import { useRef } from 'react'
@@ -226,17 +223,12 @@ export default function PostDetailClient({ postId }) {
         {/* Author row */}
         <div className="flex items-center gap-3 mb-4">
           <Link href={`/profile/${post.author.username}`}>
-            <AvatarWithFrame user={post.author} size="lg" equipped={post.author?.equipped} />
+            <UserAvatar user={post.author} size="lg" />
           </Link>
           <div>
             <div className="flex items-center gap-2">
               <Link href={`/profile/${post.author.username}`} className="hover:underline flex items-center gap-1">
-                <CoinUsername
-                  name={post.author.name}
-                  equipped={post.author?.equipped}
-                  className="font-bold text-lg text-foreground"
-                />
-                <CoinBadge equipped={post.author?.equipped} />
+                <span className="font-bold text-lg text-foreground">{post.author.name}</span>
               </Link>
               {isPostFounder && <FounderBadges size="sm" />}
             </div>
