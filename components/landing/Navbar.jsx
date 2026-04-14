@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
     NavigationMenu,
@@ -17,11 +18,19 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { Menu, X, ArrowRight, GraduationCap, Shield, Zap } from "lucide-react";
+import { Menu, X, ArrowRight, GraduationCap, Shield, Zap, LogOut, User } from "lucide-react";
 
 export default function Navbar() {
+    const router = useRouter();
     const [scrolled, setScrolled] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -35,6 +44,33 @@ export default function Navbar() {
         window.addEventListener("scroll", handleScroll);
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
+
+    useEffect(() => {
+        const checkSession = async () => {
+            try {
+                const res = await fetch('/api/users/me');
+                if (res.ok) {
+                    const data = await res.json();
+                    setUser(data);
+                }
+            } catch (error) {
+                console.error('Failed to fetch session:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        checkSession();
+    }, []);
+
+    const handleLogout = async () => {
+        try {
+            await fetch('/api/auth/logout', { method: 'POST' });
+            setUser(null);
+            window.location.href = '/';
+        } catch (error) {
+            console.error('Failed to logout:', error);
+        }
+    };
 
     const featuresItems = [
         {
@@ -162,27 +198,78 @@ export default function Navbar() {
 
                 {/* Right Side - Desktop Buttons */}
                 <div className="hidden lg:flex items-center gap-2 lg:gap-3 shrink-0">
-                    <Button
-                        asChild
-                        variant="ghost"
-                        size="sm"
-                        className="text-[#a0a0a0] hover:text-[#f0f0f0] text-xs lg:text-sm"
-                    >
-                        <Link href="/login">Sign In</Link>
-                    </Button>
-                    <Button
-                        asChild
-                        size="sm"
-                        className="bg-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/80 text-[#0f0f0f] font-semibold text-xs lg:text-sm"
-                    >
-                        <Link
-                            href="/signup"
-                            className="flex items-center gap-1"
-                        >
-                            Join Free{" "}
-                            <ArrowRight className="w-3 h-3 lg:w-4 lg:h-4" />
-                        </Link>
-                    </Button>
+                    {mounted && !loading && user ? (
+                        <div className="flex items-center gap-2">
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="flex items-center gap-2 text-[#a0a0a0] hover:text-[#f0f0f0] text-xs lg:text-sm"
+                                    >
+                                        {user.image ? (
+                                            <img
+                                                src={user.image}
+                                                alt={user.name}
+                                                className="w-6 h-6 rounded-full object-cover"
+                                            />
+                                        ) : (
+                                            <User className="w-5 h-5" />
+                                        )}
+                                        <span className="hidden sm:inline">{user.name}</span>
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-48 bg-[#1a1a1a] border border-[#2a2a2a]">
+                                    <div className="space-y-1">
+                                        <Link
+                                            href="/profile"
+                                            className="block px-3 py-2 text-sm text-[#a0a0a0] hover:text-[#f0f0f0] hover:bg-[#2a2a2a] rounded-md"
+                                        >
+                                            Profile
+                                        </Link>
+                                        <Link
+                                            href="/settings"
+                                            className="block px-3 py-2 text-sm text-[#a0a0a0] hover:text-[#f0f0f0] hover:bg-[#2a2a2a] rounded-md"
+                                        >
+                                            Settings
+                                        </Link>
+                                        <hr className="border-[#2a2a2a] my-1" />
+                                        <button
+                                            onClick={handleLogout}
+                                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[#a0a0a0] hover:text-[#f0f0f0] hover:bg-[#2a2a2a] rounded-md"
+                                        >
+                                            <LogOut className="w-4 h-4" />
+                                            Sign Out
+                                        </button>
+                                    </div>
+                                </PopoverContent>
+                            </Popover>
+                        </div>
+                    ) : (
+                        <>
+                            <Button
+                                asChild
+                                variant="ghost"
+                                size="sm"
+                                className="text-[#a0a0a0] hover:text-[#f0f0f0] text-xs lg:text-sm"
+                            >
+                                <Link href="/login">Sign In</Link>
+                            </Button>
+                            <Button
+                                asChild
+                                size="sm"
+                                className="bg-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/80 text-[#0f0f0f] font-semibold text-xs lg:text-sm"
+                            >
+                                <Link
+                                    href="/signup"
+                                    className="flex items-center gap-1"
+                                >
+                                    Join Free{" "}
+                                    <ArrowRight className="w-3 h-3 lg:w-4 lg:h-4" />
+                                </Link>
+                            </Button>
+                        </>
+                    )}
                 </div>
 
                 {/* Mobile Menu Toggle */}
@@ -251,27 +338,73 @@ export default function Navbar() {
 
                             {/* Mobile Buttons */}
                             <div className="space-y-2 pt-4 border-t border-[#2a2a2a]">
-                                <Button
-                                    asChild
-                                    variant="ghost"
-                                    size="sm"
-                                    className="w-full text-[#a0a0a0] hover:text-[#f0f0f0]"
-                                >
-                                    <Link href="/login">Sign In</Link>
-                                </Button>
-                                <Button
-                                    asChild
-                                    size="sm"
-                                    className="w-full bg-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/80 text-[#0f0f0f] font-semibold"
-                                >
-                                    <Link
-                                        href="/signup"
-                                        className="flex items-center justify-center gap-1"
-                                    >
-                                        Join Free{" "}
-                                        <ArrowRight className="w-4 h-4" />
-                                    </Link>
-                                </Button>
+                                {mounted && !loading && user ? (
+                                    <div className="space-y-2">
+                                        <div className="flex items-center gap-3 px-2 py-2">
+                                            {user.image ? (
+                                                <img
+                                                    src={user.image}
+                                                    alt={user.name}
+                                                    className="w-8 h-8 rounded-full object-cover"
+                                                />
+                                            ) : (
+                                                <User className="w-8 h-8 text-[#a0a0a0]" />
+                                            )}
+                                            <div>
+                                                <p className="text-sm font-semibold text-[#f0f0f0]">{user.name}</p>
+                                                <p className="text-xs text-[#808080]">{user.email}</p>
+                                            </div>
+                                        </div>
+                                        <Link
+                                            href="/profile"
+                                            onClick={() => setMobileMenuOpen(false)}
+                                            className="block px-4 py-2 rounded-lg text-sm text-[#a0a0a0] hover:bg-[#2a2a2a] hover:text-[#f0f0f0] transition-colors"
+                                        >
+                                            Profile
+                                        </Link>
+                                        <Link
+                                            href="/settings"
+                                            onClick={() => setMobileMenuOpen(false)}
+                                            className="block px-4 py-2 rounded-lg text-sm text-[#a0a0a0] hover:bg-[#2a2a2a] hover:text-[#f0f0f0] transition-colors"
+                                        >
+                                            Settings
+                                        </Link>
+                                        <button
+                                            onClick={() => {
+                                                handleLogout();
+                                                setMobileMenuOpen(false);
+                                            }}
+                                            className="w-full flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-[#a0a0a0] hover:bg-[#2a2a2a] hover:text-[#f0f0f0] transition-colors"
+                                        >
+                                            <LogOut className="w-4 h-4" />
+                                            Sign Out
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <Button
+                                            asChild
+                                            variant="ghost"
+                                            size="sm"
+                                            className="w-full text-[#a0a0a0] hover:text-[#f0f0f0]"
+                                        >
+                                            <Link href="/login">Sign In</Link>
+                                        </Button>
+                                        <Button
+                                            asChild
+                                            size="sm"
+                                            className="w-full bg-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/80 text-[#0f0f0f] font-semibold"
+                                        >
+                                            <Link
+                                                href="/signup"
+                                                className="flex items-center justify-center gap-1"
+                                            >
+                                                Join Free{" "}
+                                                <ArrowRight className="w-4 h-4" />
+                                            </Link>
+                                        </Button>
+                                    </>
+                                )}
                             </div>
                         </PopoverContent>
                     </Popover>
