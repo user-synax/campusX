@@ -128,7 +128,8 @@ export default function SignupPage() {
           </CardHeader>
           <CardContent>
             {step === 1 ? (
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="name">Full Name</Label>
@@ -207,6 +208,7 @@ export default function SignupPage() {
                   <Link href="/privacy" className="text-primary hover:underline underline-offset-2">Privacy Policy</Link>.
                 </p>
               </form>
+              </div>
             ) : (
               <div className="space-y-6">
                 <div className="text-center space-y-2 pb-2">
