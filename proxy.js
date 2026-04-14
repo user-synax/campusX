@@ -1,11 +1,15 @@
 import { NextResponse } from 'next/server';
-import { verifyToken } from './lib/auth-edge';
 import { getClientIP } from './lib/rate-limit';
 
-const protectedRoutes = ['/feed', '/profile', '/community', '/bookmarks', '/wallet', '/shop'];
+const protectedRoutes = ['/feed', '/communities', '/resources', '/profile', '/settings', '/community', '/bookmarks', '/wallet', '/shop'];
 
 export async function proxy(request) {
   const { pathname } = request.nextUrl;
+
+  // Allow Better Auth API routes to pass through
+  if (pathname.startsWith('/api/auth')) {
+    return NextResponse.next();
+  }
 
   // 1. Check IP ban for ALL API routes
   if (pathname.startsWith('/api/')) {
@@ -44,41 +48,33 @@ export async function proxy(request) {
     }
   }
 
+  // Get JWT session token
+  const session = request.cookies.get('campusx_token')?.value;
+
+  // Public routes - always accessible
+  const publicRoutes = ['/', '/login', '/signup'];
+  const isPublicRoute = publicRoutes.some(route => pathname === route);
+
+  // API auth routes - always accessible
+  const isAuthApiRoute = pathname.startsWith('/api/auth');
+
+  if (isAuthApiRoute) {
+    return NextResponse.next();
+  }
+
+  // If user is logged in and tries to access login/signup, redirect to feed
+  if (session && (pathname === '/login' || pathname === '/signup')) {
+    return NextResponse.redirect(new URL('/feed', request.url));
+  }
+
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
 
   if (isProtectedRoute) {
-    const token = request.cookies.get('campusx_token')?.value;
-
-    if (!token) {
-      return NextResponse.redirect(new URL('/login', request.url));
-    }
-
-    const decoded = await verifyToken(token);
-
-    if (!decoded) {
-      // Create redirect response
+    if (!session) {
       const loginUrl = new URL('/login', request.url);
-      loginUrl.searchParams.set('reason', 'expired');
-      const response = NextResponse.redirect(loginUrl);
-      
-      // Clear the invalid/expired cookie across all paths and domains
-      response.cookies.set('campusx_token', '', { 
-        maxAge: 0,
-        path: '/',
-        secure: process.env.NODE_ENV === 'production' || process.env.VERCEL === '1',
-        sameSite: 'lax'
-      });
-      return response;
+      loginUrl.searchParams.set('redirect', pathname);
+      return NextResponse.redirect(loginUrl);
     }
-
-    const requestHeaders = new Headers(request.headers);
-    requestHeaders.set('x-user-id', decoded.userId);
-
-    return NextResponse.next({
-      request: {
-        headers: requestHeaders,
-      },
-    });
   }
 
   return NextResponse.next();
@@ -86,17 +82,6 @@ export async function proxy(request) {
 
 export const config = {
   matcher: [
-    '/feed',
-    '/feed/:path*',
-    '/profile',
-    '/profile/:path*',
-    '/community',
-    '/community/:path*',
-    '/bookmarks',
-    '/bookmarks/:path*',
-    '/wallet',
-    '/wallet/:path*',
-    '/shop',
-    '/shop/:path*'
+    '/((?!api/auth|_next/static|_next/image|favicon.ico).*)',
   ],
 };
