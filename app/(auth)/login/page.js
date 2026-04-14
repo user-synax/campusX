@@ -57,15 +57,16 @@ export default function LoginPage() {
       <div className="w-full max-w-md space-y-8">
         <div className="flex flex-col items-center">
           <Logo size="lg" href="/login" />
-          <p className="text-muted-foreground mt-2 text-sm">Welcome back to your campus hub</p>
+          <p className="text-muted-foreground mt-2 text-base">Welcome back to your campus hub</p>
         </div>
 
         <Card className="border-border/50 shadow-xl shadow-primary/5">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xl">Login</CardTitle>
+          <CardHeader className="pb-2 text-center">
+            <CardTitle className="text-2xl">Login</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input 
@@ -98,16 +99,17 @@ export default function LoginPage() {
                 </Alert>
               )}
               
-              <Button type="submit" className="w-full rounded-full" disabled={loading}>
+              <Button type="submit" className="w-full rounded-full h-12 text-base" disabled={loading}>
                 {loading ? 'Logging in...' : 'Log in'}
               </Button>
             </form>
             
-            <div className="mt-6 text-center text-sm">
+            <div className="mt-6 text-center text-base">
               <span className="text-muted-foreground">Don&apos;t have an account? </span>
               <Link href="/signup" className="text-primary font-semibold hover:underline">
                 Sign up
               </Link>
+            </div>
             </div>
           </CardContent>
         </Card>
