@@ -1,202 +1,128 @@
 "use client";
 
-import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      duration: 0.6,
+      staggerChildren: 0.2
+    }
+  }
+}
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.8,
+      ease: [0.25, 0.1, 0.25, 1]
+    }
+  }
+}
+
+const floatingOrbVariants = {
+  float: {
+    y: [-20, 20],
+    x: [-10, 10],
+    transition: {
+      duration: 4,
+      repeat: Infinity,
+      repeatType: "reverse",
+      ease: "easeInOut"
+    }
+  }
+}
+
+const pulseOrbVariants = {
+  pulse: {
+    scale: [1, 1.1, 1],
+    opacity: [0.3, 0.6, 0.3],
+    transition: {
+      duration: 3,
+      repeat: Infinity,
+      ease: "easeInOut"
+    }
+  }
+}
+
 export default function Hero() {
-    const canvasRef = useRef(null);
-    const mouseRef = useRef({ x: 0, y: 0 });
-    const rafRef = useRef(null);
-
-    useEffect(() => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const ctx = canvas.getContext("2d");
-
-        let width = 0;
-        let height = 0;
-        let devicePixelRatio =
-            typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
-
-        // Wave configs (kept amplitude/frequency/offset style similar to original)
-        const waves = [
-            {
-                amp: 60,
-                freq: 0.008,
-                speed: 0.9,
-                color: "rgba(255,255,255,0.8)",
-                offset: 0,
-            },
-            {
-                amp: 45,
-                freq: 0.01,
-                speed: 1.1,
-                color: "rgba(255,255,255,0.7)",
-                offset: 100,
-            },
-            {
-                amp: 35,
-                freq: 0.013,
-                speed: 1.4,
-                color: "rgba(199,198,188,0.6)",
-                offset: 200,
-            },
-            {
-                amp: 80,
-                freq: 0.004,
-                speed: 0.7,
-                color: "rgba(255,255,290,0.4)",
-                offset: 300,
-            },
-            {
-                amp: 25,
-                freq: 0.02,
-                speed: 1.8,
-                color: "rgba(255,255,255,0.3)",
-                offset: 400,
-            },
-        ];
-
-        let t = 0;
-
-        function resize() {
-            devicePixelRatio = window.devicePixelRatio || 1;
-            width = canvas.clientWidth;
-            height = canvas.clientHeight;
-            canvas.width = Math.max(1, Math.floor(width * devicePixelRatio));
-            canvas.height = Math.max(1, Math.floor(height * devicePixelRatio));
-            ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
-        }
-
-        function draw() {
-            t += 1;
-            ctx.clearRect(0, 0, width, height);
-
-            // subtle background fill to avoid white flash
-            ctx.fillStyle = "#0f0f0f";
-            ctx.fillRect(0, 0, width, height);
-
-            // mouse influence normalized
-            const mx = (mouseRef.current.x / Math.max(width, 1) - 0.5) * 2;
-            const my = (mouseRef.current.y / Math.max(height, 1) - 0.5) * 2;
-
-            waves.forEach((w, i) => {
-                ctx.beginPath();
-                const { amp, freq, speed, color, offset } = w;
-                const phase = t * 0.02 * speed + offset * 0.001;
-                const baseline = height * (0.45 + i * 0.03) + my * 40;
-
-                for (let x = 0; x <= width; x += 2) {
-                    const px = x;
-                    const y =
-                        baseline +
-                        Math.sin(x * freq + phase) * amp * (1 + mx * 0.2);
-                    if (x === 0) ctx.moveTo(px, y);
-                    else ctx.lineTo(px, y);
-                }
-
-                // create gradient stroke/fill for glow
-                const g = ctx.createLinearGradient(0, 0, width, 0);
-                g.addColorStop(0, color);
-                g.addColorStop(1, color);
-                ctx.strokeStyle = g;
-                ctx.lineWidth = 2 + i * 0.6;
-                ctx.globalAlpha = 0.9 - i * 0.12;
-                ctx.stroke();
-
-                // soft fill under the wave for glow
-                ctx.lineTo(width, height);
-                ctx.lineTo(0, height);
-                ctx.closePath();
-                ctx.fillStyle = color;
-                ctx.globalAlpha = 0.03 + i * 0.02;
-                ctx.fill();
-                ctx.globalAlpha = 1;
-            });
-
-            rafRef.current = requestAnimationFrame(draw);
-        }
-
-        function handleMove(e) {
-            const rect = canvas.getBoundingClientRect();
-            mouseRef.current.x = e.clientX - rect.left;
-            mouseRef.current.y = e.clientY - rect.top;
-        }
-
-        function handleTouch(e) {
-            if (!e.touches || !e.touches[0]) return;
-            const rect = canvas.getBoundingClientRect();
-            mouseRef.current.x = e.touches[0].clientX - rect.left;
-            mouseRef.current.y = e.touches[0].clientY - rect.top;
-        }
-
-        resize();
-        window.addEventListener("resize", resize);
-        window.addEventListener("mousemove", handleMove);
-        window.addEventListener("touchmove", handleTouch, { passive: true });
-
-        rafRef.current = requestAnimationFrame(draw);
-
-        return () => {
-            cancelAnimationFrame(rafRef.current);
-            window.removeEventListener("resize", resize);
-            window.removeEventListener("mousemove", handleMove);
-            window.removeEventListener("touchmove", handleTouch);
-        };
-    }, []);
-
-    const container = {
-        hidden: { opacity: 0, y: -10 },
-        show: { opacity: 1, y: 0, transition: { staggerChildren: 0.06 } },
-    };
-
-    const item = {
-        hidden: { opacity: 0, y: 6 },
-        show: { opacity: 1, y: 0 },
-    };
 
     return (
-        <section className="relative w-full min-h-screen overflow-hidden bg-[#0f0f0f]">
-            <canvas
-                ref={canvasRef}
-                className="absolute inset-0 w-full h-full"
-            />
-
-            {/* Glow blobs */}
-            <div className="absolute inset-0 pointer-events-none">
-                <div className="absolute -left-40 -top-32 w-96 h-96 rounded-full bg-[rgba(99,102,241,0.08)] blur-3xl" />
-                <div className="absolute -right-32 top-20 w-96 h-96 rounded-full bg-[rgba(139,92,246,0.06)] blur-3xl" />
-                <div className="absolute left-1/2 top-1/3 -translate-x-1/2 w-96 h-96 rounded-full bg-[rgba(59,130,246,0.04)] blur-3xl" />
+        <section className="relative w-full min-h-screen overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+            {/* Modern animated background */}
+            <div className="absolute inset-0 -z-10">
+                {/* Subtle gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-900/20 via-purple-900/20 to-indigo-900/20" />
+                
+                {/* Animated orbs */}
+                <motion.div
+                    className="absolute top-20 left-20 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl"
+                    variants={floatingOrbVariants}
+                    animate="float"
+                    style={{ animationDelay: '0s' }}
+                />
+                <motion.div
+                    className="absolute top-40 right-32 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"
+                    variants={pulseOrbVariants}
+                    animate="pulse"
+                    style={{ animationDelay: '1s' }}
+                />
+                <motion.div
+                    className="absolute bottom-32 left-1/3 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl"
+                    variants={floatingOrbVariants}
+                    animate="float"
+                    style={{ animationDelay: '2s' }}
+                />
+                <motion.div
+                    className="absolute bottom-20 right-20 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl"
+                    variants={pulseOrbVariants}
+                    animate="pulse"
+                    style={{ animationDelay: '1.5s' }}
+                />
+                
+                {/* Subtle grid pattern */}
+                <div className="absolute inset-0 opacity-[0.02]">
+                    <div className="h-full w-full bg-grid-pattern" />
+                </div>
+                
+                {/* Gradient mesh overlay for depth */}
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/50 via-transparent to-transparent" />
             </div>
 
             <div className="relative z-10 flex items-center justify-center min-h-screen px-4">
                 <motion.div
+                    variants={containerVariants}
                     initial="hidden"
-                    animate="show"
-                    variants={container}
+                    animate="visible"
                     className="max-w-4xl mx-auto text-center"
                 >
-                                <motion.h1
-                                    variants={item}
-                                    className="text-4xl md:text-7xl lg:text-7xl font-bold tracking-tight text-white mb-4 drop-shadow-2xl"
-                                >
-                                    India ka apna
-                                    <span className="text-white">{' '}Student Social Network</span>
-                                </motion.h1>
+                    <motion.h1
+                        variants={itemVariants}
+                        className="text-4xl md:text-7xl lg:text-7xl font-bold tracking-tight text-white mb-4 drop-shadow-2xl"
+                    >
+                        India ka apna
+                        <span className="text-white">{' '}Student Social Network</span>
+                    </motion.h1>
 
-                                <motion.p
-                                    variants={item}
-                                    className="mx-auto mb-8 max-w-2xl text-lg text-white/70 md:text-xl drop-shadow-lg"
-                                >
-                                    Posts, chats, notes, code area — sab ek jagah. Sirf
-                                    apne college waalon ke saath. Free. Forever.
-                                </motion.p>
+                    <motion.p
+                        variants={itemVariants}
+                        className="mx-auto mb-8 max-w-2xl text-lg text-white/70 md:text-xl drop-shadow-lg"
+                    >
+                        Posts, chats, notes, code area — sab ek jagah. Sirf
+                        apne college waalon ke saath. Free. Forever.
+                    </motion.p>
 
                     <motion.div
-                        variants={item}
+                        variants={itemVariants}
                         className="flex flex-col sm:flex-row gap-4 justify-center items-center"
                     >
                         <Link href="/signup" className="w-full sm:w-auto">
