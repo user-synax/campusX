@@ -7,7 +7,7 @@ export default function Footer() {
         {/* Brand */}
         <div className="md:col-span-2 space-y-4">
           <div className="flex items-center gap-2">
-            <span className="text-2xl font-black text-[#f0f0f0]">CampusX</span>
+            <span className="text-2xl font-black text-[#f0f0f0]">CampusZen</span>
             <span className="text-xs bg-[#1a1a1a] px-2 py-0.5 rounded-full text-muted-foreground border border-border">
               Beta
             </span>
@@ -65,7 +65,7 @@ export default function Footer() {
 
       <div className="max-w-6xl mx-auto mt-12 pt-6 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4">
         <p className="text-xs text-muted-foreground" suppressHydrationWarning>
-          © {new Date().getFullYear()} CampusX. All rights reserved.
+          © {new Date().getFullYear()} CampusZen. All rights reserved.
         </p>
         <p className="text-xs text-muted-foreground flex items-center gap-1">
           Made in India 🇮🇳
