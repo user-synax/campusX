@@ -24,15 +24,15 @@ export async function generateMetadata({ params }) {
     const communityUrl = `${process.env.NEXT_PUBLIC_APP_URL}/community/${collegeSlug}`
 
     return {
-      title: `${formattedName} Community — CampusX`,
-      description: `${postCount} posts from ${formattedName} students on CampusX. Join the community!`,
+      title: `${formattedName} Community — CampusZen`,
+      description: `${postCount} posts from ${formattedName} students on CampusZen. Join the community!`,
       keywords: ['college community', formattedName, 'campus', 'students'],
       openGraph: {
         type: 'website',
-        title: `${formattedName} on CampusX`,
+        title: `${formattedName} on CampusZen`,
         description: `Join ${formattedName} community — ${postCount} posts and ${memberCount} members.`,
         url: communityUrl,
-        siteName: 'CampusX',
+        siteName: 'CampusZen',
         images: [{
           url: ogImage,
           width: 1200,
@@ -42,7 +42,7 @@ export async function generateMetadata({ params }) {
       },
       twitter: {
         card: 'summary_large_image',
-        title: `${formattedName} Community — CampusX`,
+        title: `${formattedName} Community — CampusZen`,
         description: `${postCount} posts from ${formattedName} students.`,
         images: [ogImage]
       }
@@ -50,8 +50,8 @@ export async function generateMetadata({ params }) {
   } catch (error) {
     console.error('[Community Metadata] Error:', error)
     return {
-      title: `${formattedName} Community — CampusX`,
-      description: `Join the ${formattedName} community on CampusX.`
+      title: `${formattedName} Community — CampusZen`,
+      description: `Join the ${formattedName} community on CampusZen.`
     }
   }
 }
