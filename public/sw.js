@@ -1,7 +1,7 @@
-// CampusX Service Worker 
+// CampusZen Service Worker 
 // Handles: Push notifications, notification clicks 
  
-const CACHE_NAME = 'campusx-v1' 
+const CACHE_NAME = 'campuszen-v1' 
 const APP_URL = self.location.origin 
  
 // ━━━ INSTALL EVENT ━━━ 
@@ -28,11 +28,11 @@ self.addEventListener('push', (event) => {
  
   // Default payload in case parsing fails 
   let data = { 
-    title: 'CampusX', 
+    title: 'CampusZen', 
     body: 'You have a new notification', 
     icon: '/icons/notification-icon.png', 
     badge: '/icons/badge-icon.png', 
-    tag: 'campusx-default', 
+    tag: 'campuszen-default', 
     data: { url: '/notifications' } 
   } 
  
