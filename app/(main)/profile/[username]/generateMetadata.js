@@ -14,27 +14,27 @@ export async function generateMetadata({ params }) {
       .lean()
 
     if (!user) {
-      return { title: 'User not found — CampusX' }
+      return { title: 'User not found — CampusZen' }
     }
 
     const description = user.bio
       ? `${user.bio} · ${user.followers?.length || 0} followers`
-      : `${user.college || 'Student'} on CampusX · ${user.followers?.length || 0} followers`
+      : `${user.college || 'Student'} on CampusZen · ${user.followers?.length || 0} followers`
 
     const ogImage = user.avatar || `${process.env.NEXT_PUBLIC_APP_URL}/og-image.png`
     const profileUrl = `${process.env.NEXT_PUBLIC_APP_URL}/profile/${username}`
 
     return {
-      title: `${user.name} (@${user.username}) — CampusX`,
+      title: `${user.name} (@${user.username}) — CampusZen`,
       description,
       openGraph: {
         type: 'profile',
         firstName: user.name.split(' ')[0],
         username: user.username,
-        title: `${user.name} on CampusX`,
+        title: `${user.name} on CampusZen`,
         description,
         url: profileUrl,
-        siteName: 'CampusX',
+        siteName: 'CampusZen',
         images: [{ url: ogImage, width: 1200, height: 630 }]
       },
       twitter: {
@@ -46,6 +46,6 @@ export async function generateMetadata({ params }) {
     }
   } catch (error) {
     console.error('[Profile Metadata] Error:', error)
-    return { title: 'CampusX Profile' }
+    return { title: 'CampusZen Profile' }
   }
 }
