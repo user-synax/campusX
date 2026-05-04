@@ -1,7 +1,7 @@
 export default function manifest() {
   return {
-    name: "CampusX",
-    short_name: "CampusX",
+    name: "CampusZen",
+    short_name: "CampusZen",
     description: "The social platform exclusively for Indian college students",
     start_url: "/",
     display: "standalone",
