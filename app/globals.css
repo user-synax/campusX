@@ -52,28 +52,27 @@
     --ring: 153 60% 53%;
     --radius: 0.5rem;
   } */
-
 @layer base {
   :root {
-    --background: 222 14% 7%;
-    --foreground: 210 20% 95%;
-    --card: 222 14% 10%;
-    --card-foreground: 210 20% 95%;
-    --popover: 222 14% 10%;
-    --popover-foreground: 210 20% 95%;
-    --primary: 153 60% 53%;
-    --primary-foreground: 222 14% 7%;
-    --secondary: 222 14% 14%;
-    --secondary-foreground: 210 20% 95%;
-    --muted: 222 14% 14%;
-    --muted-foreground: 215 15% 55%;
-    --accent: 222 14% 16%;
-    --accent-foreground: 210 20% 95%;
-    --destructive: 0 62% 50%;
-    --destructive-foreground: 210 20% 95%;
-    --border: 222 14% 16%;
-    --input: 222 14% 12%;
-    --ring: 153 60% 53%;
+    --background: 240 6% 6%;
+    --foreground: 240 5% 96%;
+    --card: 240 6% 8%;
+    --card-foreground: 240 5% 96%;
+    --popover: 240 6% 8%;
+    --popover-foreground: 240 5% 96%;
+    --primary: 252 87% 67%;
+    --primary-foreground: 240 6% 6%;
+    --secondary: 240 5% 12%;
+    --secondary-foreground: 240 5% 96%;
+    --muted: 240 5% 12%;
+    --muted-foreground: 240 5% 50%;
+    --accent: 240 5% 14%;
+    --accent-foreground: 240 5% 96%;
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 240 5% 96%;
+    --border: 240 5% 13%;
+    --input: 240 5% 10%;
+    --ring: 252 87% 67%;
     --radius: 0.5rem;
   }
 }
@@ -129,212 +128,6 @@
   }
 }
 
-@keyframes founder-ring {
-  0% {
-    --angle: 0deg;
-  }
-
-  100% {
-    --angle: 360deg;
-  }
-}
-
-@property --angle {
-  syntax: '<angle>';
-  initial-value: 0deg;
-  inherits: false;
-}
-
-.founder-ring {
-  background: conic-gradient(from var(--angle), #f59e0b, #fcd34d, #f59e0b);
-  animation: founder-ring 3s linear infinite;
-}
-
-/* Campus Coins — Shop item animations */
-
-@keyframes spin-gradient {
-  0% {
-    background-position: 0% 50%;
-  }
-
-  50% {
-    background-position: 100% 50%;
-  }
-
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-@keyframes name-shift {
-  0% {
-    background-position: 0% center;
-  }
-
-  100% {
-    background-position: 200% center;
-  }
-}
-
-@keyframes banner-pulse {
-
-  0%,
-  100% {
-    background-position: 0% 50%;
-  }
-
-  50% {
-    background-position: 100% 50%;
-  }
-}
-
-@keyframes gradient-shift {
-  0% {
-    background-position: 0% 50%;
-  }
-
-  50% {
-    background-position: 100% 50%;
-  }
-
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-
-  100% {
-    background-position: 200% 0;
-  }
-}
-
-@keyframes rainbow-rotate {
-  0% {
-    filter: hue-rotate(0deg);
-  }
-
-  100% {
-    filter: hue-rotate(360deg);
-  }
-}
-
-@keyframes pulse-glow {
-
-  0%,
-  100% {
-    box-shadow: 0 0 5px currentColor, 0 0 10px currentColor;
-  }
-
-  50% {
-    box-shadow: 0 0 15px currentColor, 0 0 25px currentColor;
-  }
-}
-
-@keyframes glow-spin {
-  0% {
-    transform: rotate(0deg);
-  }
-
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-/* Shop Item Classes */
-.shop-item-card {
-  @apply relative overflow-hidden transition-all duration-300;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.shop-item-card:hover {
-  @apply -translate-y-1;
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
-}
-
-.shop-item-icon-container {
-  @apply relative flex items-center justify-center rounded-xl p-3 mb-3 transition-colors duration-300;
-  background: rgba(255, 255, 255, 0.07);
-}
-
-.shop-item-card:hover .shop-item-icon-container {
-  background: rgba(255, 255, 255, 0.12);
-}
-
-/* Rarity Effects */
-.rarity-mythic {
-  background: linear-gradient(90deg, #ff0000, #8b0000, #ff0000);
-  background-size: 200% auto;
-  animation: name-shift 2s linear infinite;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 10px rgba(255, 0, 0, 0.8));
-  font-weight: 900;
-}
-
-.rarity-legendary {
-  background: linear-gradient(90deg, #f59e0b, #fef3c7, #f59e0b);
-  background-size: 200% auto;
-  animation: name-shift 3s linear infinite;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.6));
-  font-weight: 800;
-}
-
-.rarity-epic {
-  color: #a855f7;
-  filter: drop-shadow(0 0 5px rgba(168, 85, 247, 0.5));
-  font-weight: 700;
-}
-
-/* Item Card Rarity Variations */
-.shop-item-card.mythic {
-  border: 1px solid rgba(255, 0, 0, 0.3);
-  background: linear-gradient(135deg, rgba(255, 0, 0, 0.05) 0%, rgba(139, 0, 0, 0.1) 100%);
-}
-
-.shop-item-card.mythic::after {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: conic-gradient(transparent, transparent, transparent, rgba(255, 0, 0, 0.1));
-  animation: glow-spin 4s linear infinite;
-  z-index: -1;
-}
-
-.shop-item-card.legendary {
-  border: 1px solid rgba(245, 158, 11, 0.3);
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(254, 243, 199, 0.1) 100%);
-}
-
-.shop-item-card.epic {
-  border: 1px solid rgba(168, 85, 247, 0.3);
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.05) 0%, rgba(168, 85, 247, 0.1) 100%);
-}
-
-.avatar-frame-rainbow {
-  border: 2px solid transparent;
-  background: linear-gradient(var(--background), var(--background)) padding-box,
-    linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet) border-box;
-  animation: rainbow-rotate 5s linear infinite;
-}
-
-.avatar-frame-gold {
-  border: 2px solid transparent;
-  background: linear-gradient(var(--background), var(--background)) padding-box,
-    linear-gradient(45deg, #f59e0b, #fef3c7, #f59e0b) border-box;
-  box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
-}
 
 /* Reduce motion support */
 @media (prefers-reduced-motion: reduce) {
@@ -380,76 +173,12 @@
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: hsl(var(--muted-foreground) / 0.3);
   }
-}
 
-/* ━━━ FOUNDER EXCLUSIVE ANIMATIONS ━━━ */
-
-/* Avatar frame — rotating gradient ring */
-@keyframes founder-frame-spin {
-  0% {
-    background-position: 0% 50%;
-  }
-
-  50% {
-    background-position: 100% 50%;
-  }
-
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-/* Username — shifting gradient */
-@keyframes founder-name-shift {
-  0% {
-    background-position: 0% center;
-  }
-
-  100% {
-    background-position: 200% center;
-  }
-}
-
-/* Profile banner — breathing pulse */
-@keyframes founder-banner-pulse {
-
-  0%,
-  100% {
-    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-  }
-
-  50% {
-    background: linear-gradient(135deg, #1a1744, #3d378a, #312f5a);
-  }
-}
-
-/* Post badge glow */
-@keyframes founder-badge-glow {
-
-  0%,
-  100% {
-    box-shadow: 0 0 4px #f59e0b40;
-  }
-
-  50% {
-    box-shadow: 0 0 10px #f59e0b80;
-  }
-}
-
-/* Applied via className */
-.founder-badge-animated {
-  animation: founder-badge-glow 2s ease infinite;
-}
-
-@keyframes float {
-
-  0%,
-  100% {
-    transform: translateY(0px);
-  }
-
-  50% {
-    transform: translateY(-20px);
+  /* Grid pattern utility for hero background */
+  .bg-grid-pattern {
+    background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 64px 64px;
   }
 }
 
