@@ -8,7 +8,7 @@ export function useTabTitle() {
 
   useEffect(() => {
     const updateTitle = () => {
-      const defaultTitle = 'CampusX'
+      const defaultTitle = 'CampusZen'
       
       // Only update title when tab is visible
       if (document.hidden) return
@@ -18,7 +18,7 @@ export function useTabTitle() {
       
       if (unreadCount > 0 && !isOnNotificationsPage) {
         const count = unreadCount > 99 ? '99+' : unreadCount
-        document.title = `CampusX (${count})`
+        document.title = `CampusZen (${count})`
       } else {
         document.title = defaultTitle
       }
@@ -42,7 +42,7 @@ export function useTabTitle() {
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
-      document.title = 'CampusX'
+      document.title = 'CampusZen'
     }
   }, [unreadCount])
 }
