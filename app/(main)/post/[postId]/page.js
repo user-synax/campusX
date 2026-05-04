@@ -12,7 +12,7 @@ export async function generateMetadata({ params }) {
 
   if (!validateObjectId(postId)) {
     return {
-      title: 'Post not found — CampusX',
+      title: 'Post not found — CampusZen',
       description: 'This post may have been deleted.'
     };
   }
@@ -27,14 +27,14 @@ export async function generateMetadata({ params }) {
 
     if (!post) {
       return {
-        title: 'Post not found — CampusX',
+        title: 'Post not found — CampusZen',
         description: 'This post may have been deleted.'
       };
     }
 
     // Anonymous post — don't reveal author
     const authorText = post.isAnonymous
-      ? 'Anonymous on CampusX'
+      ? 'Anonymous on CampusZen'
       : `${post.author.name} (@${post.author.username})`;
 
     // Trim content for description
@@ -53,14 +53,14 @@ export async function generateMetadata({ params }) {
     const postUrl = `${process.env.NEXT_PUBLIC_APP_URL}/post/${postId}`;
 
     return {
-      title: `${title} — CampusX`,
+      title: `${title} — CampusZen`,
       description: `${authorText}: ${description}`,
       openGraph: {
         type: 'article',
-        title: `${authorText} on CampusX`,
+        title: `${authorText} on CampusZen`,
         description,
         url: postUrl,
-        siteName: 'CampusX',
+        siteName: 'CampusZen',
         publishedTime: post.createdAt,
         images: [{
           url: ogImageUrl,
@@ -71,14 +71,14 @@ export async function generateMetadata({ params }) {
       },
       twitter: {
         card: 'summary_large_image',
-        title: `${authorText} on CampusX`,
+        title: `${authorText} on CampusZen`,
         description,
         images: [ogImageUrl]
       }
     };
   } catch (error) {
     return {
-      title: 'CampusX',
+      title: 'CampusZen',
       description: 'India ka student social network'
     };
   }
