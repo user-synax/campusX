@@ -1,90 +1,122 @@
 "use client"
 
-import { useRef } from 'react'
+import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { gsap, shouldAnimate } from '@/lib/gsap-config'
-import { useGSAP } from '@/hooks/useGSAP'
+
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      duration: 0.6,
+      staggerChildren: 0.2
+    }
+  }
+}
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.8,
+      ease: [0.25, 0.1, 0.25, 1]
+    }
+  }
+}
+
+const floatingOrbVariants = {
+  float: {
+    y: [-20, 20],
+    x: [-10, 10],
+    transition: {
+      duration: 4,
+      repeat: Infinity,
+      repeatType: "reverse",
+      ease: "easeInOut"
+    }
+  }
+}
+
+const pulseOrbVariants = {
+  pulse: {
+    scale: [1, 1.1, 1],
+    opacity: [0.3, 0.6, 0.3],
+    transition: {
+      duration: 3,
+      repeat: Infinity,
+      ease: "easeInOut"
+    }
+  }
+}
 
 export default function Hero() {
-  const headlineRef = useRef(null)
-  const subRef = useRef(null)
-  const ctaRef = useRef(null)
-  const floatingRef = useRef(null)
-
-  useGSAP(() => {
-    if (!shouldAnimate()) return
-
-    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } })
-
-    tl.fromTo(headlineRef.current,
-      { opacity: 0, y: 40 },
-      { opacity: 1, y: 0, duration: 1 }
-    )
-      .fromTo(subRef.current,
-        { opacity: 0, y: 30 },
-        { opacity: 1, y: 0, duration: 0.8 },
-        '-=0.6'
-      )
-      .fromTo(ctaRef.current,
-        { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: 0.6 },
-        '-=0.4'
-      )
-
-    // Floating animation for background elements
-    const elements = floatingRef.current?.children
-    if (elements) {
-      gsap.to(Array.from(elements), {
-        y: 'random(-20, 20)',
-        x: 'random(-20, 20)',
-        duration: 'random(3, 5)',
-        repeat: -1,
-        yoyo: true,
-        ease: 'sine.inOut',
-        stagger: {
-          each: 0.5,
-          from: 'random'
-        }
-      })
-    }
-  }, [])
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden px-4 bg-[#0f0f0f]">
-      {/* Animated background — CSS only, no JS */}
-      <div className="absolute inset-0 -z-10" ref={floatingRef}>
-        {/* Gradient mesh */}
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl opacity-50" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl opacity-50" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-150 h-150 bg-orange-500/5 rounded-full blur-3xl opacity-30" />
-
-        {/* Subtle grid */}
-        <div
-          className="absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)',
-            backgroundSize: '64px 64px'
-          }}
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden px-4 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      {/* Modern animated background */}
+      <div className="absolute inset-0 -z-10">
+        {/* Subtle gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-900/20 via-purple-900/20 to-indigo-900/20" />
+        
+        {/* Animated orbs */}
+        <motion.div
+          className="absolute top-20 left-20 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl"
+          variants={floatingOrbVariants}
+          animate="float"
+          style={{ animationDelay: '0s' }}
         />
+        <motion.div
+          className="absolute top-40 right-32 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"
+          variants={pulseOrbVariants}
+          animate="pulse"
+          style={{ animationDelay: '1s' }}
+        />
+        <motion.div
+          className="absolute bottom-32 left-1/3 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl"
+          variants={floatingOrbVariants}
+          animate="float"
+          style={{ animationDelay: '2s' }}
+        />
+        <motion.div
+          className="absolute bottom-20 right-20 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl"
+          variants={pulseOrbVariants}
+          animate="pulse"
+          style={{ animationDelay: '1.5s' }}
+        />
+        
+        {/* Subtle grid pattern */}
+        <div className="absolute inset-0 opacity-[0.02]">
+          <div className="h-full w-full bg-grid-pattern" />
+        </div>
+        
+        {/* Gradient mesh overlay for depth */}
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/50 via-transparent to-transparent" />
       </div>
 
-      <div className="max-w-5xl mx-auto text-center space-y-10 relative z-10">
+      <motion.div 
+        className="max-w-5xl mx-auto text-center space-y-10 relative z-10"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
         {/* Badge */}
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm text-sm font-medium text-white/80 animate-in fade-in slide-in-from-top-4 duration-1000">
-          <span className="flex h-2 w-2 relative">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-          </span>
-          Exclusive for College Students and learners
-        </div>
+        <motion.div variants={itemVariants}>
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm text-sm font-medium text-white/80">
+            <span className="flex h-2 w-2 relative">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+            </span>
+            Exclusive for College Students and learners
+          </div>
+        </motion.div>
 
-        {/* Headline — GSAP animated on mount */}
-        <div className="space-y-4">
-          <h1
-            ref={headlineRef}
-            className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tight leading-[1.1] text-white"
-          >
+        {/* Headline */}
+        <motion.div className="space-y-4" variants={itemVariants}>
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tight leading-[1.1] text-white">
             Connect with your <br />
             <span
               className="inline-block"
@@ -97,20 +129,21 @@ export default function Hero() {
               Campus.
             </span>
           </h1>
-        </div>
-        <p
-          ref={subRef}
+        </motion.div>
+        
+        <motion.p 
           className="text-lg md:text-xl lg:text-2xl text-white/60 max-w-2xl mx-auto leading-relaxed font-medium"
+          variants={itemVariants}
         >
           Join a thriving community of students. Share updates, <br className="hidden md:block" />
           discover events, and find resources that matter to you.
-        </p>
+        </motion.p>
 
         {/* CTA Buttons */}
-        <div ref={ctaRef} className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+        <motion.div className="flex flex-col sm:flex-row gap-4 justify-center items-center" variants={itemVariants}>
           <Link href="/signup" className="w-full sm:w-auto">
             <Button size="lg" className="w-full sm:w-auto h-14 px-10 text-lg font-bold rounded-full bg-white text-black hover:bg-white/90 hover:bg-linear-to-l hover:cursor-pointer transition-all shadow-xl shadow-white/5">
-              Join CampusX Now
+              Join CampusZen Now
             </Button>
           </Link>
           <a href="#features" className="w-full sm:w-auto">
@@ -118,7 +151,7 @@ export default function Hero() {
               Explore Features
             </Button>
           </a>
-        </div>
+        </motion.div>
 
         {/* Social proof */}
         {/* <div className="pt-8 flex flex-col items-center gap-4">
@@ -136,7 +169,7 @@ export default function Hero() {
             Trusted by students across 100+ colleges
           </p>
         </div> */}
-      </div>
+      </motion.div>
     </section>
   )
 }
