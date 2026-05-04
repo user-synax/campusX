@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="https://img.shields.io/badge/CampusX-Student%20Social%20Platform-6366f1?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiPjxwYXRoIGQ9Ik0yMiAxMEgybTAgMGwxMC04IDEwIDhNNSAxMHY3YTIgMiAwIDAgMCAyIDJoMTBhMiAyIDAgMCAwIDItMnYtN00xMCAyMnYtNmEyIDIgMCAwIDEgNC0wdjYiLz48L3N2Zz4=" alt="CampusX" />
+<img src="https://img.shields.io/badge/CampusZen-Student%20Social%20Platform-6366f1?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiPjxwYXRoIGQ9Ik0yMiAxMEgybTAgMGwxMC04IDEwIDhNNSAxMHY3YTIgMiAwIDAgMCAyIDJoMTBhMiAyIDAgMCAwIDItMnYtN00xMCAyMnYtNmEyIDIgMCAwIDEgNC0wdjYiLz48L3N2Zz4=" alt="CampusZen" />
 
-# CampusX
+# CampusZen
 
 ### The social platform built exclusively for Indian college students.
 
@@ -19,11 +19,11 @@ A dedicated space where students connect, share, and grow — verified college i
 
 ---
 
-## What is CampusX?
+## What is CampusZen?
 
 Every Indian college student lives across 5 different platforms — WhatsApp for updates, Instagram for photos, LinkedIn for fake achievements, Telegram for notes, and Google Forms for events. None of them are built *for students*.
 
-**CampusX** is a student-only social network where you need a verified college email to join. Real identity. Real campus community. No recruiters, no ads, no noise — just your college, your people, and your content.
+**CampusZen** is a student-only social network where you need a verified college email to join. Real identity. Real campus community. No recruiters, no ads, no noise — just your college, your people, and your content.
 
 > Currently targeting **IGNOU** and **DTU** for soft launch. Built by a solo developer in Delhi.
 
@@ -33,7 +33,7 @@ Every Indian college student lives across 5 different platforms — WhatsApp for
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                        CampusX                              │
+│                        CampusZen                              │
 │                                                             │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐   │
 │  │  Verify  │  │   Feed   │  │ Community│  │ Profile  │   │
