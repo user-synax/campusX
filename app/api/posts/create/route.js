@@ -34,7 +34,7 @@ export async function POST(request) {
       return NextResponse.json({ message: 'Invalid request body' }, { status: 400 });
     }
 
-    const { content, community, poll, linkPreview, images, isMarkdown } = body;
+    const { content, community, poll, linkPreview, images, isMarkdown, contentBlocks } = body;
 
     await connectDB();
     // Auto-create community agar exist nahi karti
@@ -88,6 +88,7 @@ export async function POST(request) {
       images: Array.isArray(images) ? images : [],
       linkPreview: linkPreview?.url ? { url: linkPreview.url } : null,
       isMarkdown: isMarkdown === true,
+      contentBlocks: Array.isArray(contentBlocks) ? contentBlocks : [],
       author: currentUser._id
     };
 
