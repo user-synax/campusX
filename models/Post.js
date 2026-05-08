@@ -76,6 +76,22 @@ const postSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  // Rich content blocks for GIFs and emojis
+  contentBlocks: [{
+    type: {
+      type: String,
+      enum: ['text', 'gif', 'emoji'],
+      required: true
+    },
+    content: {
+      type: String,
+      required: true
+    },
+    metadata: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {}
+    }
+  }],
   // Admin & Moderation fields
   isDeleted: { type: Boolean, default: false },
   deletedAt: { type: Date, default: null },
