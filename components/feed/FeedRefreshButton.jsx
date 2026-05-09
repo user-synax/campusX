@@ -3,12 +3,18 @@
 import { RefreshCw } from "lucide-react"
 import { useState, useCallback } from "react"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
 
 export default function FeedRefreshButton() {
   const [isRefreshing, setIsRefreshing] = useState(false)
 
   const handleClick = useCallback(async () => {
     if (isRefreshing) return
+
+    // Haptic feedback for mobile devices
+    if (navigator.vibrate) {
+      navigator.vibrate(10)
+    }
 
     setIsRefreshing(true)
 
@@ -18,8 +24,12 @@ export default function FeedRefreshButton() {
       
       // Scroll to top smoothly
       window.scrollTo({ top: 0, behavior: 'smooth' })
+      
+      // Show success toast
+      toast.success("Feed refreshed")
     } catch (err) {
       console.error('Refresh error:', err)
+      toast.error("Failed to refresh feed")
     }
 
     // Keep spinning for at least 800ms for visual feedback
