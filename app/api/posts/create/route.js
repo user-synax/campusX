@@ -5,7 +5,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { sanitizeString } from '@/utils/validators';
 import { extractHashtags } from '@/utils/hashtags';
 import { indexHashtags } from '@/lib/hashtag-utils';
-import { awardXP } from '@/lib/xp';
+import { awardXP } from '@/lib/gamification';
 import { deleteCachePattern } from '@/lib/cache';
 import { applyRateLimit } from '@/lib/rate-limit';
 import { sanitizeText } from '@/lib/sanitize';
