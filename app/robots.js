@@ -16,6 +16,6 @@ export default function robots() {
         ],
       },
     ],
-    sitemap: 'https://campus-x-rho.vercel.app/sitemap.xml',
+    sitemap: 'https://zen.socialnomad.com/sitemap.xml',
   }
 }

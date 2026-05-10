@@ -2,7 +2,7 @@ import connectDB from "@/lib/db";
 import Community from "@/models/Community";
 
 export default async function sitemap() {
-  const baseUrl = 'https://campus-x-rho.vercel.app'
+  const baseUrl = 'https://zen.socialnomad.com'
   
   // Static routes
   const staticRoutes = [
