@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import connectDB from '@/lib/db'
 import User from '@/models/User'
 import Post from '@/models/Post'
+import Badge from '@/models/Badge'
 import { getCurrentUser } from '@/lib/auth'
 import { isFounder } from '@/lib/founder'
 import { sanitizeUser, sanitizeText } from '@/lib/sanitize'
@@ -19,6 +20,9 @@ export async function GET(request, { params }) {
     }).populate({
       path: 'pinnedPost',
       populate: { path: 'author', select: 'name username avatar' },
+    }).populate({
+      path: 'badges.badgeId',
+      select: 'name icon description color category'
     }).lean()
 
     if (!userResult) return NextResponse.json({ message: 'User not found' }, { status: 404 })
