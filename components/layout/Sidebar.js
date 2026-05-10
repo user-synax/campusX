@@ -21,7 +21,8 @@ import {
   Heart,
   Coins,
   ShoppingBag,
-  Compass
+  Compass,
+  Trophy
 } from "lucide-react"
 import { useChatUnreadCount } from '@/hooks/useChatUnreadCount'
 import { Button } from "@/components/ui/button"
@@ -56,6 +57,7 @@ export default function Sidebar() {
     { label: "Feed", href: "/feed", icon: Home },
     { label: "Search", href: "/search", icon: Search },
     { label: "Explore", href: "/explore", icon: Compass },
+    { label: "Leaderboard", href: "/leaderboard", icon: Trophy },
     { label: "Resources", href: "/resources", icon: BookOpen },
     { label: "Notifications", href: "/notifications", icon: Bell, badge: unreadCount },
     { label: "Chats", href: "/chats", icon: MessageSquare, badge: chatUnread },
