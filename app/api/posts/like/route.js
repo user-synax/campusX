@@ -4,6 +4,7 @@ import Post from '@/models/Post';
 import { getCurrentUser } from '@/lib/auth';
 import { validateObjectId } from '@/utils/validators';
 import { createNotification, deleteNotification } from '@/lib/notifications';
+import { awardXP } from '@/lib/gamification';
 import { applyRateLimit } from '@/lib/rate-limit';
 import { sanitizeMongoInput } from '@/lib/sanitize';
 
@@ -87,6 +88,9 @@ export async function POST(request) {
           meta: { postPreview: post.content?.substring(0, 50) }
         }).catch(err => console.error('Notification error:', err));
       }
+      
+      // Award XP for liking (background)
+      awardXP(currentUser._id, 'like').catch(err => console.error('XP award error:', err));
     }
 
     // Double check count safety (to prevent negative likes if something goes wrong)
