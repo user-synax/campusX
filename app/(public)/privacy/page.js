@@ -1,8 +1,17 @@
 import LegalLayout from "@/components/shared/LegalLayout";
 
 export const metadata = {
-  title: "Privacy Policy",
-  description: "Learn about how CampusZen collects, uses, and protects your personal data.",
+  title: "Privacy Policy | CampusZen",
+  description: "Learn how CampusZen collects, uses, and protects your personal data. We are committed to student data privacy and safety.",
+  alternates: {
+    canonical: "/privacy",
+  },
+  openGraph: {
+    title: "Privacy Policy | CampusZen",
+    description: "Your privacy matters. Read how we protect your student data.",
+    url: "https://campus-x-rho.vercel.app/privacy",
+    type: "website",
+  },
 };
 
 const sections = [

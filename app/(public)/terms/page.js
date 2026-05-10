@@ -1,8 +1,17 @@
 import LegalLayout from "@/components/shared/LegalLayout";
 
 export const metadata = {
-  title: "Terms of Service",
-  description: "Read the Terms of Service for CampusZen, the exclusive social media platform for Indian college students.",
+  title: "Terms of Service | CampusZen",
+  description: "Read the Terms of Service for CampusZen. Rules and guidelines for the exclusive student social network.",
+  alternates: {
+    canonical: "/terms",
+  },
+  openGraph: {
+    title: "Terms of Service | CampusZen",
+    description: "Our community guidelines and terms of service.",
+    url: "https://campus-x-rho.vercel.app/terms",
+    type: "website",
+  },
 };
 
 const sections = [

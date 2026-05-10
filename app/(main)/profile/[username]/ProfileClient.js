@@ -13,7 +13,9 @@ import FollowButton from "@/components/user/FollowButton"
 import PostCard from "@/components/post/PostCard"
 import PostSkeleton from "@/components/post/PostSkeleton"
 import EmptyState from "@/components/shared/EmptyState"
-import { FileText, Pin } from "lucide-react"
+import { FileText, Pin, Zap, Flame, Trophy, Medal } from "lucide-react"
+import { Card } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import useUser from "@/hooks/useUser"
 import { usePosts } from "@/hooks/usePosts"
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll"
@@ -314,7 +316,64 @@ export default function ProfileClient({ username: initialUsername }) {
               </div>
             )}
 
-            <div className="flex gap-5 mt-4 text-sm">
+            {/* Gamification Stats */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6">
+              <Card className="p-3 bg-zinc-900/40 border-border/50 flex flex-col items-center justify-center text-center">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mb-1">
+                  <Zap className="w-4 h-4 text-primary fill-primary" />
+                </div>
+                <span className="text-lg font-black">{profileUser.totalXP || profileUser.xp || 0}</span>
+                <span className="text-[10px] uppercase text-muted-foreground font-bold">Total XP</span>
+              </Card>
+
+              <Card className="p-3 bg-zinc-900/40 border-border/50 flex flex-col items-center justify-center text-center">
+                <div className="w-8 h-8 rounded-full bg-orange-500/10 flex items-center justify-center mb-1">
+                  <Flame className="w-4 h-4 text-orange-500 fill-orange-500" />
+                </div>
+                <span className="text-lg font-black">{profileUser.currentStreak || 0}</span>
+                <span className="text-[10px] uppercase text-muted-foreground font-bold">Day Streak</span>
+              </Card>
+
+              <Card className="p-3 bg-zinc-900/40 border-border/50 flex flex-col items-center justify-center text-center">
+                <div className="w-8 h-8 rounded-full bg-yellow-500/10 flex items-center justify-center mb-1">
+                  <Trophy className="w-4 h-4 text-yellow-500" />
+                </div>
+                <span className="text-lg font-black">Lvl {profileUser.level || 1}</span>
+                <span className="text-[10px] uppercase text-muted-foreground font-bold">Current Level</span>
+              </Card>
+
+              <Card className="p-3 bg-zinc-900/40 border-border/50 flex flex-col items-center justify-center text-center">
+                <div className="w-8 h-8 rounded-full bg-purple-500/10 flex items-center justify-center mb-1">
+                  <Medal className="w-4 h-4 text-purple-500" />
+                </div>
+                <span className="text-lg font-black">{profileUser.badges?.length || 0}</span>
+                <span className="text-[10px] uppercase text-muted-foreground font-bold">Badges</span>
+              </Card>
+            </div>
+
+            {/* Badges Display */}
+            {profileUser.badges?.length > 0 && (
+              <div className="mt-6">
+                <h3 className="text-sm font-bold mb-3 flex items-center gap-2">
+                  <Medal className="w-4 h-4 text-primary" />
+                  Achievements
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {profileUser.badges.map((b, i) => b.badgeId && (
+                    <Badge 
+                      key={i} 
+                      variant="outline" 
+                      className="bg-zinc-900/50 border-primary/20 hover:border-primary/50 transition-colors py-1.5 px-3 rounded-full flex items-center gap-2"
+                    >
+                      <span>{b.badgeId.icon}</span>
+                      <span className="text-xs font-semibold">{b.badgeId.name}</span>
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex gap-6 mt-6 pb-2 border-b border-border/50">
               <button
                 onClick={() => { setFollowModal(true); setFollowModalTab('following') }}
                 className="flex gap-1 hover:underline"
