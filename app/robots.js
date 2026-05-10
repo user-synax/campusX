@@ -6,7 +6,6 @@ export default function robots() {
         allow: '/',
         disallow: [
           '/feed',
-          '/profile',
           '/admin',
           '/api',
           '/settings',
