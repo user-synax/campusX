@@ -24,12 +24,21 @@ export default function Footer() {
         {/* Platform links */}
         <div className="space-y-3">
           <h4 className="font-semibold text-sm text-[#f0f0f0]">Platform</h4>
-          {['Feed', 'Communities', 'Events', 'Resources'].map(link => (
-            <Link key={link} href={`/${link.toLowerCase()}`}
+          {[
+            { label: 'Feed', href: '/feed' },
+            { label: 'Communities', href: '/community' },
+            { label: 'Events', href: '/events' },
+            { label: 'Resources', href: '/resources' }
+          ].map(link => (
+            <Link key={link.label} href={link.href}
               className="block text-sm text-muted-foreground hover:text-[#f0f0f0] transition-colors">
-              {link}
+              {link.label}
             </Link>
           ))}
+          <Link href="/markdown"
+            className="block text-sm text-muted-foreground hover:text-[#f0f0f0] transition-colors">
+            AI Documentation
+          </Link>
         </div>
 
         {/* Legal links */}
