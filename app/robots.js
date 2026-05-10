@@ -16,6 +16,6 @@ export default function robots() {
         ],
       },
     ],
-    sitemap: 'https://zen.socialnomad.com/sitemap.xml',
+    sitemap: 'https://campuszen.vercel.app/sitemap.xml',
   }
 }

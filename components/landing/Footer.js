@@ -73,19 +73,9 @@ export default function Footer() {
       </div>
 
       <div className="max-w-6xl mx-auto mt-12 pt-6 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4">
-        <div className="flex flex-col md:flex-row items-center gap-4">
-          <p className="text-xs text-muted-foreground" suppressHydrationWarning>
-            © {new Date().getFullYear()} CampusZen. All rights reserved.
-          </p>
-          <a 
-            href="https://freedns.afraid.org/" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-[10px] text-muted-foreground/40 hover:text-muted-foreground transition-colors"
-          >
-            Free DNS
-          </a>
-        </div>
+        <p className="text-xs text-muted-foreground" suppressHydrationWarning>
+          © {new Date().getFullYear()} CampusZen. All rights reserved.
+        </p>
         <p className="text-xs text-muted-foreground flex items-center gap-1">
           Made in India 🇮🇳
         </p>

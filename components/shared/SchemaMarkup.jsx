@@ -7,8 +7,8 @@ export default function SchemaMarkup() {
     "@context": "https://schema.org",
     "@type": "Organization",
     "name": "CampusZen",
-    "url": "https://campus-x-rho.vercel.app",
-    "logo": "https://campus-x-rho.vercel.app/icon-512.png",
+    "url": "https://campuszen.vercel.app",
+    "logo": "https://campuszen.vercel.app/icon-512.png",
     "sameAs": [
       "https://twitter.com/campuszen",
       "https://instagram.com/campuszen"
@@ -20,10 +20,10 @@ export default function SchemaMarkup() {
     "@context": "https://schema.org",
     "@type": "WebSite",
     "name": "CampusZen",
-    "url": "https://campus-x-rho.vercel.app",
+    "url": "https://campuszen.vercel.app",
     "potentialAction": {
       "@type": "SearchAction",
-      "target": "https://campus-x-rho.vercel.app/search?q={search_term_string}",
+      "target": "https://campuszen.vercel.app/search?q={search_term_string}",
       "query-input": "required name=search_term_string"
     }
   };

@@ -9,7 +9,7 @@ export const metadata = {
   openGraph: {
     title: "Privacy Policy | CampusZen",
     description: "Your privacy matters. Read how we protect your student data.",
-    url: "https://campus-x-rho.vercel.app/privacy",
+    url: "https://campuszen.vercel.app/privacy",
     type: "website",
   },
 };

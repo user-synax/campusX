@@ -9,7 +9,7 @@ export const metadata = {
   openGraph: {
     title: "Terms of Service | CampusZen",
     description: "Our community guidelines and terms of service.",
-    url: "https://campus-x-rho.vercel.app/terms",
+    url: "https://campuszen.vercel.app/terms",
     type: "website",
   },
 };

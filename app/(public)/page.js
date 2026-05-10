@@ -20,7 +20,7 @@ export const metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_IN',
-    url: 'https://campus-x-rho.vercel.app',
+    url: 'https://campuszen.vercel.app',
     siteName: 'CampusZen',
     title: 'CampusZen — Social Network for Indian College Students',
     description: 'Join your campus community, share posts, access resources, and stay connected.',
