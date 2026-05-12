@@ -21,6 +21,7 @@ import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import UserAvatar from "@/components/user/UserAvatar";
 import PollCreator from "@/components/post/PollCreator";
+import LinkPreview from "@/components/shared/LinkPreview";
 import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 import GifPicker from "@/components/post/GifPicker";
 import EmojiPicker from "@/components/post/EmojiPicker";
