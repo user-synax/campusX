@@ -52,7 +52,7 @@ export default function Stats({ users = 50, posts = 120, resources = 20, codeAre
   }, [users, posts, resources, codeAreas])
 
   return (
-    <section className="py-24 px-4 relative overflow-hidden bg-[#0f0f0f]">
+    <section className="py-24 px-4 relative overflow-hidden bg-background">
       <div className="max-w-7xl mx-auto relative z-10">
         <div className="text-center mb-16">
           <h2 className="text-2xl font-bold text-white/40 uppercase tracking-[0.2em] mb-4">
@@ -64,7 +64,7 @@ export default function Stats({ users = 50, posts = 120, resources = 20, codeAre
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8" ref={sectionRef}>
           {STATS_CONFIG.map((stat, i) => (
-            <div key={i} className="relative p-6 rounded-3xl overflow-hidden bg-[#0f0f0f] group border border-white/5">
+            <div key={i} className="relative p-6 rounded-3xl overflow-hidden bg-card group border border-border">
               {/* decorative grid pattern */}
               <svg className="absolute inset-0 w-full h-full opacity-30 pointer-events-none" viewBox="0 0 200 200" preserveAspectRatio="none" aria-hidden>
                 <rect width="100%" height="100%" fill="none" />
