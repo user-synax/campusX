@@ -18,7 +18,7 @@ export function HeroSectionDemo() {
         prefix: "Own Your",
         component: (
           <RotatingText
-            texts={['Hustle.', 'Network.', 'Tribe.', 'Future.']}
+            texts={['Hustle.', 'Network.', 'Tribe.', 'Future.','Campus life', 'Clubs.','Communities','Internships.','Campuses.']}
             mainClassName="mx-3 px-3 sm:px-4 bg-primary text-primary-foreground overflow-hidden py-0.5 sm:py-1 justify-center rounded-xl sm:rounded-2xl inline-flex shadow-2xl shadow-primary/30 border border-primary/50"
             staggerFrom={"last"}
             initial={{ y: "100%" }}

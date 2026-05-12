@@ -88,7 +88,7 @@ export function HeroSection({
           )}
 
           {/* Title */}
-          <h1 className="animate-appear flex flex-col sm:flex-row sm:flex-wrap items-center justify-center bg-gradient-to-b from-white via-white/90 to-neutral-400 bg-clip-text text-5xl font-black tracking-tighter text-transparent drop-shadow-2xl sm:text-7xl sm:leading-tight md:text-8xl md:leading-[1.1] px-2 text-center">
+          <h1 className="animate-appear flex flex-col sm:flex-row sm:flex-wrap items-center justify-center bg-gradient-to-b from-white via-white/90 to-neutral-400 bg-clip-text text-4xl font-black tracking-tighter text-transparent drop-shadow-2xl sm:text-7xl sm:leading-tight md:text-8xl md:leading-[1.1] px-2 text-center">
             {titleRotatingText ? (
               <>
                 <span className="whitespace-nowrap">{titleRotatingText.prefix}</span>
