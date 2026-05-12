@@ -19,26 +19,28 @@ import { toast } from "sonner"
 import { useRouter } from 'next/navigation'
 
 export default function CreateCommunityDialog({ trigger, onCreated }) {
-  const [collegeName, setCollegeName] = useState('')
-  const [firstPost, setFirstPost] = useState('')
+  const [name, setName] = useState('')
+  const [emoji, setEmoji] = useState('🌐')
+  const [description, setDescription] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [open, setOpen] = useState(false)
   const router = useRouter()
 
   const handleCreate = async () => {
-    if (!collegeName.trim() || !firstPost.trim()) {
-      toast.error('Both college name and a first post are required')
+    if (!name.trim()) {
+      toast.error('Community name is required')
       return
     }
 
     setIsLoading(true)
     try {
-      const res = await fetch('/api/posts/create', {
+      const res = await fetch('/api/communities', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          content: firstPost,
-          community: collegeName
+          name: name.trim(),
+          emoji: emoji.trim(),
+          description: description.trim()
         }),
       })
 
@@ -47,12 +49,12 @@ export default function CreateCommunityDialog({ trigger, onCreated }) {
         throw new Error(error.message || 'Failed to create community')
       }
 
-      toast.success(`Community "${collegeName}" created!`)
+      toast.success(`Community "${name}" created!`)
       setOpen(false)
-      setCollegeName('')
-      setFirstPost('')
+      setName('')
+      setEmoji('🌐')
+      setDescription('')
       
-      // Refresh to show the new community
       router.refresh()
       onCreated?.()
     } catch (error) {
@@ -76,45 +78,56 @@ export default function CreateCommunityDialog({ trigger, onCreated }) {
         <DialogHeader>
           <DialogTitle>Create a Community</DialogTitle>
           <DialogDescription>
-            Register your college on CampusX by making the first post.
+            Start a new space for your interests, hobbies, or college.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <Label htmlFor="college">College Name</Label>
-            <div className="relative">
-              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <div className="grid grid-cols-4 gap-4 items-center">
+            <div className="col-span-1 grid gap-2">
+              <Label htmlFor="emoji">Emoji</Label>
               <Input
-                id="college"
-                placeholder="e.g. IIT Delhi, Stanford University"
-                className="pl-9 bg-accent/20 border-border"
-                value={collegeName}
-                onChange={(e) => setCollegeName(e.target.value)}
+                id="emoji"
+                placeholder="🌐"
+                className="bg-accent/20 border-border text-center text-xl"
+                value={emoji}
+                onChange={(e) => setEmoji(e.target.value)}
+                maxLength={2}
+              />
+            </div>
+            <div className="col-span-3 grid gap-2">
+              <Label htmlFor="name">Community Name</Label>
+              <Input
+                id="name"
+                placeholder="e.g. Coding, Designers, Memes"
+                className="bg-accent/20 border-border"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                maxLength={30}
               />
             </div>
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="post">First Post</Label>
+            <Label htmlFor="description">Description</Label>
             <Textarea
-              id="post"
-              placeholder="Say something to start the conversation..."
-              className="resize-none bg-accent/20 border-border min-h-[100px]"
-              value={firstPost}
-              onChange={(e) => setFirstPost(e.target.value)}
-              maxLength={500}
+              id="description"
+              placeholder="What is this community about?"
+              className="resize-none bg-accent/20 border-border min-h-[80px]"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              maxLength={200}
             />
             <p className="text-[10px] text-muted-foreground text-right">
-              {firstPost.length}/500
+              {description.length}/200
             </p>
           </div>
         </div>
         <DialogFooter>
           <Button 
             onClick={handleCreate} 
-            disabled={isLoading || !collegeName.trim() || !firstPost.trim()}
+            disabled={isLoading || !name.trim()}
             className="w-full rounded-full"
           >
-            {isLoading ? 'Creating...' : 'Create & Post'}
+            {isLoading ? 'Creating...' : 'Create Community'}
           </Button>
         </DialogFooter>
       </DialogContent>
