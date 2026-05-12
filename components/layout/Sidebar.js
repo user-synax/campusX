@@ -16,6 +16,9 @@ import {
   BarChart2,
   Settings,
   Shield,
+  Terminal,
+  Type,
+  Palette,
   BookOpen,
   History,
   Heart,
@@ -62,6 +65,7 @@ export default function Sidebar() {
     { label: "Communities", href: "/community", icon: GraduationCap },
     { label: "Events", href: "/events", icon: Calendar },
     { label: "Bookmarks", href: "/bookmarks", icon: Bookmark },
+    { label: "Tools", href: "/tools", icon: Terminal },
     { label: "Settings", href: "/settings", icon: Settings },
     // { label: "Profile", href: user?.username ? `/profile/${user.username}` : "/login", icon: User },
   ]
@@ -117,6 +121,28 @@ export default function Sidebar() {
                   {[
                     { label: 'My Uploads', href: '/resources/my-uploads', icon: History },
                     { label: 'Saved', href: '/resources/saved', icon: Heart }
+                  ].map(sub => (
+                    <Link key={sub.href} href={sub.href}>
+                      <button className={cn(
+                        "flex items-center gap-2 w-full px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all uppercase tracking-wider",
+                        pathname === sub.href
+                          ? "bg-primary/10 text-primary"
+                          : "text-muted-foreground/60 hover:text-foreground hover:bg-accent/50"
+                      )}>
+                        <sub.icon className="w-3 h-3" />
+                        {sub.label}
+                      </button>
+                    </Link>
+                  ))}
+                </div>
+              )}
+              {/* Tools Sub-links */}
+              {item.href === "/tools" && pathname.startsWith("/tools") && (
+                <div className="hidden lg:flex flex-col gap-0.5 pl-9 pr-3 py-1">
+                  {[
+                    { label: 'All Tools', href: '/tools', icon: Terminal },
+                    { label: 'Text Tools', href: '/tools/text', icon: Type },
+                    { label: 'Color Tools', href: '/tools/color', icon: Palette }
                   ].map(sub => (
                     <Link key={sub.href} href={sub.href}>
                       <button className={cn(
