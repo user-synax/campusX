@@ -104,7 +104,7 @@ const PostCard = memo(function PostCard({ post, currentUserId, onDelete, onLike,
             </Link>
             {post.community && (
               <Badge variant="outline" className="text-[10px] h-5 px-1.5 font-normal border-border bg-secondary/30">
-                🎓 {post.community}
+                {post.communityInfo?.emoji || '🎓'} {post.communityInfo?.name || post.community}
               </Badge>
             )}
           </div>
