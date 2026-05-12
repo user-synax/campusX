@@ -11,6 +11,7 @@ import { verifyToken } from "@/lib/auth-edge";
 
 const Stats = dynamic(() => import("@/components/landing/Stats"))
 const Features = dynamic(() => import("@/components/landing/Features"))
+const TechStack = dynamic(() => import("@/components/landing/TechStack"))
 const Footer = dynamic(() => import("@/components/landing/Footer"))
 
 export const metadata = {
@@ -84,6 +85,7 @@ export default async function LandingPage() {
   return (
     <main>
       <HeroClient />
+      <TechStack />
       <Stats
         users={stats.users}
         posts={stats.posts}
