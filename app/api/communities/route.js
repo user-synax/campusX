@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
-import { withCache } from '@/lib/cache';
+import { withCache, deleteCachePattern } from '@/lib/cache';
 import Community from '@/models/Community';
 import { sanitizeMongoInput } from '@/lib/sanitize';
+import { getCurrentUser } from '@/lib/auth';
 
 export async function GET(request) {
   try {
@@ -15,7 +16,10 @@ export async function GET(request) {
     // Specific community stats
     if (specificName) {
       const community = await Community.findOne({
-        name: { $regex: new RegExp(`^${specificName}$`, 'i') }
+        $or: [
+          { name: { $regex: new RegExp(`^${specificName}$`, 'i') } },
+          { slug: specificName.toLowerCase() }
+        ]
       })
       if (!community) {
         return NextResponse.json({ name: specificName, postCount: 0, memberCount: 0 })
@@ -23,13 +27,16 @@ export async function GET(request) {
       return NextResponse.json({
         name: community.name,
         slug: community.slug,
+        emoji: community.emoji,
+        description: community.description,
+        type: community.type,
         postCount: community.postCount,
         memberCount: community.members.length
       })
     }
 
     // All communities
-    const communities = await withCache('communities_list', 60, async () => {
+    const communities = await withCache('communities_list_v2', 60, async () => {
       const list = await Community.find()
         .sort({ postCount: -1 })
         .limit(limit)
@@ -38,8 +45,11 @@ export async function GET(request) {
       return list.map(c => ({
         name: c.name,
         slug: c.slug,
+        emoji: c.emoji,
+        description: c.description,
+        type: c.type,
         postCount: c.postCount,
-        memberCount: c.members.length,
+        memberCount: c.members?.length || 0,
         lastPost: c.updatedAt
       }))
     })
@@ -47,6 +57,48 @@ export async function GET(request) {
     return NextResponse.json(communities)
   } catch (error) {
     console.error('Communities API error:', error);
+    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
+  }
+}
+
+export async function POST(request) {
+  try {
+    const currentUser = await getCurrentUser(request);
+    if (!currentUser) {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { name, emoji, description } = await request.json();
+
+    if (!name || name.trim().length < 2) {
+      return NextResponse.json({ message: 'Community name is required' }, { status: 400 });
+    }
+
+    await connectDB();
+
+    const slug = name.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    
+    const existing = await Community.findOne({ slug });
+    if (existing) {
+      return NextResponse.json({ message: 'A community with this name already exists' }, { status: 400 });
+    }
+
+    const community = await Community.create({
+      name: name.trim(),
+      slug,
+      emoji: emoji || '🌐',
+      description: description?.trim() || '',
+      type: 'interest',
+      createdBy: currentUser._id,
+      members: [currentUser._id],
+      postCount: 0
+    });
+
+    deleteCachePattern('communities_');
+
+    return NextResponse.json(community);
+  } catch (error) {
+    console.error('Create Community API error:', error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }
