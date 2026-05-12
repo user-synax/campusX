@@ -30,6 +30,7 @@ import { containsMarkdown } from "@/utils/markdown";
 import useUser from "@/hooks/useUser";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useUploadThing } from "@/lib/uploadthing";
+import CommunitySwitcher from "@/components/feed/CommunitySwitcher";
 
 // Character Progress Ring Component
 function CharacterProgressRing({ length = 0, maxLength = 2000 }) {
@@ -99,10 +100,28 @@ export default function PostComposer({
     const { user: currentUser } = useUser();
     const [content, setContent] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-    const [showTagInput, setShowTagInput] = useState(false);
     const [manualCommunity, setManualCommunity] = useState("");
+    const [communities, setCommunities] = useState([]);
     const [showPoll, setShowPoll] = useState(false);
     const [pollOptions, setPollOptions] = useState(["", ""]);
+
+    useEffect(() => {
+        const fetchCommunities = async () => {
+            try {
+                const res = await fetch('/api/communities')
+                if (res.ok) {
+                    const data = await res.json()
+                    setCommunities(data)
+                }
+            } catch (error) {
+                console.error('Failed to fetch communities:', error)
+            }
+        }
+        fetchCommunities()
+    }, [])
+
+    const activeCommunity = communities.find(c => c.slug === (defaultCommunity || manualCommunity)) || 
+                        communities.find(c => c.name === (defaultCommunity || manualCommunity));
 
     // Markdown state
     const [isMarkdownPreview, setIsMarkdownPreview] = useState(false);
@@ -330,7 +349,6 @@ export default function PostComposer({
 
             setContent("");
             setManualCommunity("");
-            setShowTagInput(false);
             setShowPoll(false);
             setPollOptions(["", ""]);
             setLinkPreview(null);
@@ -358,6 +376,20 @@ export default function PostComposer({
                 !noBorder && "border-b border-border",
             )}
         >
+            {/* Community Indicator */}
+            {(defaultCommunity || manualCommunity) && (
+                <div className="hidden sm:flex items-center gap-2 mb-3 px-1">
+                    <Badge variant="secondary" className="gap-1.5 py-1 px-3 rounded-full bg-primary/10 text-primary border-primary/20">
+                        <span>{activeCommunity?.emoji || '🌐'}</span>
+                        <span>Posting to {activeCommunity?.name || defaultCommunity || manualCommunity}</span>
+                        {!defaultCommunity && (
+                            <button onClick={() => setManualCommunity("")} className="ml-1 hover:text-destructive">
+                                <X className="w-3 h-3" />
+                            </button>
+                        )}
+                    </Badge>
+                </div>
+            )}
             <div className="flex gap-3">
                 <UserAvatar user={currentUser} size="md" />
                 <div className="flex-1">
@@ -434,33 +466,6 @@ export default function PostComposer({
                         </div>
                     )}
 
-                    {/* Manual Tag Input */}
-                    {showTagInput && !defaultCommunity && (
-                        <div className="flex items-center gap-2 mt-2 bg-accent/30 p-2 rounded-lg border border-border animate-in fade-in slide-in-from-top-1">
-                            <MapPin className="w-4 h-4 text-primary" />
-                            <Input
-                                placeholder="Enter college name to tag or create..."
-                                className="h-8 text-sm bg-transparent border-none focus-visible:ring-0 p-0"
-                                value={manualCommunity}
-                                onChange={(e) =>
-                                    setManualCommunity(e.target.value)
-                                }
-                                autoFocus
-                            />
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 gap-1.5 text-muted-foreground hover:text-primary rounded-full px-2 sm:px-3"
-                                onClick={() =>
-                                    setShowTagInput(true)
-                                }
-                                aria-label="Tag college or community"
-                            >
-                                <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                            </Button>
-                        </div>
-                    )}
-
                     {/* Poll Creator */}
                     {showPoll && (
                         <PollCreator
@@ -531,27 +536,31 @@ export default function PostComposer({
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-3 pt-3 border-t border-border gap-3">
                         <div className="flex flex-wrap items-center gap-2 sm:gap-4 w-full sm:w-auto">
                             <div className="flex items-center gap-1">
-                                {defaultCommunity ? (
-                                    <Badge
-                                        variant="secondary"
-                                        className="gap-1 px-2 py-1 text-[10px] sm:text-xs"
-                                    >
-                                        📍 {defaultCommunity}
-                                    </Badge>
-                                ) : (
-                                    !showTagInput && (
-                                        <Button
-                                            title="Tag a college or community"
-                                            variant="ghost"
-                                            size="sm"
-                                            className=" hover:cursor-pointer h-8 gap-1.5 text-muted-foreground hover:text-primary rounded-full px-2 sm:px-3"
-                                            onClick={() =>
-                                                setShowTagInput(true)
+                                {!defaultCommunity && (
+                                    <div className="hidden sm:block mr-1">
+                                        <CommunitySwitcher 
+                                            selectedCommunity={manualCommunity}
+                                            onSelect={setManualCommunity}
+                                            trigger={
+                                                <Button
+                                                    title="Select Community"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className={cn(
+                                                        "hover:cursor-pointer h-8 gap-1.5 rounded-full px-2 sm:px-3 transition-colors",
+                                                        manualCommunity ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-primary"
+                                                    )}
+                                                >
+                                                    <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                                    {manualCommunity ? (
+                                                        <span className="text-[10px] sm:text-xs truncate max-w-[80px]">
+                                                            {activeCommunity?.name || manualCommunity}
+                                                        </span>
+                                                    ) : null}
+                                                </Button>
                                             }
-                                        >
-                                            <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                                        </Button>
-                                    )
+                                        />
+                                    </div>
                                 )}
 
                                 <Button
