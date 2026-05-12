@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, GraduationCap, PlusSquare, User, Bell, Bookmark, LogOut, Menu, Search, Calendar, Settings, MessageSquare, Shield, BookOpen, BarChart2 } from "lucide-react"
+import { Home, GraduationCap, PlusSquare, User, Bell, Bookmark, LogOut, Menu, Search, Calendar, Settings, MessageSquare, Shield, BookOpen, BarChart2, Terminal, Type, History, Heart, Palette } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import {
@@ -170,6 +170,28 @@ export default function MobileNav() {
                   <span className="text-base font-medium">Resources</span>
                 </Button>
               </Link>
+
+              {/* Resources Sub-links */}
+              {pathname.startsWith("/resources") && (
+                <div className="flex flex-col gap-0.5 pl-12 pr-3 py-1">
+                  {[
+                    { label: 'My Uploads', href: '/resources/my-uploads', icon: History },
+                    { label: 'Saved', href: '/resources/saved', icon: Heart }
+                  ].map(sub => (
+                    <Link key={sub.href} href={sub.href} onClick={() => setOpen(false)}>
+                      <button className={cn(
+                        "flex items-center gap-2 w-full px-3 py-2 rounded-lg text-xs font-bold transition-all uppercase tracking-wider",
+                        pathname === sub.href
+                          ? "bg-primary/10 text-primary"
+                          : "text-muted-foreground/60 hover:text-foreground"
+                      )}>
+                        <sub.icon className="w-3 h-3" />
+                        {sub.label}
+                      </button>
+                    </Link>
+                  ))}
+                </div>
+              )}
               <Link href="/bookmarks" onClick={() => setOpen(false)}>
                 <Button
                   variant="ghost"
@@ -206,6 +228,41 @@ export default function MobileNav() {
                   <span className="text-base font-medium">Events</span>
                 </Button>
               </Link>
+              <Link href="/tools" onClick={() => setOpen(false)}>
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-start gap-4 h-12 px-3",
+                    pathname.startsWith("/tools") ? "bg-accent text-accent-foreground font-bold" : "text-muted-foreground"
+                  )}
+                >
+                  <Terminal className="w-5 h-5" />
+                  <span className="text-base font-medium">Tools</span>
+                </Button>
+              </Link>
+
+              {/* Tools Sub-links */}
+              {pathname.startsWith("/tools") && (
+                <div className="flex flex-col gap-0.5 pl-12 pr-3 py-1">
+                  {[
+                    { label: 'All Tools', href: '/tools', icon: Terminal },
+                    { label: 'Text Tools', href: '/tools/text', icon: Type },
+                    { label: 'Color Tools', href: '/tools/color', icon: Palette }
+                  ].map(sub => (
+                    <Link key={sub.href} href={sub.href} onClick={() => setOpen(false)}>
+                      <button className={cn(
+                        "flex items-center gap-2 w-full px-3 py-2 rounded-lg text-xs font-bold transition-all uppercase tracking-wider",
+                        pathname === sub.href
+                          ? "bg-primary/10 text-primary"
+                          : "text-muted-foreground/60 hover:text-foreground"
+                      )}>
+                        <sub.icon className="w-3 h-3" />
+                        {sub.label}
+                      </button>
+                    </Link>
+                  ))}
+                </div>
+              )}
 
               {user && isAdmin(user) && (
                 <>
