@@ -18,12 +18,28 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { Menu, X, ArrowRight, GraduationCap, Shield, Zap, LogOut, User } from "lucide-react";
+import {
+    Menu,
+    X,
+    ArrowRight,
+    GraduationCap,
+    Shield,
+    Zap,
+    LogOut,
+    User,
+    Home,
+    Book,
+    Users2,
+    Trophy,
+    Calendar,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import Logo from "@/components/shared/Logo";
+import { AnimatePresence } from "framer-motion";
 
 export default function Navbar() {
     const router = useRouter();
     const [scrolled, setScrolled] = useState(false);
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [mounted, setMounted] = useState(false);
@@ -34,11 +50,7 @@ export default function Navbar() {
 
     useEffect(() => {
         const handleScroll = () => {
-            if (window.scrollY > 10) {
-                setScrolled(true);
-            } else {
-                setScrolled(false);
-            }
+            setScrolled(window.scrollY > 20);
         };
 
         window.addEventListener("scroll", handleScroll);
@@ -72,376 +84,96 @@ export default function Navbar() {
         }
     };
 
-    const featuresItems = [
-        {
-            title: "Social Feed",
-            description: "Posts, polls, reactions from your college",
-        },
-        {
-            title: "Resources",
-            description: "Notes, PYQs, coding materials — free",
-        },
-        {
-            title: "Whiteboard",
-            description:
-                "Get your personal free whiteboard, manage and learn your thinking into board",
-        },
-        {
-            title: "Code area",
-            description:
-                "live Code with your friends and colleagues, with real time chat panel",
-        },
-        {
-            title: "And much More...",
-            description:
-                "Create your account to explore campusZen",
-        },
-    ];
-
-    const aboutItems = [
-        { icon: GraduationCap, label: "For Students" },
-        { icon: Shield, label: "Safe & Verified" },
-        { icon: Zap, label: "Built in India" },
+    const mainNavLinks = [
+        { href: "/feed", label: "Feed", icon: <Home className="w-4 h-4" /> },
+        { href: "/resources", label: "Resources", icon: <Book className="w-4 h-4" /> },
+        { href: "/community", label: "Community", icon: <Users2 className="w-4 h-4" /> },
+        { href: "/events", label: "Events", icon: <Calendar className="w-4 h-4" /> },
+        { href: "/leaderboard", label: "Leaderboard", icon: <Trophy className="w-4 h-4" /> },
     ];
 
     return (
-        <motion.header
-            initial={{ y: -100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-            suppressHydrationWarning
-            className={`sticky top-0 z-50 w-full border-b transition-all duration-300 ${
-                scrolled
-                    ? "bg-[#0f0f0f]/95 backdrop-blur-md shadow-lg shadow-black/20 border-[#2a2a2a]"
-                    : "bg-[#0f0f0f]/80 backdrop-blur-sm border-transparent"
-            }`}
-        >
-            <nav className="flex items-center justify-between h-16 px-4 lg:px-8 max-w-7xl mx-auto w-full">
+        <div className="fixed top-0 left-0 right-0 z-50 flex justify-center px-4 py-4 pointer-events-none">
+            <motion.header
+                initial={{ y: -20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
+                className={cn(
+                    "pointer-events-auto flex items-center justify-between h-14 px-6 rounded-full border transition-all duration-300 w-full max-w-5xl",
+                    scrolled
+                        ? "bg-neutral-900/80 backdrop-blur-xl border-neutral-800 shadow-xl"
+                        : "bg-transparent border-transparent"
+                )}
+            >
                 {/* Logo */}
-                <Link
-                    href="/"
-                    className="flex items-center gap-2 text-lg lg:text-xl text-[#f0f0f0] hover:opacity-80 transition-opacity shrink-0"
-                >
-                    <Zap className="w-5 h-5 lg:w-6 lg:h-6" />
-                    <span className="hidden sm:inline">CampusZen</span>
-                </Link>
+                <div className="flex shrink-0">
+                    <Logo size="md" showText={false} className="md:hidden" href="/" />
+                    <Logo size="md" showText={true} className="hidden md:flex" href="/" />
+                </div>
 
                 {/* Desktop Navigation */}
-                <div className="hidden lg:flex flex-1 justify-center">
-                    <NavigationMenu>
-                        <NavigationMenuList className="flex items-center gap-1">
-                            {/* Feed Link */}
-                            <NavigationMenuItem>
-                                <NavigationMenuLink asChild>
-                                    <Link
-                                        href="/feed"
-                                        className="text-[#a0a0a0] hover:text-[#f0f0f0] px-4 py-2 text-sm font-medium transition-all duration-200 hover:bg-[#f0f0f0]/10 rounded-md whitespace-nowrap"
-                                    >
-                                        Feed
-                                    </Link>
-                                </NavigationMenuLink>
-                            </NavigationMenuItem>
+                <nav className="hidden md:flex items-center gap-6">
+                    {mainNavLinks.map((link) => (
+                        <Link
+                            key={link.href}
+                            href={link.href}
+                            className="text-sm font-medium text-neutral-400 hover:text-white transition-colors duration-200"
+                        >
+                            {link.label}
+                        </Link>
+                    ))}
+                </nav>
 
-                            {/* Resources Link */}
-                            <NavigationMenuItem>
-                                <NavigationMenuLink asChild>
-                                    <Link
-                                        href="/resources"
-                                        className="text-[#a0a0a0] hover:text-[#f0f0f0] px-4 py-2 text-sm font-medium transition-all duration-200 hover:bg-[#f0f0f0]/10 rounded-md whitespace-nowrap"
-                                    >
-                                        Resources
-                                    </Link>
-                                </NavigationMenuLink>
-                            </NavigationMenuItem>
-
-                            {/* Community Link */}
-                            <NavigationMenuItem>
-                                <NavigationMenuLink asChild>
-                                    <Link
-                                        href="/community"
-                                        className="text-[#a0a0a0] hover:text-[#f0f0f0] px-4 py-2 text-sm font-medium transition-all duration-200 hover:bg-[#f0f0f0]/10 rounded-md whitespace-nowrap"
-                                    >
-                                        Community
-                                    </Link>
-                                </NavigationMenuLink>
-                            </NavigationMenuItem>
-
-                            {/* Events Link */}
-                            <NavigationMenuItem>
-                                <NavigationMenuLink asChild>
-                                    <Link
-                                        href="/events"
-                                        className="text-[#a0a0a0] hover:text-[#f0f0f0] px-4 py-2 text-sm font-medium transition-all duration-200 hover:bg-[#f0f0f0]/10 rounded-md whitespace-nowrap"
-                                    >
-                                        Events
-                                    </Link>
-                                </NavigationMenuLink>
-                            </NavigationMenuItem>
-
-                            {/* Search Link */}
-                            <NavigationMenuItem>
-                                <NavigationMenuLink asChild>
-                                    <Link
-                                        href="/search"
-                                        className="text-[#a0a0a0] hover:text-[#f0f0f0] px-4 py-2 text-sm font-medium transition-all duration-200 hover:bg-[#f0f0f0]/10 rounded-md whitespace-nowrap"
-                                    >
-                                        Search
-                                    </Link>
-                                </NavigationMenuLink>
-                            </NavigationMenuItem>
-
-                            {/* Leaderboard Link */}
-                            <NavigationMenuItem>
-                                <NavigationMenuLink asChild>
-                                    <Link
-                                        href="/leaderboard"
-                                        className="text-[#a0a0a0] hover:text-[#f0f0f0] px-4 py-2 text-sm font-medium transition-all duration-200 hover:bg-[#f0f0f0]/10 rounded-md whitespace-nowrap"
-                                    >
-                                        Leaderboard
-                                    </Link>
-                                </NavigationMenuLink>
-                            </NavigationMenuItem>
-                        </NavigationMenuList>
-                    </NavigationMenu>
-                </div>
-
-                {/* Right Side - Desktop Buttons */}
-                <div className="hidden lg:flex items-center gap-2 lg:gap-3 shrink-0">
-                    {mounted && !loading && user ? (
-                        <div className="flex items-center gap-2">
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="flex items-center gap-2 text-[#a0a0a0] hover:text-[#f0f0f0] text-xs lg:text-sm"
-                                    >
-                                        {user.image ? (
-                                            <img
-                                                src={user.image}
-                                                alt={user.name}
-                                                className="w-6 h-6 rounded-full object-cover"
-                                            />
-                                        ) : (
-                                            <User className="w-5 h-5" />
-                                        )}
-                                        <span className="hidden sm:inline">{user.name}</span>
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-48 bg-[#1a1a1a] border border-[#2a2a2a]">
-                                    <div className="space-y-1">
-                                        <Link
-                                            href="/profile"
-                                            className="block px-3 py-2 text-sm text-[#a0a0a0] hover:text-[#f0f0f0] hover:bg-[#2a2a2a] rounded-md"
-                                        >
-                                            Profile
-                                        </Link>
-                                        <Link
-                                            href="/settings"
-                                            className="block px-3 py-2 text-sm text-[#a0a0a0] hover:text-[#f0f0f0] hover:bg-[#2a2a2a] rounded-md"
-                                        >
-                                            Settings
-                                        </Link>
-                                        <hr className="border-[#2a2a2a] my-1" />
-                                        <button
-                                            onClick={handleLogout}
-                                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[#a0a0a0] hover:text-[#f0f0f0] hover:bg-[#2a2a2a] rounded-md"
-                                        >
-                                            <LogOut className="w-4 h-4" />
-                                            Sign Out
-                                        </button>
-                                    </div>
-                                </PopoverContent>
-                            </Popover>
-                        </div>
-                    ) : (
-                        <>
-                            <Button
-                                asChild
-                                variant="ghost"
-                                size="sm"
-                                className="text-[#a0a0a0] hover:text-[#f0f0f0] text-xs lg:text-sm"
-                            >
-                                <Link href="/login">Sign In</Link>
-                            </Button>
-                            <Button
-                                asChild
-                                size="sm"
-                                className="bg-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/80 text-[#0f0f0f] font-semibold text-xs lg:text-sm"
-                            >
-                                <Link
-                                    href="/signup"
-                                    className="flex items-center gap-1"
+                {/* Right Side Actions */}
+                <div className="flex items-center gap-3 shrink-0">
+                    {mounted && !loading && user ? ( 
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="rounded-full hover:bg-white/10 h-9 px-2 gap-2"
                                 >
-                                    Join Free{" "}
-                                    <ArrowRight className="w-3 h-3 lg:w-4 lg:h-4" />
-                                </Link>
+                                    {user.image ? (
+                                        <img
+                                            src={user.image}
+                                            alt={user.name}
+                                            className="w-7 h-7 rounded-full"
+                                        />
+                                    ) : (
+                                        <User className="w-5 h-5 text-neutral-400" />
+                                    )}
+                                    <span className="text-sm text-neutral-200 hidden sm:inline">
+                                        {user.name.split(' ')[0]}
+                                    </span>
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-48 bg-neutral-900 border-neutral-800 p-1 mt-2">
+                                <Link href="/profile" className="flex px-3 py-2 text-sm text-neutral-400 hover:text-white hover:bg-white/5 rounded-md">Profile</Link>
+                                <Link href="/settings" className="flex px-3 py-2 text-sm text-neutral-400 hover:text-white hover:bg-white/5 rounded-md">Settings</Link>
+                                <hr className="border-neutral-800 my-1" />
+                                <button onClick={handleLogout} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 rounded-md">
+                                    <LogOut className="w-4 h-4" />
+                                    Sign Out
+                                </button>
+                            </PopoverContent>
+                        </Popover>
+                    ) : (
+                        <div className="flex items-center gap-2">
+                            <Button asChild variant="ghost" size="sm" className="rounded-full text-neutral-400 hover:text-white h-9 px-4 hidden sm:flex">
+                                <Link href="/login">Login</Link>
                             </Button>
-                        </>
+                            <Button
+                                asChild
+                                size="sm"
+                                className="rounded-full font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300 h-9 px-5 shadow-lg shadow-primary/20"
+                            >
+                                <Link href="/signup">Join</Link>
+                            </Button>
+                        </div>
                     )}
                 </div>
-
-                {/* Mobile Menu Toggle */}
-                <div className="lg:hidden">
-                    <Popover
-                        open={mobileMenuOpen}
-                        onOpenChange={setMobileMenuOpen}
-                    >
-                        <PopoverTrigger asChild>
-                            <button className="text-[#f0f0f0] p-2 hover:bg-[#2a2a2a] rounded-lg transition-colors">
-                                {mobileMenuOpen ? (
-                                    <X className="w-6 h-6" />
-                                ) : (
-                                    <Menu className="w-6 h-6" />
-                                )}
-                            </button>
-                        </PopoverTrigger>
-                        <PopoverContent
-                            className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-4 space-y-3 mt-2 max-w-96"
-                            align="end"
-                        >
-                            {/* Mobile Navigation Links */}
-                            <div className="space-y-2">
-                                <p className="font-semibold text-[#f0f0f0] px-2">
-                                    Navigation
-                                </p>
-                                <Link
-                                    href="/feed"
-                                    onClick={() => setMobileMenuOpen(false)}
-                                    className="block px-4 py-2 rounded-lg text-[#a0a0a0] hover:bg-[#2a2a2a] hover:text-[#f0f0f0] transition-colors"
-                                >
-                                    Feed
-                                </Link>
-                                <Link
-                                    href="/resources"
-                                    onClick={() => setMobileMenuOpen(false)}
-                                    className="block px-4 py-2 rounded-lg text-[#a0a0a0] hover:bg-[#2a2a2a] hover:text-[#f0f0f0] transition-colors"
-                                >
-                                    Resources
-                                </Link>
-                                <Link
-                                    href="/community"
-                                    onClick={() => setMobileMenuOpen(false)}
-                                    className="block px-4 py-2 rounded-lg text-[#a0a0a0] hover:bg-[#2a2a2a] hover:text-[#f0f0f0] transition-colors"
-                                >
-                                    Community
-                                </Link>
-                                <Link
-                                    href="/events"
-                                    onClick={() => setMobileMenuOpen(false)}
-                                    className="block px-4 py-2 rounded-lg text-[#a0a0a0] hover:bg-[#2a2a2a] hover:text-[#f0f0f0] transition-colors"
-                                >
-                                    Events
-                                </Link>
-                                <Link
-                                    href="/search"
-                                    onClick={() => setMobileMenuOpen(false)}
-                                    className="block px-4 py-2 rounded-lg text-[#a0a0a0] hover:bg-[#2a2a2a] hover:text-[#f0f0f0] transition-colors"
-                                >
-                                    Search
-                                </Link>
-                                <Link
-                                    href="/leaderboard"
-                                    onClick={() => setMobileMenuOpen(false)}
-                                    className="block px-4 py-2 rounded-lg text-[#a0a0a0] hover:bg-[#2a2a2a] hover:text-[#f0f0f0] transition-colors"
-                                >
-                                    Leaderboard
-                                </Link>
-                            </div>
-
-                            {/* Mobile About */}
-                            {/* <div className="space-y-2">
-                                <p className="font-semibold text-[#f0f0f0] px-2">
-                                    About
-                                </p>
-                                {aboutItems.map((item) => {
-                                    const IconComponent = item.icon;
-                                    return (
-                                        <div
-                                            key={item.label}
-                                            className="flex items-center gap-2 px-4 py-2 rounded-lg text-[#a0a0a0] hover:bg-[#2a2a2a] hover:text-[#f0f0f0] transition-colors"
-                                        >
-                                            <IconComponent className="w-4 h-4" />
-                                            <span>{item.label}</span>
-                                        </div>
-                                    );
-                                })}
-                            </div> */}
-
-                            {/* Mobile Buttons */}
-                            <div className="space-y-2 pt-4 border-t border-[#2a2a2a]">
-                                {mounted && !loading && user ? (
-                                    <div className="space-y-2">
-                                        <div className="flex items-center gap-3 px-2 py-2">
-                                            {user.image ? (
-                                                <img
-                                                    src={user.image}
-                                                    alt={user.name}
-                                                    className="w-8 h-8 rounded-full object-cover"
-                                                />
-                                            ) : (
-                                                <User className="w-8 h-8 text-[#a0a0a0]" />
-                                            )}
-                                            <div>
-                                                <p className="text-sm font-semibold text-[#f0f0f0]">{user.name}</p>
-                                                <p className="text-xs text-[#808080]">{user.email}</p>
-                                            </div>
-                                        </div>
-                                        <Link
-                                            href="/profile"
-                                            onClick={() => setMobileMenuOpen(false)}
-                                            className="block px-4 py-2 rounded-lg text-sm text-[#a0a0a0] hover:bg-[#2a2a2a] hover:text-[#f0f0f0] transition-colors"
-                                        >
-                                            Profile
-                                        </Link>
-                                        <Link
-                                            href="/settings"
-                                            onClick={() => setMobileMenuOpen(false)}
-                                            className="block px-4 py-2 rounded-lg text-sm text-[#a0a0a0] hover:bg-[#2a2a2a] hover:text-[#f0f0f0] transition-colors"
-                                        >
-                                            Settings
-                                        </Link>
-                                        <button
-                                            onClick={() => {
-                                                handleLogout();
-                                                setMobileMenuOpen(false);
-                                            }}
-                                            className="w-full flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-[#a0a0a0] hover:bg-[#2a2a2a] hover:text-[#f0f0f0] transition-colors"
-                                        >
-                                            <LogOut className="w-4 h-4" />
-                                            Sign Out
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <>
-                                        <Button
-                                            asChild
-                                            variant="ghost"
-                                            size="sm"
-                                            className="w-full text-[#a0a0a0] hover:text-[#f0f0f0]"
-                                        >
-                                            <Link href="/login">Sign In</Link>
-                                        </Button>
-                                        <Button
-                                            asChild
-                                            size="sm"
-                                            className="w-full bg-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/80 text-[#0f0f0f] font-semibold"
-                                        >
-                                            <Link
-                                                href="/signup"
-                                                className="flex items-center justify-center gap-1"
-                                            >
-                                                Join Free{" "}
-                                                <ArrowRight className="w-4 h-4" />
-                                            </Link>
-                                        </Button>
-                                    </>
-                                )}
-                            </div>
-                        </PopoverContent>
-                    </Popover>
-                </div>
-            </nav>
-        </motion.header>
+            </motion.header>
+        </div>
     );
 }
