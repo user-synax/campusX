@@ -221,6 +221,13 @@ const tools = [
         href: "/tools/copyright",
         className: "md:col-span-2",
     },
+    {
+        title: "SEO Tools",
+        description: "Audit meta tags, check alt text, generate social share links, and more.",
+        icon: <Search className="w-5 h-5 text-teal-500" />,
+        href: "/tools/seo",
+        className: "sm:col-span-2 md:col-span-1 lg:col-span-2",
+    },
 ];
 
 export default function ToolsPage() {
