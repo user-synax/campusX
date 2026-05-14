@@ -36,7 +36,7 @@ export default function ResponsiveFontTool() {
       description="Preview and test font scaling and typography across different viewports and scales."
     >
       <div className="space-y-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-1 gap-8">
           <div className="space-y-6">
             <div className="space-y-4">
               <Label>Base Font Size (px)</Label>
