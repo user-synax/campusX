@@ -67,7 +67,7 @@ export default function WhitespaceTool() {
             title="Whitespace Cleaner"
             description="Optimize your text by removing unnecessary spaces, tabs, and empty lines."
         >
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-1 gap-8">
                 <div className="lg:col-span-1 space-y-6">
                     <div className="p-6 rounded-2xl border border-border bg-card space-y-4">
                         <Label className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Options</Label>
