@@ -246,9 +246,10 @@ export default function MobileNav() {
               {pathname.startsWith("/tools") && (
                 <div className="flex flex-col gap-0.5 pl-12 pr-3 py-1">
                   {[
-                    { label: 'All Tools', href: '/tools', icon: Terminal },
+                    { label: 'Popular Tools', href: '/tools', icon: Terminal },
                     { label: 'Text Tools', href: '/tools/text', icon: Type },
-                    { label: 'Color Tools', href: '/tools/color', icon: Palette }
+                    { label: 'Color Tools', href: '/tools/color', icon: Palette },
+                    { label: 'SEO Tools', href: '/tools/seo', icon: Search },
                   ].map(sub => (
                     <Link key={sub.href} href={sub.href} onClick={() => setOpen(false)}>
                       <button className={cn(

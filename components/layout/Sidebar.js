@@ -158,7 +158,7 @@ export default function Sidebar() {
               {item.href === "/tools" && pathname.startsWith("/tools") && (
                 <div className="hidden lg:flex flex-col gap-0.5 pl-9 pr-3 py-1">
                   {[
-                    { label: "All Tools", href: "/tools", icon: Terminal },
+                    { label: "Popular Tools", href: "/tools", icon: Terminal },
                     { label: "Text Tools", href: "/tools/text", icon: Type },
                     {
                       label: "Color Tools",
