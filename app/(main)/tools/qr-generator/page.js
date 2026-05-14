@@ -12,7 +12,7 @@ import ToolLayout from "@/components/tools/ToolLayout"
 import { toast } from "sonner"
 
 export default function QrGeneratorTool() {
-  const [value, setValue] = useState("https://campuszen.com")
+  const [value, setValue] = useState("https://campuszen.vercel.app")
   const [size, setSize] = useState(256)
   const [fgColor, setFgColor] = useState("#000000")
   const [bgColor, setBgColor] = useState("#ffffff")
