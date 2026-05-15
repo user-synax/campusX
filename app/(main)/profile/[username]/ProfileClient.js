@@ -29,7 +29,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 
 const FounderProfileHeader = dynamic(() => import('@/components/founder/FounderProfileHeader'), { ssr: false })
-const RoadmapWidget = dynamic(() => import('@/components/founder/RoadmapWidget'), { ssr: false })
+// const RoadmapWidget = dynamic(() => import('@/components/founder/RoadmapWidget'), { ssr: false })
 const BroadcastManager = dynamic(() => import('@/components/founder/BroadcastManager'), { ssr: false })
 const FollowListModal = dynamic(() => import('@/components/user/FollowListModal'), { ssr: false })
 const EditProfileDrawer = dynamic(() => import('@/components/user/EditProfileDrawer'), { ssr: false })

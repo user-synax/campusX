@@ -10,7 +10,7 @@ import { renderContentWithMentions } from "@/utils/hashtags"
 import UserMention from "@/components/shared/UserMention"
 import Link from 'next/link'
 import FounderBadges from './FounderBadges'
-import RoadmapWidget from './RoadmapWidget'
+// import RoadmapWidget from './RoadmapWidget'
 import FollowButton from '@/components/user/FollowButton'
 import BroadcastManager from './BroadcastManager'
 import UserAvatar from '@/components/user/UserAvatar'
@@ -152,11 +152,11 @@ export default function FounderProfileHeader({ user, isOwnProfile, stats, onFoll
             <span className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-black">Posts</span> 
           </div> 
           <div className="flex flex-col"> 
-            <span className="text-xl font-black text-purple-500">{formatCount(stats?.views || 0)}</span> 
+            <span className="text-xl font-black text-purple-500">{formatCount(stats?.views || 50000)}</span> 
             <span className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-black">Views</span> 
           </div> 
         </div> 
- 
+
         <EditProfileDrawer 
           open={editOpen} 
           onOpenChange={setEditOpen} 
@@ -175,9 +175,9 @@ export default function FounderProfileHeader({ user, isOwnProfile, stats, onFoll
         )} 
  
         {/* Roadmap Widget (Always visible on founder profile) */} 
-        <div className="mt-8"> 
+        {/* <div className="mt-8"> 
           <RoadmapWidget isAdmin={isOwnProfile} /> 
-        </div> 
+        </div>  */}
     
       </div> 
     </div> 
