@@ -15,10 +15,7 @@
   <img src="https://img.shields.io/badge/🚀_Live_Demo-campus--x--rho.vercel.app-6366f1?style=for-the-badge&logo=rocket" />
 </a>
 
-[![GitHub stars](https://img.shields.io/github/stars/ayush0x00/campusx?style=for-the-badge&logo=github)](https://github.com/user-synax/campusX/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/ayush0x00/campusx?style=for-the-badge&logo=git)](https://github.com/user-synax/campusX/network)
-[![License](https://img.shields.io/badge/License-MIT-6366f1?style=for-the-badge)](LICENSE)
-[![Contributors](https://img.shields.io/github/contributors/ayush0x00/campusx?style=for-the-badge&color=6366f1)](https://github.com/user-synax/campusX/graphs/contributors)
+[![DeepScan grade](https://deepscan.io/api/teams/29783/projects/31636/branches/1028158/badge/grade.svg)](https://deepscan.io/dashboard#view=project&tid=29783&pid=31636&bid=1028158)
 
 </div>
 
