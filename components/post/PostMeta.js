@@ -10,7 +10,6 @@ const PostMeta = memo(function PostMeta({
   createdAt,
   community
 }) {
-  const isPostFounder = author && typeof author === 'object' && isFounder(author.username)
 
   return (
     <div className="flex items-center gap-2 flex-wrap text-sm">
@@ -21,11 +20,6 @@ const PostMeta = memo(function PostMeta({
       >
         <span className="font-bold text-foreground">{author.name}</span>
       </Link>
-      {isPostFounder && (
-        <span className="flex-shrink-0">
-          <FounderBadges size="sm" />
-        </span>
-      )}
       <span className="text-muted-foreground truncate">@{author.username}</span>
       <span className="text-muted-foreground">·</span>
       <Link 
