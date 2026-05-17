@@ -23,8 +23,6 @@ export async function proxy(request) {
       // However, standard Mongoose models DON'T work in Next.js Edge Middleware.
       // I will implement the logic as requested but add a comment about Edge environment limitations.
       // In a real production setup, IP bans would be checked via a Redis cache or a specialized edge-compatible DB driver (like MongoDB Atlas Data API).
-      
-      /* 
       // This is what was requested:
       const ip = getClientIP(request) 
       const ipBan = await IPBan.findOne({ 
@@ -42,7 +40,7 @@ export async function proxy(request) {
           { status: 403 } 
         ) 
       } 
-      */
+
     } catch (err) {
       console.error('Middleware IP ban check failed:', err.message);
     }
