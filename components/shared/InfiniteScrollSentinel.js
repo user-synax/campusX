@@ -25,7 +25,7 @@ export default function InfiniteScrollSentinel({ loading, hasMore, error, onRetr
       
       {error && !loading && (
         <div className="flex flex-col items-center gap-3 animate-in fade-in zoom-in duration-300">
-          <p className="text-sm text-muted-foreground">{error || "Failed to load more"}</p>
+          <p className="text-sm text-muted-foreground">{"Failed to load more"}</p>
           <Button variant="outline" size="sm" onClick={onRetry} className="rounded-full">
             Try again
           </Button>
