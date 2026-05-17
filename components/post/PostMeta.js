@@ -2,8 +2,6 @@ import { memo } from 'react'
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import FormattedTime from "@/components/shared/FormattedTime"
-import { isFounder } from "@/lib/founder"
-import FounderBadges from "@/components/founder/FounderBadges"
 
 const PostMeta = memo(function PostMeta({
   author,
