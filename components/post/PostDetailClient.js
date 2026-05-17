@@ -5,17 +5,14 @@ import { useRouter } from 'next/navigation'
 import Link from "next/link"
 import { 
   ArrowLeft, 
-  Heart, 
   MessageCircle, 
   Share2, 
   FileX, 
   Loader2,
-  ExternalLink
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Card } from "@/components/ui/card"
 import { toast } from "sonner"
 import UserAvatar from "@/components/user/UserAvatar"
 import PollDisplay from "@/components/post/PollDisplay"
@@ -29,10 +26,6 @@ import FormattedTime from "@/components/shared/FormattedTime"
 import MarkdownRenderer from "@/components/shared/MarkdownRenderer"
 import { containsMarkdown } from "@/utils/markdown"
 import useUser from "@/hooks/useUser"
-import { isFounder } from "@/lib/founder"
-import FounderBadges from "@/components/founder/FounderBadges"
-import { cn } from "@/lib/utils"
-import { useRef } from 'react'
 
 export default function PostDetailClient({ postId }) {
   const router = useRouter()
