@@ -54,4 +54,4 @@ export const MockupFrame = React.forwardRef(
 );
 MockupFrame.displayName = "MockupFrame";
 
-export { Mockup, MockupFrame };
+export { MockupFrame };
