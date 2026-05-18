@@ -86,6 +86,27 @@ const CATEGORIES = [
   },
 ];
 
+function Preview({ option }) {
+  if (option.cursor) {
+    return (
+      <div
+        className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center text-lg"
+        style={{ cursor: option.cursor }}
+      >
+        {option.label}
+      </div>
+    );
+  }
+  return (
+    <div
+      className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center"
+      style={{ cursor: option.id }}
+    >
+      <div className="w-2.5 h-2.5 rounded-full bg-current opacity-50" />
+    </div>
+  );
+}
+
 export default function CursorSelector() {
   const { showSelector, setShowSelector, cursorStyle, selectStyle } = useCat();
 
@@ -110,16 +131,14 @@ export default function CursorSelector() {
                       key={opt.id}
                       onClick={() => selectStyle(opt.cursor || opt.id)}
                       className={cn(
-                        "flex flex-col items-center gap-1 p-2 rounded-xl border transition-all",
+                        "flex flex-col items-center gap-1 p-1.5 sm:p-2 rounded-xl border transition-all",
                         selected
                           ? "border-purple-500 bg-purple-500/10 ring-1 ring-purple-500"
                           : "border-border hover:border-purple-500/50 hover:bg-accent",
                       )}
                     >
-                      <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center">
-                        <div className="w-2.5 h-2.5 rounded-full bg-current opacity-50" />
-                      </div>
-                      <span className="text-[9px] font-medium text-muted-foreground leading-tight text-center">
+                      <Preview option={opt} />
+                      <span className="text-[8px] sm:text-[9px] font-medium text-muted-foreground leading-tight text-center truncate w-full">
                         {opt.label}
                       </span>
                     </button>
