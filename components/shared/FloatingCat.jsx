@@ -18,4 +18,4 @@ export default function CustomCursor() {
   }, [cursorEnabled, cursorStyle]);
 
   return null;
-}
+  }
