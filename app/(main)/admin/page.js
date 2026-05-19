@@ -92,7 +92,7 @@ export default function AdminDashboard() {
       </div>
 
       <Tabs defaultValue="overview" className="w-full">
-        <div className="px-4 py-2 border-b border-border sticky top-[57px] bg-background z-10">
+        <div className="px-4 py-2 border-b border-border sticky top-14.25 bg-background z-10">
           <TabsList className="bg-muted/50 p-1 w-full justify-start overflow-x-auto no-scrollbar">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
