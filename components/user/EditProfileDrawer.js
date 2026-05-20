@@ -202,9 +202,9 @@ export default function EditProfileDrawer({ user, open, onOpenChange, onSave }) 
                 <Image 
                   src={avatarPreview || user.avatar} 
                   alt="Avatar" 
-                  fill 
-                  className="object-cover"
-                  sizes="80px"
+                  width={80}
+                  height={80}
+                  className="object-cover w-full h-full"
                 />
               ) : (
                 <span className="text-2xl font-bold text-muted-foreground">{user?.name?.[0]?.toUpperCase()}</span>
