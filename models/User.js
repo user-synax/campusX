@@ -80,28 +80,28 @@ const userSchema = new mongoose.Schema({
     default: [],
   }],
   // Founder-related fields (only populated for founder account) 
-  founderData: { 
+  founderData: {
     roadmap: {
-      type: [{ 
-        title: String, 
-        status: { 
-          type: String, 
-          enum: ['done', 'inprogress', 'upcoming'], 
-          default: 'upcoming' 
-        }, 
-        emoji: String, 
-        order: Number 
+      type: [{
+        title: String,
+        status: {
+          type: String,
+          enum: ['done', 'inprogress', 'upcoming'],
+          default: 'upcoming'
+        },
+        emoji: String,
+        order: Number
       }],
       default: []
     },
     broadcastMessage: String,  // current site-wide announcement 
     broadcastId: String,       // unique ID per announcement (for dismiss tracking) 
-    broadcastActive: Boolean, 
-    broadcastCreatedAt: Date, 
-    profileViews: { type: Number, default: 0 }, 
-    profileViewsToday: { type: Number, default: 0 }, 
-    profileViewsResetAt: Date, 
-    totalUsersAtJoining: { type: Number, default: 0 }, 
+    broadcastActive: Boolean,
+    broadcastCreatedAt: Date,
+    profileViews: { type: Number, default: 0 },
+    profileViewsToday: { type: Number, default: 0 },
+    profileViewsResetAt: Date,
+    totalUsersAtJoining: { type: Number, default: 0 },
   },
   xp: {
     type: Number,
@@ -151,8 +151,13 @@ const userSchema = new mongoose.Schema({
     type: Date,
   },
   pinnedPost: { type: mongoose.Schema.Types.ObjectId, ref: 'Post', default: null },
+  role: {
+    type: String,
+    enum: ['user', 'moderator', 'admin', 'founder'],
+    default: 'user',
+  },
   // Moderation fields 
-  isBanned: { type: Boolean, default: false }, 
+  isBanned: { type: Boolean, default: false },
   isDeleted: { type: Boolean, default: false },  // soft delete 
   deletedAt: { type: Date, default: null },
   tokenVersion: { type: Number, default: 0 }, // For force logout
@@ -178,9 +183,9 @@ const userSchema = new mongoose.Schema({
   sentChatRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ChatRequest', default: [] }],
 
   // Streak 
-  currentStreak:  { type: Number, default: 0 }, 
-  longestStreak:  { type: Number, default: 0 }, 
-  lastActiveDate: { type: Date,   default: null },
+  currentStreak: { type: Number, default: 0 },
+  longestStreak: { type: Number, default: 0 },
+  lastActiveDate: { type: Date, default: null },
 
   // Profile customization
   interests: {
@@ -192,11 +197,11 @@ const userSchema = new mongoose.Schema({
     default: []
   },
   socialLinks: {
-    twitter:   { type: String, default: '' },
+    twitter: { type: String, default: '' },
     instagram: { type: String, default: '' },
-    linkedin:  { type: String, default: '' },
-    github:    { type: String, default: '' },
-    website:   { type: String, default: '' },
+    linkedin: { type: String, default: '' },
+    github: { type: String, default: '' },
+    website: { type: String, default: '' },
   },
   // Password reset fields
   resetToken: { type: String, default: null },
@@ -224,10 +229,10 @@ userSchema.index({ totalXP: -1 });
 userSchema.index({ weeklyXP: -1 });
 userSchema.index({ college: 1, weeklyXP: -1 });
 // Moderation index 
-userSchema.index({ isBanned: 1 }) 
-userSchema.index({ isDeleted: 1, createdAt: -1 }) 
+userSchema.index({ isBanned: 1 })
+userSchema.index({ isDeleted: 1, createdAt: -1 })
 userSchema.index({ mutedUsers: 1 })
-userSchema.index({ blockedUsers: 1 }) 
+userSchema.index({ blockedUsers: 1 })
 // Verification indexes
 userSchema.index({ collegeEmail: 1 }, { unique: true, sparse: true })
 userSchema.index({ verificationStatus: 1, verificationRequestedAt: -1 })
