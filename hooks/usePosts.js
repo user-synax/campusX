@@ -2,12 +2,19 @@
 
 import { useState, useEffect, useCallback } from 'react'
 
+// Module-level in-memory cache to persist feed states across tab switches
+// Resets naturally when browser page is refreshed/reloaded
+const postsCache = {}
+
 export function usePosts(queryParams = {}, initialPosts = []) {
-  const [posts, setPosts] = useState(initialPosts)
+  const cacheKey = JSON.stringify(queryParams)
+  const cachedData = postsCache[cacheKey]
+
+  const [posts, setPosts] = useState(cachedData ? cachedData.posts : initialPosts)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-  const [hasMore, setHasMore] = useState(true)
-  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(cachedData ? cachedData.hasMore : true)
+  const [page, setPage] = useState(cachedData ? cachedData.page : 1)
 
   const fetchPosts = useCallback(async (pageNum, append = false) => {
     if (loading) return  // loading lock
@@ -49,13 +56,20 @@ export function usePosts(queryParams = {}, initialPosts = []) {
     } finally {
       setLoading(false)
     }
-  }, [loading, JSON.stringify(queryParams)])
+  }, [loading, cacheKey])
 
-  // Initial load
+  // Initial load: Only fetch if we don't have this key cached
   useEffect(() => {
-    fetchPosts(1, false)
-    setPage(1)
-  }, [JSON.stringify(queryParams)])
+    if (!postsCache[cacheKey]) {
+      fetchPosts(1, false)
+      setPage(1)
+    }
+  }, [cacheKey])
+
+  // Synchronize state changes back to cache in real-time
+  useEffect(() => {
+    postsCache[cacheKey] = { posts, page, hasMore }
+  }, [cacheKey, posts, page, hasMore])
 
   // Load more
   const loadMore = useCallback(() => {
