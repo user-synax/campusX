@@ -35,6 +35,11 @@ const groupMessageSchema = new mongoose.Schema({
     type: String, 
     default: ''    // For image messages 
   }, 
+  replyTo: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'GroupMessage',
+    default: null
+  }, 
   reactions: { 
     type: [reactionSchema], 
     default: [] 
