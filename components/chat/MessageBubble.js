@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, memo } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import UserAvatar from "@/components/user/UserAvatar";
@@ -11,7 +11,10 @@ import UserMention from "@/components/shared/UserMention";
 import LinkPreview from "@/components/shared/LinkPreview";
 import FormattedTime from "@/components/shared/FormattedTime";
 import { Trash, } from "lucide-react";
-export default function MessageBubble({
+import EmojiPicker from "@/components/post/EmojiPicker";
+
+const QUICK_EMOJIS = ["👍", "❤️", "😂", "🔥", "😮", "😢", "🙏", "🎉"];
+function MessageBubble({
     message,
     isOwn,
     showAvatar,
@@ -24,6 +27,14 @@ export default function MessageBubble({
     const [showMenu, setShowMenu] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleting, setDeleting] = useState(false);
+
+    // Mobile swipe to reply states
+    const [dragX, setDragX] = useState(0);
+    const [isDragging, setIsDragging] = useState(false);
+    const startXRef = useRef(0);
+    const startYRef = useRef(0);
+    const isDraggingRef = useRef(false);
+    const hasVibratedRef = useRef(false);
 
     useEffect(() => {
         if (!showMenu) return;
@@ -40,6 +51,60 @@ export default function MessageBubble({
         } finally {
             setDeleting(false);
         }
+    };
+
+    const handleTouchStart = (e) => {
+        const touch = e.touches[0];
+        startXRef.current = touch.clientX;
+        startYRef.current = touch.clientY;
+        isDraggingRef.current = false;
+        hasVibratedRef.current = false;
+    };
+
+    const handleTouchMove = (e) => {
+        const touch = e.touches[0];
+        const deltaX = touch.clientX - startXRef.current;
+        const deltaY = touch.clientY - startYRef.current;
+
+        if (!isDraggingRef.current) {
+            // Start dragging only if horizontal rightward swipe is dominant
+            if (deltaX > 10 && deltaX > Math.abs(deltaY)) {
+                isDraggingRef.current = true;
+                setIsDragging(true);
+            }
+        }
+
+        if (isDraggingRef.current) {
+            if (e.cancelable) {
+                e.preventDefault();
+            }
+            const currentDrag = Math.min(deltaX, 80);
+            setDragX(currentDrag);
+
+            // Subtle haptic response on crossing reply threshold (50px)
+            if (navigator.vibrate && currentDrag >= 50 && !hasVibratedRef.current) {
+                try {
+                    navigator.vibrate(20);
+                } catch (err) {
+                    // Ignore haptic errors
+                }
+                hasVibratedRef.current = true;
+            } else if (currentDrag < 50) {
+                hasVibratedRef.current = false;
+            }
+        }
+    };
+
+    const handleTouchEnd = () => {
+        if (isDraggingRef.current) {
+            if (dragX >= 50) {
+                onReply(message);
+            }
+        }
+        setDragX(0);
+        setIsDragging(false);
+        isDraggingRef.current = false;
+        hasVibratedRef.current = false;
     };
 
     const urls = message.content ? extractUrls(message.content) : [];
@@ -76,6 +141,9 @@ export default function MessageBubble({
             id={`msg-${message._id}`}
             className={`flex items-end gap-2 mb-1 ${isOwn ? "flex-row-reverse" : "flex-row"} group relative 
                   ${message.isOptimistic ? "opacity-70" : "opacity-100"} transition-all duration-300 rounded-lg p-1`}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
         >
             {/* Avatar — show for other people only */}
             {!isOwn && (
@@ -92,6 +160,10 @@ export default function MessageBubble({
 
             <div
                 className={`max-w-[75%] ${isOwn ? "items-end" : "items-start"} flex flex-col`}
+                style={{
+                    transform: dragX > 0 ? `translateX(${dragX}px)` : undefined,
+                    transition: isDragging ? "none" : "transform 0.2s ease-out",
+                }}
             >
                 {/* Sender name — show only for others, only if showAvatar */}
                 {!isOwn && showAvatar && (
@@ -109,6 +181,27 @@ export default function MessageBubble({
                             : "bg-card border border-border text-md rounded-bl-md",
                     )}
                 >
+                    {/* Mobile swipe reply indicator */}
+                    {dragX > 0 && (
+                        <div
+                            className="absolute right-full mr-2 top-1/2 -translate-y-1/2 pointer-events-none"
+                            style={{
+                                opacity: Math.min(dragX / 50, 1),
+                                transform: `translateY(-50%) scale(${Math.min(dragX / 50, 1)})`,
+                            }}
+                        >
+                            <div
+                                className={cn(
+                                    "w-8 h-8 rounded-full flex items-center justify-center border transition-all duration-150",
+                                    dragX >= 50
+                                        ? "bg-primary text-primary-foreground border-primary scale-110"
+                                        : "bg-accent/80 text-muted-foreground border-border"
+                                )}
+                            >
+                                <Reply className="w-4 h-4" />
+                            </div>
+                        </div>
+                    )}
                     {/* Replying-to Preview inside bubble */}
                     {message.replyTo && (
                         <div
@@ -265,11 +358,12 @@ export default function MessageBubble({
                             <button
                                 key={emoji}
                                 onClick={() => onReact(message._id, emoji)}
-                                className="flex items-center gap-0.5 bg-accent border border-border 
-                           rounded-full px-2 py-0.5 text-xs hover:bg-accent/80"
+                                className="flex items-center gap-1 bg-accent/40 border border-border/80 
+                                           hover:bg-accent hover:border-border rounded-full px-2.5 py-0.5 text-xs 
+                                           shadow-xs transition-all active:scale-95 duration-150 backdrop-blur-xs"
                             >
                                 <span>{emoji}</span>
-                                <span className="text-muted-foreground">
+                                <span className="text-[10px] text-muted-foreground font-semibold">
                                     {count}
                                 </span>
                             </button>
@@ -296,7 +390,7 @@ export default function MessageBubble({
                 </button>
 
                 {/* 3-Dot Options Dropdown */}
-                <div className="relative">
+                <div className="relative hidden md:block">
                     <button
                         onClick={(e) => {
                             e.stopPropagation();
@@ -345,20 +439,34 @@ export default function MessageBubble({
             {showReactionPicker && (
                 <div
                     className={`absolute bottom-full mb-1 bg-card border border-border 
-                        rounded-full px-2 py-1 flex gap-1 shadow-lg z-10 ${isOwn ? "right-0" : "left-0"}`}
+                        rounded-full px-2.5 py-1 flex items-center gap-1 shadow-lg z-10 ${isOwn ? "right-0" : "left-0"}`}
                 >
-                    {[<Heart size={18} fill="red" strokeWidth={0} />, "😂", "👍", "🔥", "😮", "😢", "🥀"].map((emoji) => (
+                    {QUICK_EMOJIS.map((emoji) => (
                         <button
                             key={emoji}
                             onClick={() => {
                                 onReact(message._id, emoji);
                                 setShowReactionPicker(false);
                             }}
-                            className="text-lg hover:scale-125 transition-transform"
+                            className="text-lg w-8 h-8 rounded-full hover:bg-accent flex items-center justify-center active:scale-125 transition-transform"
                         >
                             {emoji}
                         </button>
                     ))}
+                    <EmojiPicker
+                        onSelect={(emoji) => {
+                            onReact(message._id, emoji);
+                            setShowReactionPicker(false);
+                        }}
+                        trigger={
+                            <button
+                                className="w-8 h-8 rounded-full hover:bg-accent flex items-center justify-center text-muted-foreground hover:text-foreground text-sm font-semibold active:scale-110 transition-transform"
+                                title="Add custom reaction"
+                            >
+                                +
+                            </button>
+                        }
+                    />
                 </div>
             )}
 
@@ -372,3 +480,20 @@ export default function MessageBubble({
         </div>
     );
 }
+
+export default memo(MessageBubble, (prevProps, nextProps) => {
+    return (
+        prevProps.message._id === nextProps.message._id &&
+        prevProps.message.content === nextProps.message.content &&
+        prevProps.message.imageUrl === nextProps.message.imageUrl &&
+        prevProps.message.isDeleted === nextProps.message.isDeleted &&
+        prevProps.message.isOptimistic === nextProps.message.isOptimistic &&
+        prevProps.isOwn === nextProps.isOwn &&
+        prevProps.showAvatar === nextProps.showAvatar &&
+        prevProps.currentUserId === nextProps.currentUserId &&
+        prevProps.onDelete === nextProps.onDelete &&
+        prevProps.onReact === nextProps.onReact &&
+        prevProps.onReply === nextProps.onReply &&
+        JSON.stringify(prevProps.message.reactions) === JSON.stringify(nextProps.message.reactions)
+    );
+});
