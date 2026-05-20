@@ -81,10 +81,9 @@ function CharacterProgressRing({ length = 0, maxLength = 2000 }) {
             </svg>
             {/* Number in center */}
             <span
-                className={`absolute text-[10px] font-bold tabular-nums ${
-                    length > maxLength ? "text-red-500" : 
+                className={`absolute text-[10px] font-bold tabular-nums ${length > maxLength ? "text-red-500" :
                     remaining <= 200 ? "text-foreground" : "text-muted-foreground"
-                }`}
+                    }`}
             >
                 {showNumber ? remaining : ""}
             </span>
@@ -120,8 +119,8 @@ export default function PostComposer({
         fetchCommunities()
     }, [])
 
-    const activeCommunity = communities.find(c => c.slug === (defaultCommunity || manualCommunity)) || 
-                        communities.find(c => c.name === (defaultCommunity || manualCommunity));
+    const activeCommunity = communities.find(c => c.slug === (defaultCommunity || manualCommunity)) ||
+        communities.find(c => c.name === (defaultCommunity || manualCommunity));
 
     // Markdown state
     const [isMarkdownPreview, setIsMarkdownPreview] = useState(false);
@@ -191,15 +190,11 @@ export default function PostComposer({
 
     // Add GIF to content blocks
     const addGif = (gif) => {
-        // Add the GIF file to selectedImages for Cloudinary upload
-        if (gif.file) {
-            setSelectedImages(prev => [...prev, gif.file]);
-        }
-        
-        // Store GIF metadata for content block
+        // Store GIF metadata for content block.
+        // We use the Giphy CDN url directly instead of re-uploading.
         const gifBlock = {
             type: 'gif',
-            content: gif.url, // Temporary URL, will be replaced after upload
+            content: gif.url,
             metadata: {
                 title: gif.title,
                 width: gif.width,
@@ -207,7 +202,7 @@ export default function PostComposer({
                 aspectRatio: `${gif.width}/${gif.height}`,
                 previewUrl: gif.previewUrl,
                 id: gif.id,
-                isUploading: true
+                isUploading: false
             }
         };
         setContentBlocks(prev => [...prev, gifBlock]);
@@ -270,7 +265,7 @@ export default function PostComposer({
         // Upload images and GIFs first if any are selected
         let uploadedImageUrls = [];
         let updatedContentBlocks = [...contentBlocks];
-        
+
         if (selectedImages.length > 0) {
             setIsUploading(true);
             try {
@@ -278,37 +273,10 @@ export default function PostComposer({
                 if (!results || results.length === 0) {
                     throw new Error("Upload returned no results");
                 }
-                
-                // Get all uploaded URLs
-                const allUploadedUrls = results.map((r) => r.url);
-                
-                // Separate regular images from GIFs
-                // GIFs are at the end of selectedImages (added after regular images)
-                const regularImageCount = selectedImages.filter(f => !f.name.startsWith('gif-')).length;
-                const gifCount = selectedImages.filter(f => f.name.startsWith('gif-')).length;
-                
-                // Regular images are first
-                uploadedImageUrls = allUploadedUrls.slice(0, regularImageCount);
-                
-                // GIF URLs are the rest
-                const gifUrls = allUploadedUrls.slice(regularImageCount);
-                
-                // Update contentBlocks with uploaded GIF URLs
-                let gifIndex = 0;
-                updatedContentBlocks = contentBlocks.map(block => {
-                    if (block.type === 'gif' && block.metadata?.isUploading && gifIndex < gifUrls.length) {
-                        return {
-                            ...block,
-                            content: gifUrls[gifIndex++],
-                            metadata: {
-                                ...block.metadata,
-                                isUploading: false
-                            }
-                        };
-                    }
-                    return block;
-                });
-                
+
+                // Get all uploaded image URLs
+                uploadedImageUrls = results.map((r) => r.url);
+
             } catch (err) {
                 toast.error("Image upload failed", {
                     description:
@@ -427,7 +395,7 @@ export default function PostComposer({
                     {!isMarkdownPreview && (
                         <Textarea
                             placeholder="What's happening on campus?"
-                            className="resize-none border-none bg-transparent text-lg focus-visible:ring-1 p-2 min-h-25 font-sans-serif focus-visible:ring-primary/50 focus-visible:ring-offset-0 focus-visible:ring-offset-background bg-card/80 backdrop-blur-sm"
+                            className="resize-none border-none bg-background/50 p-2 min-h-25 font-sans-serif rounded-xl"
                             value={content}
                             onChange={(e) => setContent(e.target.value)}
                             maxLength={2000}
@@ -538,7 +506,7 @@ export default function PostComposer({
                             <div className="flex items-center gap-1">
                                 {!defaultCommunity && (
                                     <div className="hidden sm:block mr-1">
-                                        <CommunitySwitcher 
+                                        <CommunitySwitcher
                                             selectedCommunity={manualCommunity}
                                             onSelect={setManualCommunity}
                                             trigger={
