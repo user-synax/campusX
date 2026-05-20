@@ -51,7 +51,7 @@ export default function CommunitySwitcher({ selectedCommunity, onSelect }) {
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="w-[200px] justify-between rounded-full bg-accent/20 border-border hover:bg-accent/40 transition-all"
+            className="w-[150px] justify-between rounded-full bg-accent/20 border-border hover:bg-accent/40 transition-all"
           >
             {selected ? (
               <div className="flex items-center gap-2 truncate">
@@ -61,7 +61,7 @@ export default function CommunitySwitcher({ selectedCommunity, onSelect }) {
             ) : (
               <div className="flex items-center gap-2">
                 <Users className="w-4 h-4" />
-                <span>All Communities</span>
+                <span>Communities</span>
               </div>
             )}
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -81,8 +81,8 @@ export default function CommunitySwitcher({ selectedCommunity, onSelect }) {
                   className="cursor-pointer"
                 >
                   <div className="flex items-center gap-2 flex-1">
-                    <Users className="w-4 h-4" />
-                    <span>All Communities</span>
+                    <Users className="w-3 h-3" />
+                    <span>Communities</span>
                   </div>
                   <Check
                     className={cn(
@@ -115,7 +115,7 @@ export default function CommunitySwitcher({ selectedCommunity, onSelect }) {
               </CommandGroup>
             </CommandList>
             <div className="border-t border-border p-1">
-              <CreateCommunityDialog 
+              <CreateCommunityDialog
                 onCreated={() => {
                   // Refetch communities
                   fetch('/api/communities').then(res => res.json()).then(setCommunities)
