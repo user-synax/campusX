@@ -124,9 +124,9 @@ export default function DiscoverGroupsPage() {
                       ? <Image 
                           src={group.avatar} 
                           alt={group.name} 
-                          fill 
-                          className="object-cover"
-                          sizes="56px"
+                          width={56}
+                          height={56}
+                          className="object-cover w-full h-full"
                         />  
                       : group.name.charAt(0).toUpperCase()  
                     } 
