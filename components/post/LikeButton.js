@@ -18,7 +18,7 @@ export default function LikeButton({ postId, initialLiked, initialCount, onLike 
   const handleLike = async (e) => {
     e.preventDefault()
     e.stopPropagation()
-    
+
     if (isAnimating) return  // prevent spam clicking during animation
 
     const nowLiked = !isLiked
@@ -57,11 +57,11 @@ export default function LikeButton({ postId, initialLiked, initialCount, onLike 
       duration: 0.15,
       ease: 'power2.out'
     })
-    .to(buttonRef.current, {
-      scale: 1,
-      duration: 0.3,
-      ease: 'elastic.out(1.2, 0.4)'  // springy bounce back
-    })
+      .to(buttonRef.current, {
+        scale: 1,
+        duration: 0.3,
+        ease: 'elastic.out(1.2, 0.4)'  // springy bounce back
+      })
 
     // STEP 2: Big heart burst (runs parallel with button bounce)
     tl.call(() => {
@@ -148,11 +148,10 @@ export default function LikeButton({ postId, initialLiked, initialCount, onLike 
       <button
         ref={buttonRef}
         onClick={handleLike}
-        className={`flex items-center gap-1.5 text-sm transition-colors origin-center ${
-          isLiked
-            ? 'text-red-500'
-            : 'text-muted-foreground hover:text-red-400'
-        }`}
+        className={`flex items-center hover:cursor-pointer hover:bg-red-500/10 p-2 rounded-full gap-1.5 text-sm transition-colors origin-center ${isLiked
+          ? 'text-red-500'
+          : 'text-muted-foreground hover:text-red-400'
+          }`}
         style={{ willChange: 'transform' }}  // GPU acceleration
       >
         <Heart
