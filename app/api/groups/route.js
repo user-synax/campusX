@@ -4,6 +4,7 @@ import GroupChat from '@/models/GroupChat'
 import GroupMessage from '@/models/GroupMessage'
 import User from '@/models/User'
 import { getCurrentUser } from '@/lib/auth'
+import { isAdmin } from '@/lib/admin'
 import { sanitizeText, sanitizeMongoInput } from '@/lib/sanitize'
 import { applyRateLimit } from '@/lib/rate-limit'
 import { triggerPusher } from '@/lib/pusher-server'
@@ -76,6 +77,10 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    if (!isAdmin(currentUser)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     await connectDB()
 
     // 1. Business logic rate limit: 3 groups per user per day
@@ -97,7 +102,7 @@ export async function POST(request) {
       return NextResponse.json({ message: 'Invalid request body' }, { status: 400 })
     }
 
-    const { name, description, memberIds, college } = sanitizeMongoInput(body)
+    const { name, description, avatar, memberIds, college } = sanitizeMongoInput(body)
 
     // 2. Validate name
     if (!name || name.trim().length < 2 || name.trim().length > 60) {
@@ -139,6 +144,7 @@ export async function POST(request) {
     const group = await GroupChat.create({
       name: sanitizeText(name),
       description: sanitizeText(description || ''),
+      avatar: avatar || '',
       college: college || currentUser.college || '',
       members,
       createdBy: currentUser._id,
