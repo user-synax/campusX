@@ -66,12 +66,12 @@ async function main() {
   if (!founder) throw new Error(`Founder user "${founderUsername}" not found in DB`)
 
   // ── 1. Create or find the global group ──
-  let group = await GroupChat.findOne({ isGlobal: true }).lean()
+  let group = await GroupChat.findOne({ isGlobal: true })
 
   if (!group) {
     group = await GroupChat.create({
-      name: 'CampusX',
-      description: 'The official CampusX community — everyone is here 🎓',
+      name: 'CampusZen',
+      description: 'The official CampusZen community — everyone is here 🎓',
       avatar: '',
       college: '',
       isGlobal: true,
@@ -79,7 +79,7 @@ async function main() {
       createdBy: founder._id,
       members: [{ userId: founder._id, role: 'admin', joinedAt: new Date() }],
       lastMessage: {
-        content: 'Welcome to CampusX! 🎉',
+        content: 'Welcome to CampusZen! 🎉',
         senderName: 'System',
         sentAt: new Date(),
         type: 'system',
@@ -89,13 +89,19 @@ async function main() {
     await GroupMessage.create({
       groupId: group._id,
       sender: founder._id,
-      content: 'Welcome to CampusX! 🎉 This is the official community group — say hi!',
+      content: 'Welcome to CampusZen! 🎉 This is the official community group — say hi!',
       type: 'system',
     })
 
     console.log(`✅ Created global group: ${group._id}`)
   } else {
     console.log(`ℹ️  Global group already exists: ${group._id}`)
+    if (group.name !== 'CampusZen') {
+      group.name = 'CampusZen'
+      group.description = 'The official CampusZen community — everyone is here 🎓'
+      await group.save()
+      console.log('✅ Renamed global group to CampusZen')
+    }
   }
 
   // ── 2. Backfill all existing users ──
