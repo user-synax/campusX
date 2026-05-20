@@ -1,7 +1,8 @@
 "use client"
 
 import { FileText, Users } from "lucide-react"
-import { useCallback, useState, useEffect } from "react"
+import { useCallback, useState, useEffect, useRef } from "react"
+import { useWindowVirtualizer } from '@tanstack/react-virtual'
 import dynamic from 'next/dynamic'
 import PostCard from "@/components/post/PostCard"
 import PostSkeleton from "@/components/post/PostSkeleton"
@@ -45,6 +46,22 @@ export default function FeedPage() {
     updatePostLike,
     refresh: refreshPosts
   } = usePosts(selectedCommunity ? { community: selectedCommunity } : {})
+
+  const parentRef = useRef(null)
+  const [scrollMargin, setScrollMargin] = useState(0)
+
+  useEffect(() => {
+    if (parentRef.current) {
+      setScrollMargin(parentRef.current.offsetTop)
+    }
+  }, [posts.length])
+
+  const postsVirtualizer = useWindowVirtualizer({
+    count: posts.length,
+    estimateSize: () => 350,
+    overscan: 5,
+    scrollMargin: scrollMargin,
+  })
 
   const { newNotification } = useNotifications()
 
@@ -122,16 +139,40 @@ export default function FeedPage() {
           />
         ) : (
           <>
-            <div className="divide-y divide-border">
-              {posts.map(post => (
-                <PostCard
-                  key={post._id}
-                  post={post}
-                  currentUserId={currentUser?._id}
-                  onDelete={handleDeletePost}
-                  onLike={handleLikePost}
-                />
-              ))}
+            <div ref={parentRef} className="divide-y divide-border relative w-full">
+              <div
+                style={{
+                  height: `${postsVirtualizer.getTotalSize()}px`,
+                  width: '100%',
+                  position: 'relative',
+                }}
+              >
+                {postsVirtualizer.getVirtualItems().map((virtualRow) => {
+                  const post = posts[virtualRow.index]
+                  if (!post) return null
+                  return (
+                    <div
+                      key={post._id}
+                      ref={postsVirtualizer.measureElement}
+                      data-index={virtualRow.index}
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        transform: `translateY(${virtualRow.start - postsVirtualizer.options.scrollMargin}px)`,
+                      }}
+                    >
+                      <PostCard
+                        post={post}
+                        currentUserId={currentUser?._id}
+                        onDelete={handleDeletePost}
+                        onLike={handleLikePost}
+                      />
+                    </div>
+                  )
+                })}
+              </div>
             </div>
 
             <div ref={sentinelRef}>
