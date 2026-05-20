@@ -97,31 +97,17 @@ export default function GifPicker({ onSelect, trigger }) {
 
   const handleConfirmSelect = async () => {
     if (previewGif) {
-      try {
-        // Fetch the GIF as blob for upload
-        const response = await fetch(previewGif.url);
-        const blob = await response.blob();
-        
-        // Create a File object from blob
-        const file = new File([blob], `gif-${previewGif.id}.gif`, { type: 'image/gif' });
-        
-        // Return both the file for upload and metadata
-        onSelect({
-          file,
-          url: previewGif.url,
-          title: previewGif.title,
-          width: previewGif.width,
-          height: previewGif.height,
-          previewUrl: previewGif.previewUrl,
-          id: previewGif.id
-        });
-        
-        setPreviewGif(null);
-        setOpen(false);
-      } catch (error) {
-        console.error('Error preparing GIF for upload:', error);
-        toast.error('Failed to prepare GIF for upload');
-      }
+      onSelect({
+        url: previewGif.url,
+        title: previewGif.title,
+        width: previewGif.width,
+        height: previewGif.height,
+        previewUrl: previewGif.previewUrl,
+        id: previewGif.id
+      });
+      
+      setPreviewGif(null);
+      setOpen(false);
     }
   };
 
