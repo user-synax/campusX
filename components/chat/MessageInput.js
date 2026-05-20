@@ -2,6 +2,7 @@
  
 import { useState, useRef, useEffect } from 'react'
 import { ImageIcon, Send, Loader2 } from 'lucide-react'
+import GifPicker from '@/components/post/GifPicker'
 
 export default function MessageInput({ onSend, onTyping, sending, groupId }) {
   const [content, setContent] = useState('')
@@ -54,6 +55,28 @@ export default function MessageInput({ onSend, onTyping, sending, groupId }) {
   return (
     <div className="border-t border-border bg-background px-3 py-3 w-full"> 
       <div className="flex items-end gap-2 max-w-4xl mx-auto w-full"> 
+        {/* GIF Picker Button */}
+        <div className="mb-0.5">
+          <GifPicker
+            onSelect={(gif) => {
+              onSend('', 'image', gif.url)
+            }}
+            trigger={
+              <button
+                type="button"
+                disabled={sending}
+                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                  sending 
+                    ? 'opacity-50 cursor-not-allowed' 
+                    : 'bg-accent text-muted-foreground hover:text-foreground active:scale-95'
+                }`}
+                title="Share GIF"
+              >
+                <span className="text-xs font-bold font-sans">GIF</span>
+              </button>
+            }
+          />
+        </div>
     
         {/* Text input */} 
         <textarea 
