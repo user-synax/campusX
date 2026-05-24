@@ -12,7 +12,12 @@ export async function GET(request) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    return NextResponse.json({ success: true, user: sanitizeUser(user) });
+    const response = NextResponse.json({ success: true, user: sanitizeUser(user) });
+    
+    // Add private cache header to reduce redundant user fetches within short intervals
+    response.headers.set('Cache-Control', 'private, max-age=30, stale-while-revalidate=60');
+    
+    return response;
   } catch (error) {
     console.error(error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
