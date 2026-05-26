@@ -36,12 +36,16 @@ export async function POST(request) {
       ))
     }
 
-    const { name, username, email, password, college, course, year, gender, otp } = validation.data
+    const { name, username, email, password, confirmPassword, phone, college, course, year, gender, otp } = validation.data
 
     await connectDB()
 
     const normalizedEmail = email.toLowerCase().trim()
     const normalizedOtp = otp.trim()
+
+    if (password !== confirmPassword) {
+      return errorResponse(new BadRequestError('Passwords do not match'))
+    }
 
     // ── OTP Verification ──
     const otpRecord = await Otp.findOne({ email: normalizedEmail, purpose: 'signup' })
@@ -110,6 +114,7 @@ export async function POST(request) {
       username,
       email: normalizedEmail,
       password: hashedPassword,
+      phone: phone || '',
       // Auto-fill college name from domain if user didn't provide one
       college: sanitizeText(college || '') || (detectedCollegeName || ''),
       course: sanitizeText(course || ''),
