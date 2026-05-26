@@ -1,7 +1,15 @@
 import { z } from 'zod'
 
+const DISPOSABLE_DOMAINS = [
+  'yopmail.com', 'temp-mail.org', 'guerrillamail.com', '10minutemail.com',
+  'mailinator.com', 'dispostable.com', 'getnada.com', 'tempmail.com'
+];
+
 export const loginSchema = z.object({
-  email: z.string().email('Invalid email format'),
+  email: z.string().trim().min(1, 'Email is required').email('Invalid email format').refine((email) => {
+    const localPart = email.split('@')[0];
+    return localPart.length >= 4;
+  }, 'Email prefix must be at least 4 characters long'),
   password: z.string().min(1, 'Password is required')
 })
 
@@ -13,15 +21,38 @@ export const signupSchema = z.object({
   username: z.string()
     .regex(/^[a-zA-Z0-9_]{3,20}$/, 'Username must be 3-20 characters, alphanumeric and underscores only')
     .toLowerCase(),
-  email: z.string().email('Invalid email format'),
+  email: z.string()
+    .trim()
+    .min(1, 'Email is required')
+    .email('Invalid email format')
+    .refine((email) => {
+      const localPart = email.split('@')[0];
+      return localPart.length >= 4;
+    }, 'Email prefix must be at least 4 characters long')
+    .refine((email) => {
+      const domain = email.split('@')[1];
+      return !DISPOSABLE_DOMAINS.includes(domain);
+    }, 'Disposable email addresses are not allowed'),
   password: z.string()
-    .min(6, 'Password must be at least 6 characters')
-    .max(100, 'Password cannot exceed 100 characters'),
+    .min(8, 'Password must be at least 8 characters')
+    .max(100, 'Password cannot exceed 100 characters')
+    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .regex(/[0-9]/, 'Password must contain at least one number')
+    .regex(/[^a-zA-Z0-9]/, 'Password must contain at least one special character'),
+  confirmPassword: z.string().min(1, 'Please confirm your password'),
+  phone: z.string()
+    .regex(/^\+?[1-9]\d{1,14}$/, 'Invalid phone number format')
+    .optional()
+    .or(z.literal('')),
   college: z.string().max(100).optional().default(''),
   course: z.string().max(100).optional().default(''),
   year: z.coerce.number().int().min(1).max(6).optional().default(1),
   gender: z.enum(['male', 'female', 'other', 'unspecified']).optional().default('unspecified'),
   otp: z.string().length(6, 'OTP must be exactly 6 digits')
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
 })
 
 export const objectIdSchema = z.string().refine(
