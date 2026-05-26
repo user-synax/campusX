@@ -1,9 +1,8 @@
 "use client"
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 
-// Module-level in-memory cache to persist feed states across tab switches
-// Resets naturally when browser page is refreshed/reloaded
+// Module-level in-memory cache to persist feed states
 const postsCache = {}
 
 export function usePosts(queryParams = {}, initialPosts = []) {
@@ -14,77 +13,116 @@ export function usePosts(queryParams = {}, initialPosts = []) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [hasMore, setHasMore] = useState(cachedData ? cachedData.hasMore : true)
-  const [page, setPage] = useState(cachedData ? cachedData.page : 1)
+  const [cursor, setCursor] = useState(cachedData ? cachedData.cursor : null)
+  const [isPrefetching, setIsPrefetching] = useState(false)
+  
+  const prefetchData = useRef(null)
 
-  const fetchPosts = useCallback(async (pageNum, append = false) => {
-    if (loading) return  // loading lock
-
-    // If we have initial posts and we're on page 1, don't fetch unless explicitly told to
-    if (pageNum === 1 && initialPosts.length > 0 && !append) {
-      setLoading(false)
-      return
-    }
+  const fetchPosts = useCallback(async (currentCursor = null, append = false) => {
+    if (loading && !append) return
 
     setLoading(true)
     setError(null)
 
     try {
       const params = new URLSearchParams({
-        page: pageNum,
-        limit: 15, // Increased from 5 to 15 to reduce API request frequency
+        limit: 15,
         ...queryParams
       })
+      if (currentCursor) params.set('cursor', currentCursor)
 
-      const res = await fetch(`/api/posts/get?${params.toString()}`)
+      const res = await fetch(`/api/posts/cursor-feed?${params.toString()}`)
       if (!res.ok) {
         const data = await res.json()
-        throw new Error(data.message || 'Failed to fetch posts')
+        throw new Error(data.error?.message || 'Failed to fetch posts')
       }
 
-      const { posts: newPosts, hasMore: more } = await res.json()
+      const { posts: newPosts, pagination } = await res.json()
 
-      if (append) {
-        setPosts(prev => [...prev, ...newPosts])
-      } else {
-        setPosts(newPosts)
+      setPosts(prev => {
+        if (!append) return newPosts
+        const existingIds = new Set(prev.map(p => p._id))
+        const filteredNew = newPosts.filter(p => !existingIds.has(p._id))
+        return [...prev, ...filteredNew]
+      })
+
+      setHasMore(pagination.hasNextPage)
+      setCursor(pagination.nextCursor)
+      
+      // Cache the result
+      postsCache[cacheKey] = { 
+        posts: append ? [...posts, ...newPosts] : newPosts, 
+        cursor: pagination.nextCursor, 
+        hasMore: pagination.hasNextPage 
       }
-
-      setHasMore(more)
-      setPage(pageNum)
     } catch (err) {
       setError(err.message)
     } finally {
       setLoading(false)
     }
-  }, [loading, cacheKey])
+  }, [loading, cacheKey, queryParams, posts])
 
-  // Initial load: Only fetch if we don't have this key cached
+  // Initial load
   useEffect(() => {
-    if (!postsCache[cacheKey]) {
-      fetchPosts(1, false)
-      setPage(1)
+    if (!postsCache[cacheKey] && initialPosts.length === 0) {
+      fetchPosts(null, false)
     }
   }, [cacheKey])
 
-  // Synchronize state changes back to cache in real-time
-  useEffect(() => {
-    postsCache[cacheKey] = { posts, page, hasMore }
-  }, [cacheKey, posts, page, hasMore])
+  // Prefetch logic
+  const prefetchNextPage = useCallback(async () => {
+    if (!hasMore || loading || isPrefetching || !cursor || prefetchData.current) return
+    
+    setIsPrefetching(true)
+    try {
+      const params = new URLSearchParams({
+        limit: 15,
+        cursor,
+        ...queryParams
+      })
+      
+      const res = await fetch(`/api/posts/cursor-feed?${params.toString()}`)
+      if (res.ok) {
+        const data = await res.json()
+        prefetchData.current = {
+          posts: data.posts,
+          nextCursor: data.pagination.nextCursor,
+          hasNextPage: data.pagination.hasNextPage
+        }
+      }
+    } catch (err) {
+      console.error('Prefetch failed:', err)
+    } finally {
+      setIsPrefetching(false)
+    }
+  }, [hasMore, loading, isPrefetching, cursor, queryParams])
 
   // Load more
   const loadMore = useCallback(() => {
     if (!hasMore || loading) return
-    const nextPage = page + 1
-    fetchPosts(nextPage, true)  // append = true
-  }, [page, hasMore, loading, fetchPosts])
 
-  // Reset loading state and refresh
+    // If we have prefetched data, use it
+    if (prefetchData.current) {
+      const { posts: prefetchedPosts, nextCursor, hasNextPage } = prefetchData.current
+      prefetchData.current = null
+      
+      setPosts(prev => {
+        const existingIds = new Set(prev.map(p => p._id))
+        const filteredNew = prefetchedPosts.filter(p => !existingIds.has(p._id))
+        return [...prev, ...filteredNew]
+      })
+      
+      setCursor(nextCursor)
+      setHasMore(hasNextPage)
+    } else {
+      fetchPosts(cursor, true)
+    }
+  }, [cursor, hasMore, loading, fetchPosts])
+
   const refresh = useCallback(async () => {
-    // Force reset loading state in case it's stuck
     setLoading(false)
-    // Small delay to ensure state update propagates
-    await new Promise(resolve => setTimeout(resolve, 10))
-    return fetchPosts(1, false)
+    setCursor(null)
+    return fetchPosts(null, false)
   }, [fetchPosts])
 
   return {
@@ -94,6 +132,7 @@ export function usePosts(queryParams = {}, initialPosts = []) {
     hasMore,
     loadMore,
     refresh,
+    prefetchNextPage,
     addPost: (post) => setPosts(prev => [post, ...prev]),
     removePost: (id) => setPosts(prev => prev.filter(p => p._id !== id)),
     updatePostLike: async (postId) => {
@@ -127,3 +166,4 @@ export function usePosts(queryParams = {}, initialPosts = []) {
     }
   }
 }
+
