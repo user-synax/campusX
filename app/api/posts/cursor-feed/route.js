@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import connectDB from '@/lib/db'
 import Post from '@/models/Post'
 import Community from '@/models/Community'
+import User from '@/models/User'
 import { getCurrentUser } from '@/lib/auth'
 import { sanitizeMongoInput, sanitizeUser } from '@/lib/sanitize'
 import { cacheWithFallback } from '@/lib/redis-cache'
@@ -15,9 +16,10 @@ export async function GET(request) {
     const limit = Math.min(parseInt(searchParams.get('limit')) || 15, 50)
     const community = sanitizeMongoInput(searchParams.get('community'))
     const author = sanitizeMongoInput(searchParams.get('author'))
+    const username = sanitizeMongoInput(searchParams.get('username'))
 
     // Create a cache key based on query params
-    const cacheKey = `feed:${community || 'global'}:${author || 'all'}:${cursor || 'start'}:${limit}`
+    const cacheKey = `feed:${community || 'global'}:${author || username || 'all'}:${cursor || 'start'}:${limit}`
     
     await connectDB()
 
@@ -28,8 +30,28 @@ export async function GET(request) {
         query.community = { $regex: new RegExp(`^${community.toString().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') }
       }
       
-      if (author) {
-        query.author = author
+      let resolvedAuthor = author;
+      if (username) {
+        const user = await User.findOne({ username: username.toString() })
+          .select('_id')
+          .lean();
+        if (user) {
+          resolvedAuthor = user._id;
+        } else {
+          // User not found for username, return empty
+          return {
+            posts: [],
+            pagination: {
+              nextCursor: null,
+              hasNextPage: false,
+              limit
+            }
+          };
+        }
+      }
+      
+      if (resolvedAuthor) {
+        query.author = resolvedAuthor
       }
 
       if (cursor) {
