@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/sonner";
 import SchemaMarkup from "@/components/shared/SchemaMarkup";
 
 export const metadata = {
-  metadataBase: new URL("https://campuszen.vercel.app"),
+  metadataBase: new URL("https://campuszen.tech"),
   title: {
     default: "CampusZen",
     template: "%s | CampusZen",
@@ -36,7 +36,7 @@ export const metadata = {
   openGraph: {
     title: "CampusZen",
     description: "Connect with your campus community, share notes, and join exclusive student events.",
-    url: "https://campuszen.vercel.app",
+    url: "https://campuszen.tech",
     siteName: "CampusZen",
     images: [
       {
