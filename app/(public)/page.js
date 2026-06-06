@@ -6,7 +6,6 @@ import connectDB from "@/lib/db";
 import User from "@/models/User";
 import Post from "@/models/Post";
 import Resource from "@/models/Resource";
-// import StudyRoom from '@/models/StudyRoom';
 import { verifyToken } from "@/lib/auth-edge";
 
 const Stats = dynamic(() => import("@/components/landing/Stats"))
@@ -40,17 +39,13 @@ export const metadata = {
   }
 };
 
-// Server action or direct DB call for landing page stats
 async function getLandingStats() {
   try {
     await connectDB();
-    
-    // Using estimatedDocumentCount() is much faster than countDocuments() for large collections
-    // as it uses collection metadata instead of scanning documents.
     const [users, posts, resources] = await Promise.all([
       User.estimatedDocumentCount(),
       Post.estimatedDocumentCount(),
-      Resource.countDocuments({ status: 'approved' }) // countDocuments is still needed here due to filter
+      Resource.countDocuments({ status: 'approved' })
     ]);
 
     return {
@@ -61,7 +56,6 @@ async function getLandingStats() {
     };
   } catch (error) {
     console.error('[Landing Stats Fetch Error]:', error);
-    // Return realistic mock data when database fails
     return {
       users: 50,
       posts: 120,
@@ -82,7 +76,6 @@ export default async function LandingPage() {
     }
   }
 
-  // Get real data directly from DB (fastest for SSR)
   const stats = await getLandingStats();
 
   return (
