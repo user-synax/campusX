@@ -5,26 +5,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
-    NavigationMenu,
-    NavigationMenuList,
-    NavigationMenuItem,
-    NavigationMenuTrigger,
-    NavigationMenuContent,
-    NavigationMenuLink,
-} from "@/components/ui/navigation-menu";
-import {
     Popover,
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import {
-    Menu,
-    X,
-    ArrowRight,
-    GraduationCap,
-    Shield,
-    Zap,
     LogOut,
     User,
     Home,
@@ -36,11 +22,9 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Logo from "@/components/shared/Logo";
-import { AnimatePresence } from "framer-motion";
 import config from "@/lib/config";
 
 export default function Navbar() {
-    const router = useRouter();
     const [scrolled, setScrolled] = useState(false);
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -62,13 +46,13 @@ export default function Navbar() {
     useEffect(() => {
         const checkSession = async () => {
             try {
-                const res = await fetch('/api/users/me');
+                const res = await fetch("/api/users/me");
                 if (res.ok) {
                     const data = await res.json();
                     setUser(data);
                 }
             } catch (error) {
-                console.error('Failed to fetch session:', error);
+                console.error("Failed to fetch session:", error);
             } finally {
                 setLoading(false);
             }
@@ -78,20 +62,31 @@ export default function Navbar() {
 
     const handleLogout = async () => {
         try {
-            await fetch('/api/auth/logout', { method: 'POST' });
+            await fetch("/api/auth/logout", { method: "POST" });
             setUser(null);
-            window.location.href = '/';
+            window.location.href = "/";
         } catch (error) {
-            console.error('Failed to logout:', error);
+            console.error("Failed to logout:", error);
         }
     };
 
     const mainNavLinks = [
-        { href: "/feed", label: "Feed", icon: <Home className="w-4 h-4" /> },
-        { href: "/resources", label: "Resources", icon: <Book className="w-4 h-4" /> },
-        { href: "/community", label: "Community", icon: <Users2 className="w-4 h-4" /> },
-        { href: "/events", label: "Events", icon: <Calendar className="w-4 h-4" /> },
-        { href: "/leaderboard", label: "Leaderboard", icon: <Trophy className="w-4 h-4" /> },
+        // { href: "/feed", label: "Feed", icon: <Home className="w-4 h-4" /> },
+        // {
+        //     href: "/resources",
+        //     label: "Resources",
+        //     icon: <Book className="w-4 h-4" />,
+        // },
+        // {
+        //     href: "/community",
+        //     label: "Community",
+        //     icon: <Users2 className="w-4 h-4" />,
+        // },
+        // {
+        //     href: "/leaderboard",
+        //     label: "Leaderboard",
+        //     icon: <Trophy className="w-4 h-4" />,
+        // },
     ];
 
     return (
@@ -104,13 +99,23 @@ export default function Navbar() {
                     "pointer-events-auto flex items-center justify-between h-14 px-6 rounded-full border transition-all duration-300 w-full max-w-5xl",
                     scrolled
                         ? "bg-neutral-900/80 backdrop-blur-xl border-neutral-800 shadow-xl"
-                        : "bg-transparent border-transparent"
+                        : "bg-transparent border-transparent",
                 )}
             >
                 {/* Logo */}
                 <div className="flex shrink-0">
-                    <Logo size="md" showText={false} className="md:hidden" href="/" />
-                    <Logo size="md" showText={true} className="hidden md:flex" href="/" />
+                    <Logo
+                        size="md"
+                        showText={false}
+                        className="md:hidden"
+                        href="/"
+                    />
+                    <Logo
+                        size="md"
+                        showText={true}
+                        className="hidden md:flex"
+                        href="/"
+                    />
                 </div>
 
                 {/* Desktop Navigation */}
@@ -128,13 +133,7 @@ export default function Navbar() {
 
                 {/* Right Side Actions */}
                 <div className="flex items-center gap-3 shrink-0">
-                    <Button asChild variant="ghost" size="sm" className="rounded-full text-neutral-400 hover:text-white h-9 px-3 hidden md:flex gap-2">
-                        <Link href={config.links.apkDownload || "#"} target="_blank">
-                            <Smartphone className="w-4 h-4" />
-                            <span className="text-xs font-medium">APK</span>
-                        </Link>
-                    </Button>
-                    {mounted && !loading && user ? ( 
+                    {mounted && !loading && user ? (
                         <Popover>
                             <PopoverTrigger asChild>
                                 <Button
@@ -152,15 +151,28 @@ export default function Navbar() {
                                         <User className="w-5 h-5 text-neutral-400" />
                                     )}
                                     <span className="text-sm text-neutral-200 hidden sm:inline">
-                                        {user.name.split(' ')[0]}
+                                        {user.name.split(" ")[0]}
                                     </span>
                                 </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-48 bg-neutral-900 border-neutral-800 p-1 mt-2">
-                                <Link href="/profile" className="flex px-3 py-2 text-sm text-neutral-400 hover:text-white hover:bg-white/5 rounded-md">Profile</Link>
-                                <Link href="/settings" className="flex px-3 py-2 text-sm text-neutral-400 hover:text-white hover:bg-white/5 rounded-md">Settings</Link>
+                                <Link
+                                    href="/profile"
+                                    className="flex px-3 py-2 text-sm text-neutral-400 hover:text-white hover:bg-white/5 rounded-md"
+                                >
+                                    Profile
+                                </Link>
+                                <Link
+                                    href="/settings"
+                                    className="flex px-3 py-2 text-sm text-neutral-400 hover:text-white hover:bg-white/5 rounded-md"
+                                >
+                                    Settings
+                                </Link>
                                 <hr className="border-neutral-800 my-1" />
-                                <button onClick={handleLogout} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 rounded-md">
+                                <button
+                                    onClick={handleLogout}
+                                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 rounded-md"
+                                >
                                     <LogOut className="w-4 h-4" />
                                     Sign Out
                                 </button>
@@ -168,7 +180,12 @@ export default function Navbar() {
                         </Popover>
                     ) : (
                         <div className="flex items-center gap-2">
-                            <Button asChild variant="ghost" size="sm" className="rounded-full text-neutral-400 hover:text-white h-9 px-4 hidden sm:flex">
+                            <Button
+                                asChild
+                                variant="ghost"
+                                size="sm"
+                                className="rounded-full text-neutral-400 hover:text-white h-9 px-4 hidden sm:flex"
+                            >
                                 <Link href="/login">Login</Link>
                             </Button>
                             <Button
@@ -176,7 +193,7 @@ export default function Navbar() {
                                 size="sm"
                                 className="rounded-full font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300 h-9 px-5 shadow-lg shadow-primary/20"
                             >
-                                <Link href="/signup">Join</Link>
+                                <Link href="/signup">Create Account</Link>
                             </Button>
                         </div>
                     )}
