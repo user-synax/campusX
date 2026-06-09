@@ -229,7 +229,6 @@ userSchema.index({ email: 1 }, { unique: true });
 userSchema.index({ college: 1 });
 userSchema.index({ followers: 1 });
 userSchema.index({ following: 1 });
-userSchema.index({ name: 'text', username: 'text' });
 userSchema.index({ totalXP: -1 });
 userSchema.index({ weeklyXP: -1 });
 userSchema.index({ college: 1, weeklyXP: -1 });
