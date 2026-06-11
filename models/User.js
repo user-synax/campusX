@@ -1,227 +1,275 @@
-import mongoose from 'mongoose';
-import bcrypt from 'bcryptjs';
+import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
 
-const userSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-    trim: true,
-    maxlength: 50,
-  },
-  username: {
-    type: String,
-    required: true,
-    unique: true,
-    lowercase: true,
-    trim: true,
-    match: /^[a-zA-Z0-9_]{3,20}$/,
-  },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    lowercase: true,
-    trim: true,
-  },
-  emailVerified: {
-    type: Boolean,
-    default: false,
-  },
-  password: {
-    type: String,
-    required: true,
-    minlength: 8,
-  },
-  phone: {
-    type: String,
-    trim: true,
-    default: '',
-  },
-  college: {
-    type: String,
-    trim: true,
-    default: '',
-  },
-  course: {
-    type: String,
-    trim: true,
-    default: '',
-  },
-  year: {
-    type: Number,
-    min: 1,
-    max: 6,
-    default: 1,
-  },
-  bio: {
-    type: String,
-    maxlength: 160,
-    default: '',
-  },
-  avatar: {
-    type: String,
-    default: '',
-  },
-  banner: {
-    type: String,
-    default: '',
-  },
-  gender: {
-    type: String,
-    enum: ['male', 'female', 'other', 'unspecified'],
-    default: 'unspecified',
-  },
-  followers: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-  }],
-  following: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-  }],
-  bookmarks: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Post',
-    default: [],
-  }],
-  // Founder-related fields (only populated for founder account) 
-  founderData: {
-    roadmap: {
-      type: [{
-        title: String,
-        status: {
-          type: String,
-          enum: ['done', 'inprogress', 'upcoming'],
-          default: 'upcoming'
+const userSchema = new mongoose.Schema(
+    {
+        name: {
+            type: String,
+            required: true,
+            trim: true,
+            maxlength: 50,
         },
-        emoji: String,
-        order: Number
-      }],
-      default: []
+        username: {
+            type: String,
+            required: true,
+            unique: true,
+            lowercase: true,
+            trim: true,
+            match: /^[a-zA-Z0-9_]{3,20}$/,
+        },
+        email: {
+            type: String,
+            required: true,
+            unique: true,
+            lowercase: true,
+            trim: true,
+        },
+        emailVerified: {
+            type: Boolean,
+            default: false,
+        },
+        password: {
+            type: String,
+            required: true,
+            minlength: 8,
+        },
+        phone: {
+            type: String,
+            trim: true,
+            default: "",
+        },
+        college: {
+            type: String,
+            trim: true,
+            default: "",
+        },
+        course: {
+            type: String,
+            trim: true,
+            default: "",
+        },
+        year: {
+            type: Number,
+            min: 1,
+            max: 6,
+            default: 1,
+        },
+        bio: {
+            type: String,
+            maxlength: 160,
+            default: "",
+        },
+        avatar: {
+            type: String,
+            default: "",
+        },
+        banner: {
+            type: String,
+            default: "",
+        },
+        gender: {
+            type: String,
+            enum: ["male", "female", "other", "unspecified"],
+            default: "unspecified",
+        },
+        followers: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "User",
+            },
+        ],
+        following: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "User",
+            },
+        ],
+        bookmarks: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Post",
+                default: [],
+            },
+        ],
+        // Founder-related fields (only populated for founder account)
+        founderData: {
+            roadmap: {
+                type: [
+                    {
+                        title: String,
+                        status: {
+                            type: String,
+                            enum: ["done", "inprogress", "upcoming"],
+                            default: "upcoming",
+                        },
+                        emoji: String,
+                        order: Number,
+                    },
+                ],
+                default: [],
+            },
+            broadcastMessage: String, // current site-wide announcement
+            broadcastId: String, // unique ID per announcement (for dismiss tracking)
+            broadcastActive: Boolean,
+            broadcastCreatedAt: Date,
+            profileViews: { type: Number, default: 0 },
+            profileViewsToday: { type: Number, default: 0 },
+            profileViewsResetAt: Date,
+            totalUsersAtJoining: { type: Number, default: 0 },
+        },
+        xp: {
+            type: Number,
+            default: 0,
+        },
+        level: {
+            type: Number,
+            default: 1,
+        },
+        totalXP: {
+            type: Number,
+            default: 0,
+        },
+        weeklyXP: {
+            type: Number,
+            default: 0,
+        },
+        // ── Student Verification System ──
+        isVerified: {
+            type: Boolean,
+            default: false,
+        },
+        verificationStatus: {
+            type: String,
+            enum: ["none", "pending", "verified", "rejected"],
+            default: "none",
+        },
+        verificationType: {
+            type: String,
+            enum: ["college_email", "id_card"],
+        },
+        collegeEmail: {
+            type: String,
+            lowercase: true,
+            trim: true,
+        },
+        collegeIdUrl: {
+            type: String, // Cloudinary URL for uploaded college ID card
+        },
+        verificationRejectedReason: {
+            type: String,
+        },
+        verificationRequestedAt: {
+            type: Date,
+        },
+        verificationApprovedAt: {
+            type: Date,
+        },
+        pinnedPost: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Post",
+            default: null,
+        },
+        role: {
+            type: String,
+            enum: ["user", "moderator", "admin", "founder"],
+            default: "user",
+        },
+        // Moderation fields
+        isBanned: { type: Boolean, default: false },
+        isDeleted: { type: Boolean, default: false }, // soft delete
+        deletedAt: { type: Date, default: null },
+        tokenVersion: { type: Number, default: 0 }, // For force logout
+
+        // Mute/Block
+        mutedUsers: [
+            { type: mongoose.Schema.Types.ObjectId, ref: "User", default: [] },
+        ],
+        blockedUsers: [
+            { type: mongoose.Schema.Types.ObjectId, ref: "User", default: [] },
+        ],
+
+        // Badges
+        badges: [
+            {
+                badgeId: { type: mongoose.Schema.Types.ObjectId, ref: "Badge" },
+                awardedAt: { type: Date, default: Date.now },
+            },
+        ],
+
+        // Chat privacy settings
+        chatPrivacy: {
+            type: String,
+            enum: ["everyone", "verified", "college", "followers", "none"],
+            default: "everyone",
+        },
+        // Chat requests
+        receivedChatRequests: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "ChatRequest",
+                default: [],
+            },
+        ],
+        sentChatRequests: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "ChatRequest",
+                default: [],
+            },
+        ],
+
+        // Streak
+        currentStreak: { type: Number, default: 0 },
+        longestStreak: { type: Number, default: 0 },
+        lastActiveDate: { type: Date, default: null },
+
+        // Profile customization
+        interests: {
+            type: [String],
+            validate: {
+                validator: (arr) => arr.length <= 8,
+                message: "Maximum 8 interests allowed",
+            },
+            default: [],
+        },
+        socialLinks: {
+            twitter: { type: String, default: "" },
+            instagram: { type: String, default: "" },
+            linkedin: { type: String, default: "" },
+            github: { type: String, default: "" },
+            website: { type: String, default: "" },
+        },
+        // Password reset fields
+        resetToken: { type: String, default: null },
+        resetTokenExpiry: { type: Date, default: null },
+        // Onboarding status
+
+        // Google OAuth
+        googleId: { type: String, unique: true, sparse: true },
+        googleAccessToken: { type: String },
+        googleRefreshToken: { type: String },
+        googleProfile: { type: mongoose.Schema.Types.Mixed },
+        authProvider: {
+            type: String,
+            enum: ["email", "google"],
+            default: "email",
+        },
+        isPro: {
+            type: Boolean,
+            default: false,
+        },
     },
-    broadcastMessage: String,  // current site-wide announcement 
-    broadcastId: String,       // unique ID per announcement (for dismiss tracking) 
-    broadcastActive: Boolean,
-    broadcastCreatedAt: Date,
-    profileViews: { type: Number, default: 0 },
-    profileViewsToday: { type: Number, default: 0 },
-    profileViewsResetAt: Date,
-    totalUsersAtJoining: { type: Number, default: 0 },
-  },
-  xp: {
-    type: Number,
-    default: 0,
-  },
-  level: {
-    type: Number,
-    default: 1,
-  },
-  totalXP: {
-    type: Number,
-    default: 0,
-  },
-  weeklyXP: {
-    type: Number,
-    default: 0,
-  },
-  // ── Student Verification System ──
-  isVerified: {
-    type: Boolean,
-    default: false,
-  },
-  verificationStatus: {
-    type: String,
-    enum: ['none', 'pending', 'verified', 'rejected'],
-    default: 'none',
-  },
-  verificationType: {
-    type: String,
-    enum: ['college_email', 'id_card'],
-  },
-  collegeEmail: {
-    type: String,
-    lowercase: true,
-    trim: true,
-  },
-  collegeIdUrl: {
-    type: String, // Cloudinary URL for uploaded college ID card
-  },
-  verificationRejectedReason: {
-    type: String,
-  },
-  verificationRequestedAt: {
-    type: Date,
-  },
-  verificationApprovedAt: {
-    type: Date,
-  },
-  pinnedPost: { type: mongoose.Schema.Types.ObjectId, ref: 'Post', default: null },
-  role: {
-    type: String,
-    enum: ['user', 'moderator', 'admin', 'founder'],
-    default: 'user',
-  },
-  // Moderation fields 
-  isBanned: { type: Boolean, default: false },
-  isDeleted: { type: Boolean, default: false },  // soft delete 
-  deletedAt: { type: Date, default: null },
-  tokenVersion: { type: Number, default: 0 }, // For force logout
-
-  // Mute/Block
-  mutedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', default: [] }],
-  blockedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', default: [] }],
-
-  // Badges
-  badges: [{
-    badgeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Badge' },
-    awardedAt: { type: Date, default: Date.now }
-  }],
-
-  // Chat privacy settings
-  chatPrivacy: {
-    type: String,
-    enum: ['everyone', 'verified', 'college', 'followers', 'none'],
-    default: 'everyone'
-  },
-  // Chat requests
-  receivedChatRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ChatRequest', default: [] }],
-  sentChatRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ChatRequest', default: [] }],
-
-  // Streak 
-  currentStreak: { type: Number, default: 0 },
-  longestStreak: { type: Number, default: 0 },
-  lastActiveDate: { type: Date, default: null },
-
-  // Profile customization
-  interests: {
-    type: [String],
-    validate: {
-      validator: (arr) => arr.length <= 8,
-      message: 'Maximum 8 interests allowed'
-    },
-    default: []
-  },
-  socialLinks: {
-    twitter: { type: String, default: '' },
-    instagram: { type: String, default: '' },
-    linkedin: { type: String, default: '' },
-    github: { type: String, default: '' },
-    website: { type: String, default: '' },
-  },
-  // Password reset fields
-  resetToken: { type: String, default: null },
-  resetTokenExpiry: { type: Date, default: null },
-  // Onboarding status
-}, { timestamps: true });
+    { timestamps: true },
+);
 
 userSchema.methods.comparePassword = async function (plainPassword) {
-  return await bcrypt.compare(plainPassword, this.password);
+    return await bcrypt.compare(plainPassword, this.password);
 };
 
 userSchema.methods.toSafeObject = function () {
-  const userObject = this.toObject();
-  delete userObject.password;
-  return userObject;
+    const userObject = this.toObject();
+    delete userObject.password;
+    return userObject;
 };
 
 userSchema.index({ username: 1 }, { unique: true });
@@ -232,19 +280,19 @@ userSchema.index({ following: 1 });
 userSchema.index({ totalXP: -1 });
 userSchema.index({ weeklyXP: -1 });
 userSchema.index({ college: 1, weeklyXP: -1 });
-// Moderation index 
-userSchema.index({ isBanned: 1 })
-userSchema.index({ isDeleted: 1, createdAt: -1 })
-userSchema.index({ mutedUsers: 1 })
-userSchema.index({ blockedUsers: 1 })
+// Moderation index
+userSchema.index({ isBanned: 1 });
+userSchema.index({ isDeleted: 1, createdAt: -1 });
+userSchema.index({ mutedUsers: 1 });
+userSchema.index({ blockedUsers: 1 });
 // Verification indexes
-userSchema.index({ collegeEmail: 1 }, { unique: true, sparse: true })
-userSchema.index({ verificationStatus: 1, verificationRequestedAt: -1 })
+userSchema.index({ collegeEmail: 1 }, { unique: true, sparse: true });
+userSchema.index({ verificationStatus: 1, verificationRequestedAt: -1 });
 // Chat privacy indexes
-userSchema.index({ chatPrivacy: 1 })
-userSchema.index({ receivedChatRequests: 1 })
-userSchema.index({ sentChatRequests: 1 })
+userSchema.index({ chatPrivacy: 1 });
+userSchema.index({ receivedChatRequests: 1 });
+userSchema.index({ sentChatRequests: 1 });
 
-const User = mongoose.models.User || mongoose.model('User', userSchema);
+const User = mongoose.models.User || mongoose.model("User", userSchema);
 
 export default User;
