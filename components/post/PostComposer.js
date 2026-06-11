@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
     MapPin,
@@ -18,6 +19,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import UserAvatar from "@/components/user/UserAvatar";
 import PollCreator from "@/components/post/PollCreator";
@@ -29,7 +36,6 @@ import { cn } from "@/lib/utils";
 import { containsMarkdown } from "@/utils/markdown";
 import useUser from "@/hooks/useUser";
 import { useDebounce } from "@/hooks/useDebounce";
-import { useUploadThing } from "@/lib/uploadthing";
 import CommunitySwitcher from "@/components/feed/CommunitySwitcher";
 
 // Character Progress Ring Component
@@ -98,12 +104,14 @@ export default function PostComposer({
     noBorder = false,
 }) {
     const { user: currentUser } = useUser();
+    const router = useRouter();
     const [content, setContent] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [manualCommunity, setManualCommunity] = useState("");
     const [communities, setCommunities] = useState([]);
     const [showPoll, setShowPoll] = useState(false);
     const [pollOptions, setPollOptions] = useState(["", ""]);
+    const [isUploadingImages, setIsUploadingImages] = useState(false);
 
     useEffect(() => {
         const fetchCommunities = async () => {
@@ -133,15 +141,12 @@ export default function PostComposer({
 
     // Image state
     const [selectedImages, setSelectedImages] = useState([]); // File[]
-    const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef(null);
     const markdownFileInputRef = useRef(null);
 
     // Content blocks for GIFs and emojis
     const [contentBlocks, setContentBlocks] = useState([]);
     const [selectedGIFs, setSelectedGIFs] = useState([]);
-
-    const { startUpload } = useUploadThing("postImageUploader");
 
     // Link preview state
     const [linkPreview, setLinkPreview] = useState(null);
@@ -269,29 +274,42 @@ export default function PostComposer({
             }
         }
 
-        // Upload images and GIFs first if any are selected
+        // Upload images first if any are selected
         let uploadedImageUrls = [];
         let updatedContentBlocks = [...contentBlocks];
 
         if (selectedImages.length > 0) {
-            setIsUploading(true);
+            setIsUploadingImages(true);
             try {
-                const results = await startUpload(selectedImages);
-                if (!results || results.length === 0) {
-                    throw new Error("Upload returned no results");
+                // Create form data
+                const formData = new FormData();
+                selectedImages.forEach((file) => {
+                    formData.append("images", file);
+                });
+
+                // Upload via our new endpoint
+                const uploadRes = await fetch("/api/posts/upload", {
+                    method: "POST",
+                    body: formData,
+                });
+
+                if (!uploadRes.ok) {
+                    const err = await uploadRes.json();
+                    throw new Error(err.message || "Upload failed");
                 }
 
-                // Get all uploaded image URLs
-                uploadedImageUrls = results.map((r) => r.url);
+                const { uploadedUrls } = await uploadRes.json();
+                uploadedImageUrls = uploadedUrls;
             } catch (err) {
                 toast.error("Image upload failed", {
                     description:
+                        err.message ||
                         "Please try again. Your post content has been preserved.",
                 });
-                setIsUploading(false);
+                setIsUploadingImages(false);
                 return;
             }
-            setIsUploading(false);
+            setIsUploadingImages(false);
         }
 
         // Detect if content is markdown
@@ -555,22 +573,41 @@ export default function PostComposer({
                                     </div>
                                 )}
 
-                                <Button
-                                    title="Create a poll"
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    className={cn(
-                                        " hover:cursor-pointer h-8 gap-1.5 rounded-full px-2 sm:px-3 transition-colors",
-                                        showPoll
-                                            ? "text-primary bg-primary/10"
-                                            : "text-muted-foreground hover:text-primary",
-                                    )}
-                                    onClick={() => setShowPoll(!showPoll)}
-                                    aria-label="Create a poll"
-                                >
-                                    <BarChart2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                                </Button>
+                                {/* Poll Button */}
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button
+                                                title="Create a poll"
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                className={cn(
+                                                    " hover:cursor-pointer h-8 gap-1.5 rounded-full px-2 sm:px-3 transition-colors",
+                                                    showPoll
+                                                        ? "text-primary bg-primary/10"
+                                                        : "text-muted-foreground hover:text-primary",
+                                                )}
+                                                onClick={(e) => {
+                                                    if (!currentUser?.isPro) {
+                                                        e.preventDefault();
+                                                        router.push("/billing");
+                                                    } else {
+                                                        setShowPoll(!showPoll);
+                                                    }
+                                                }}
+                                                aria-label="Create a poll"
+                                            >
+                                                <BarChart2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                            </Button>
+                                        </TooltipTrigger>
+                                        {!currentUser?.isPro && (
+                                            <TooltipContent>
+                                                <span>Pro Feature</span>
+                                            </TooltipContent>
+                                        )}
+                                    </Tooltip>
+                                </TooltipProvider>
 
                                 {/* Image attachment button */}
                                 <input
@@ -581,32 +618,52 @@ export default function PostComposer({
                                     className="hidden"
                                     onChange={handleImageSelect}
                                 />
-                                <Button
-                                    title="Add image"
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    className={cn(
-                                        "hover:cursor-pointer h-8 gap-1.5 rounded-full px-2 sm:px-3 transition-colors",
-                                        selectedImages.length > 0
-                                            ? "text-primary bg-primary/10"
-                                            : "text-muted-foreground hover:text-primary",
-                                    )}
-                                    onClick={() =>
-                                        fileInputRef.current?.click()
-                                    }
-                                    disabled={selectedImages.length >= 6}
-                                    aria-label="Add image"
-                                >
-                                    <ImagePlus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                                    {selectedImages.length > 0 ? (
-                                        <span className="text-[10px] sm:text-xs">
-                                            {selectedImages.length}/6
-                                        </span>
-                                    ) : (
-                                        <span className="text-[10px] sm:text-xs"></span>
-                                    )}
-                                </Button>
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button
+                                                title="Add image"
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                className={cn(
+                                                    "hover:cursor-pointer h-8 gap-1.5 rounded-full px-2 sm:px-3 transition-colors",
+                                                    selectedImages.length > 0
+                                                        ? "text-primary bg-primary/10"
+                                                        : "text-muted-foreground hover:text-primary",
+                                                )}
+                                                onClick={(e) => {
+                                                    if (!currentUser?.isPro) {
+                                                        e.preventDefault();
+                                                        router.push("/billing");
+                                                    } else {
+                                                        fileInputRef.current?.click();
+                                                    }
+                                                }}
+                                                disabled={
+                                                    selectedImages.length >=
+                                                        6 || !currentUser?.isPro
+                                                }
+                                                aria-label="Add image"
+                                            >
+                                                <ImagePlus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                                {selectedImages.length > 0 ? (
+                                                    <span className="text-[10px] sm:text-xs">
+                                                        {selectedImages.length}
+                                                        /6
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-[10px] sm:text-xs"></span>
+                                                )}
+                                            </Button>
+                                        </TooltipTrigger>
+                                        {!currentUser?.isPro && (
+                                            <TooltipContent>
+                                                <span>Pro Feature</span>
+                                            </TooltipContent>
+                                        )}
+                                    </Tooltip>
+                                </TooltipProvider>
 
                                 {/* Markdown file attachment button */}
                                 <input
@@ -713,12 +770,12 @@ export default function PostComposer({
                                     !content.trim() ||
                                     content.length > 2000 ||
                                     isLoading ||
-                                    isUploading
+                                    isUploadingImages
                                 }
                                 size="sm"
                                 className="rounded-full px-4 sm:px-5 text-xs sm:text-sm h-8 sm:h-9"
                             >
-                                {isUploading ? (
+                                {isUploadingImages ? (
                                     <>
                                         <Loader2 className="w-3 h-3 animate-spin mr-1" />
                                         Uploading...
