@@ -1,7 +1,6 @@
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import { Toaster } from "@/components/ui/sonner";
 import SchemaMarkup from "@/components/shared/SchemaMarkup";
 
 export const metadata = {
@@ -94,7 +93,6 @@ export default function RootLayout({ children }) {
                 {children}
                 <Analytics />
                 <SpeedInsights />
-                <Toaster position="bottom-right" />
             </body>
         </html>
     );
