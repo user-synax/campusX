@@ -8,6 +8,7 @@ import { createNotification } from '@/lib/notifications';
 import { awardXP } from '@/lib/gamification';
 import { applyRateLimit } from '@/lib/rate-limit';
 import { sanitizeText } from '@/lib/sanitize';
+import { cacheWithFallback, cacheDelPattern } from '@/lib/redis-cache';
 
 // GET /api/posts/[postId]/comments
 export async function GET(request, { params }) {
@@ -18,14 +19,22 @@ export async function GET(request, { params }) {
       return NextResponse.json({ message: 'Invalid Post ID' }, { status: 400 });
     }
 
-    await connectDB();
+    const cacheKey = `comments:${postId}`
 
-    const comments = await Comment.find({ post: postId }).lean()
-      .sort({ createdAt: 1 })
-      .populate('author', 'name username avatar')
-      .lean();
+    const comments = await cacheWithFallback(cacheKey, 120, async () => {
+      await connectDB();
 
-    return NextResponse.json({ comments });
+      return await Comment.find({ post: postId })
+        .sort({ createdAt: 1 })
+        .populate('author', 'name username avatar college')
+        .lean();
+    })
+
+    return NextResponse.json({ comments }, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=60',
+      }
+    });
   } catch (error) {
     console.error('Comment fetching error:', error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
@@ -95,6 +104,9 @@ export async function POST(request, { params }) {
     };
 
     await Post.findByIdAndUpdate(postId, { $inc: { commentsCount: 1 } });
+    
+    // Invalidate cache
+    await cacheDelPattern(`comments:${postId}`)
 
     // Notification - ONLY if not anonymous
     if (post && !post.isAnonymous && post.author && post.author.toString() !== currentUser._id.toString()) {
@@ -169,6 +181,9 @@ export async function DELETE(request, { params }) {
 
     await Comment.findByIdAndDelete(commentId);
     await Post.findByIdAndUpdate(postId, { $inc: { commentsCount: -1 } });
+    
+    // Invalidate cache
+    await cacheDelPattern(`comments:${postId}`)
 
     return NextResponse.json({ success: true });
   } catch (error) {
