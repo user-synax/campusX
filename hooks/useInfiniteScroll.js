@@ -1,58 +1,49 @@
-"use client"
+"use client";
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef } from "react";
 
-/**
- * Reusable infinite scroll hook using Intersection Observer.
- * @param {Object} options
- * @param {Function} options.fetchMore - Function to call when sentinel enters viewport
- * @param {Boolean} options.hasMore - Whether more data is available to fetch
- * @param {Boolean} options.loading - Current loading state
- * @returns {Object} { sentinelRef } - Ref to attach to the sentinel element
- */
 export function useInfiniteScroll({ fetchMore, hasMore, loading }) {
-  const observerRef = useRef(null)    // the sentinel element ref
-  const loadingRef = useRef(loading)  // keep loading in ref to avoid stale closure
+    const observerRef = useRef(null);
+    const loadingRef = useRef(loading);
+    const fetchMoreRef = useRef(fetchMore);
 
-  useEffect(() => {
-    loadingRef.current = loading
-  }, [loading])
+    useEffect(() => {
+        loadingRef.current = loading;
+    }, [loading]);
 
-  useEffect(() => {
-    // If no more data or already loading, don't set up observer for trigger
-    // But we need the observer to stay active if we want it to trigger as soon as loading is false
-    
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const first = entries[0]
-        if (
-          first.isIntersecting && 
-          hasMore && 
-          !loadingRef.current && 
-          document.visibilityState === 'visible'
-        ) {
-          fetchMore()
-        }
-      },
-      {
-        threshold: 0.1,      // trigger when 10% of sentinel is visible
-        rootMargin: '200px'  // trigger 200px before sentinel is visible (pre-fetch)
-      }
-    )
+    useEffect(() => {
+        fetchMoreRef.current = fetchMore;
+    }, [fetchMore]);
 
-    // Observe the sentinel element
-    const sentinel = observerRef.current
-    if (sentinel) observer.observe(sentinel)
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                const first = entries[0];
+                if (
+                    first.isIntersecting &&
+                    hasMore &&
+                    !loadingRef.current &&
+                    document.visibilityState === "visible"
+                ) {
+                    fetchMoreRef.current();
+                }
+            },
+            {
+                threshold: 0.1,
+                rootMargin: "200px",
+            },
+        );
 
-    // Cleanup
-    return () => {
-      if (sentinel) {
-        observer.unobserve(sentinel)
-      }
-      observer.disconnect()
-    }
-  }, [hasMore, fetchMore])
+        const sentinel = observerRef.current;
+        if (sentinel) observer.observe(sentinel);
 
-  // Return ref to attach to sentinel element
-  return { sentinelRef: observerRef }
+        return () => {
+            if (sentinel) {
+                observer.unobserve(sentinel);
+            }
+            observer.disconnect();
+        };
+    }, [hasMore]);
+
+    return { sentinelRef: observerRef };
 }
