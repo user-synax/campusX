@@ -53,7 +53,7 @@ export async function PATCH(request) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
     }
 
-    const decoded = verifyToken(token)
+    const decoded = await verifyToken(token)
     if (!decoded) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
     }
