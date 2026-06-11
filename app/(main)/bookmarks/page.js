@@ -10,21 +10,43 @@ import useUser from "@/hooks/useUser"
 import { toast } from "sonner"
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll"
 import InfiniteScrollSentinel from "@/components/shared/InfiniteScrollSentinel"
+import { useTabData } from "@/hooks/useTabData"
+import clientCache from "@/lib/client-cache"
 
 export default function BookmarksPage() {
   const { user: currentUser, loading: userLoading } = useUser()
-  const [posts, setPosts] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
   const [total, setTotal] = useState(0)
 
-  const fetchBookmarks = useCallback(async (pageNum, append = false) => {
-    if (userLoading || loading) return;
-    
-    setLoading(true)
-    setError(null)
+  const { 
+    data: initialPosts, 
+    loading: initialLoading, 
+    fetchData: fetchInitialBookmarks,
+    setData: setTabData
+  } = useTabData(
+    'bookmarks',
+    async () => {
+      const res = await fetch(`/api/bookmarks?page=1&limit=20`)
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message || "Failed to fetch bookmarks")
+      setHasMore(data.hasMore)
+      setTotal(data.total)
+      return data.posts
+    },
+    { ttl: 60 * 1000 } // 1 minute
+  )
+
+  const [posts, setPosts] = useState(initialPosts || [])
+
+  useEffect(() => {
+    if (initialPosts) {
+      setPosts(initialPosts)
+    }
+  }, [initialPosts])
+
+  const fetchMoreBookmarks = useCallback(async (pageNum) => {
+    if (userLoading || initialLoading) return;
     
     try {
       const res = await fetch(`/api/bookmarks?page=${pageNum}&limit=20`)
@@ -32,53 +54,56 @@ export default function BookmarksPage() {
       
       if (!res.ok) throw new Error(data.message || "Failed to fetch bookmarks")
       
-      if (append) {
-        setPosts(prev => [...prev, ...data.posts])
-      } else {
-        setPosts(data.posts)
-      }
-      
+      setPosts(prev => [...prev, ...data.posts])
       setHasMore(data.hasMore)
       setTotal(data.total)
       setPage(pageNum)
+      
+      // Update cache with new posts
+      const cached = clientCache.get(['tab', 'bookmarks'])
+      if (cached) {
+        clientCache.set(['tab', 'bookmarks'], [...cached, ...data.posts], 60 * 1000)
+      }
     } catch (err) {
       console.error("Failed to fetch bookmarks:", err)
-      setError(err.message)
       toast.error("Failed to load bookmarks")
-    } finally {
-      setLoading(false)
     }
-  }, [userLoading, loading])
+  }, [userLoading, initialLoading])
 
   useEffect(() => {
-    if (!userLoading) {
-      setPage(1)
-      fetchBookmarks(1, false)
+    if (!userLoading && !initialPosts) {
+      fetchInitialBookmarks()
     }
-  }, [userLoading])
+  }, [userLoading, initialPosts, fetchInitialBookmarks])
 
   const loadMore = useCallback(() => {
-    if (!hasMore || loading) return
-    fetchBookmarks(page + 1, true)
-  }, [page, hasMore, loading, fetchBookmarks])
+    if (!hasMore || initialLoading) return
+    fetchMoreBookmarks(page + 1)
+  }, [page, hasMore, initialLoading, fetchMoreBookmarks])
 
   const { sentinelRef } = useInfiniteScroll({
     fetchMore: loadMore,
     hasMore,
-    loading
+    loading: initialLoading
   })
 
   // Handle unbookmarking on the bookmarks page
   const handleBookmarkToggle = (postId, bookmarked) => {
     if (!bookmarked) {
       // If unbookmarked, remove from list immediately (optimistic)
-      setPosts(prev => prev.filter(p => p._id !== postId))
+      const newPosts = posts.filter(p => p._id !== postId)
+      setPosts(newPosts)
+      setTabData(newPosts)
+      clientCache.set(['tab', 'bookmarks'], newPosts, 60 * 1000)
       setTotal(prev => Math.max(0, prev - 1))
     }
   }
 
   const handleDeletePost = (postId) => {
-    setPosts(prev => prev.filter(p => p._id !== postId))
+    const newPosts = posts.filter(p => p._id !== postId)
+    setPosts(newPosts)
+    setTabData(newPosts)
+    clientCache.set(['tab', 'bookmarks'], newPosts, 60 * 1000)
     setTotal(prev => Math.max(0, prev - 1))
   }
 
@@ -94,7 +119,7 @@ export default function BookmarksPage() {
       
       const data = await res.json()
       
-      setPosts(prev => prev.map(p => {
+      const newPosts = posts.map(p => {
         if (p._id === postId) {
           return {
             ...p,
@@ -103,14 +128,17 @@ export default function BookmarksPage() {
           }
         }
         return p
-      }))
+      })
+      setPosts(newPosts)
+      setTabData(newPosts)
+      clientCache.set(['tab', 'bookmarks'], newPosts, 60 * 1000)
       
       return data
     } catch (err) {
       console.error('Like error:', err)
       throw err
     }
-  }, [])
+  }, [posts, setTabData])
 
   return (
     <div className="flex-1 max-w-2xl border-r border-border min-h-screen">
@@ -130,7 +158,7 @@ export default function BookmarksPage() {
 
       {/* Bookmarked posts */}
       <div className="mt-2">
-        {loading && page === 1 ? (
+        {initialLoading && posts.length === 0 ? (
           Array(3).fill(0).map((_, i) => <PostSkeleton key={i} />)
         ) : posts.length === 0 ? (
           <div className="mt-20">
@@ -157,9 +185,9 @@ export default function BookmarksPage() {
             
             <div ref={sentinelRef}>
               <InfiniteScrollSentinel 
-                loading={loading} 
+                loading={initialLoading} 
                 hasMore={hasMore} 
-                error={error} 
+                error={null} 
                 onRetry={loadMore} 
               />
             </div>
