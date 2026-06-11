@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import Logo from '@/components/shared/Logo';
 import Link from 'next/link';
+import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -207,8 +208,17 @@ export default function SignupPage() {
             <CardTitle className="text-xl">Create Account</CardTitle>
           </CardHeader>
           <CardContent>
-            {step === 1 ? (
+                            {step === 1 ? (
               <div className="space-y-4">
+                <GoogleSignInButton text="Sign up with Google" />
+                <div className="relative my-6">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-border" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">Or sign up with email</span>
+                  </div>
+                </div>
                 <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
