@@ -77,7 +77,7 @@ export async function PATCH(request, { params }) {
       return NextResponse.json({ message: 'No fields to update' }, { status: 400 })
     }
 
-    const { name, bio, college, course, year, banner, socialLinks } = body
+    const { name, bio, college, course, year, banner, socialLinks, interests } = body
     const updateData = {}
 
     if (name !== undefined)    updateData.name    = sanitizeText(name).slice(0, 50)
@@ -94,6 +94,16 @@ export async function PATCH(request, { params }) {
         github: sanitizeText(socialLinks.github || '').slice(0, 100),
         website: sanitizeText(socialLinks.website || '').slice(0, 100),
       }
+    }
+    if (interests !== undefined && Array.isArray(interests)) {
+      // Validate interests are in allowed options and within limits
+      const allowedInterests = [
+        "Programming", "Web Development", "AI", "Hackathons", "Placements",
+        "Startups", "Design", "Photography", "Gaming", "Cricket", "Music",
+        "Memes", "Finance", "Entrepreneurship", "College Life", "Events"
+      ]
+      const validInterests = interests.filter(interest => allowedInterests.includes(interest)).slice(0, 10)
+      updateData.interests = validInterests
     }
 
     await connectDB()

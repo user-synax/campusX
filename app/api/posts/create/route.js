@@ -52,6 +52,7 @@ export async function POST(request) {
             images,
             isMarkdown,
             contentBlocks,
+            tags,
         } = body;
 
         // Check if restricted features are used without Pro
@@ -113,11 +114,21 @@ export async function POST(request) {
             };
         }
 
+        // Validate tags
+        let validTags = [];
+        if (tags && Array.isArray(tags)) {
+            validTags = tags
+                .map((tag) => sanitizeText(tag))
+                .filter((tag) => tag.length > 0)
+                .slice(0, 5); // Max 5 tags
+        }
+
         const postData = {
             content: sanitizedContent,
             community: sanitizeText(community) || "",
             poll: pollData,
             hashtags,
+            tags: validTags,
             images: Array.isArray(images) ? images : [],
             linkPreview: linkPreview?.url ? { url: linkPreview.url } : null,
             isMarkdown: isMarkdown === true,
