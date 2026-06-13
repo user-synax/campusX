@@ -51,7 +51,7 @@ export default function CommunitySwitcher({ selectedCommunity, onSelect }) {
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="w-[150px] justify-between rounded-full bg-accent/20 border-border hover:bg-accent/40 transition-all"
+            className="w-[165px] justify-between rounded-full bg-accent/20 border-border hover:bg-accent/40 transition-all"
           >
             {selected ? (
               <div className="flex items-center gap-2 truncate">
