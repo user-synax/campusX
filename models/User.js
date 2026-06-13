@@ -227,8 +227,8 @@ const userSchema = new mongoose.Schema(
         interests: {
             type: [String],
             validate: {
-                validator: (arr) => arr.length <= 8,
-                message: "Maximum 8 interests allowed",
+                validator: (arr) => arr.length <= 10,
+                message: "Maximum 10 interests allowed",
             },
             default: [],
         },
