@@ -7,7 +7,6 @@ import MobileNav from "@/components/layout/MobileNav"
 import MobileFAB from "@/components/layout/MobileFAB"
 import FeedRefreshButton from "@/components/feed/FeedRefreshButton"
 import { Toaster } from "@/components/ui/sonner"
-import BroadcastBanner from "@/components/founder/BroadcastBanner"
 import VerificationBanner from "@/components/shared/VerificationBanner"
 import useUser from "@/hooks/useUser"
 import { NotificationProvider } from "@/context/NotificationContext"
@@ -50,7 +49,6 @@ export default function MainLayout({ children }) {
           {/* Main Content Area */}
           <main className={`flex-1 flex flex-col ${isWhiteboard ? 'm-0 w-screen h-screen' : 'md:ml-[72px] lg:ml-[280px]'} ${isStudyRoom || isWhiteboard ? '' : 'xl:mr-[350px]'} ${isChatRoom ? 'pb-0 h-[100dvh] overflow-hidden' : 'pb-20 min-h-screen'} md:pb-0 overflow-x-hidden`}>
             {/* Broadcast banner — site-wide announcement */}
-            {!isStudyRoom && !isWhiteboard && <BroadcastBanner />}
             {/* Verification prompt for unverified students */}
             {!isStudyRoom && !isWhiteboard && <VerificationBanner />}
 
