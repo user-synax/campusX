@@ -11,7 +11,6 @@ export default function robots() {
           '/settings',
           '/chats',
           '/notifications',
-          '/wallet',
           '/verify-student',
         ],
       },
