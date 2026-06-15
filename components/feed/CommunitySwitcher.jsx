@@ -44,14 +44,14 @@ export default function CommunitySwitcher({ selectedCommunity, onSelect }) {
   const selected = communities.find((c) => c.slug === selectedCommunity)
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 ">
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="w-[165px] justify-between rounded-full bg-accent/20 border-border hover:bg-accent/40 transition-all"
+            className="w-41.25 justify-between rounded-full bg-accent/20 border-border hover:bg-accent/40 transition-all"
           >
             {selected ? (
               <div className="flex items-center gap-2 truncate">
@@ -67,7 +67,7 @@ export default function CommunitySwitcher({ selectedCommunity, onSelect }) {
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[250px] p-0 bg-background border-border shadow-xl">
+        <PopoverContent className="w-62.5 p-0 bg-background border-border shadow-xl">
           <Command className="bg-transparent">
             <CommandInput placeholder="Search community..." className="border-none focus:ring-0" />
             <CommandList>
@@ -78,9 +78,9 @@ export default function CommunitySwitcher({ selectedCommunity, onSelect }) {
                     onSelect(null)
                     setOpen(false)
                   }}
-                  className="cursor-pointer"
+                  className="hover:cursor-pointer"
                 >
-                  <div className="flex items-center gap-2 flex-1">
+                  <div className="flex items-center gap-2 flex-1 hover:cursor-pointer">
                     <Users className="w-3 h-3" />
                     <span>Communities</span>
                   </div>
@@ -98,7 +98,7 @@ export default function CommunitySwitcher({ selectedCommunity, onSelect }) {
                       onSelect(community.slug)
                       setOpen(false)
                     }}
-                    className="cursor-pointer"
+                    className="hover:cursor-pointer"
                   >
                     <div className="flex items-center gap-2 flex-1">
                       <span>{community.emoji || '🌐'}</span>
