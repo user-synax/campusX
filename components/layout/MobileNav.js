@@ -335,15 +335,6 @@ export default function MobileNav() {
           </div>
 
           <div className="p-4 border-t mt-auto space-y-2">
-            <Link href={config.links.apkDownload || "#"} target="_blank" onClick={() => setOpen(false)}>
-              <Button
-                variant="ghost"
-                className="w-full justify-start gap-4 h-12 px-3 text-primary hover:text-primary hover:bg-primary/10"
-              >
-                <Smartphone className="w-5 h-5" />
-                <span className="text-base font-medium">Download APK</span>
-              </Button>
-            </Link>
 
             <Button
               variant="ghost"
