@@ -210,13 +210,13 @@ export default function SignupPage() {
           <CardContent>
                             {step === 1 ? (
               <div className="space-y-4">
-                <GoogleSignInButton text="Sign up with Google" />
+                {/* <GoogleSignInButton text="Sign up with Google" /> */}
                 <div className="relative my-6">
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-border" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-background px-2 text-muted-foreground">Or sign up with email</span>
+                    <span className="bg-background px-2 text-muted-foreground">sign up with email</span>
                   </div>
                 </div>
                 <form onSubmit={handleSubmit} className="space-y-4">
