@@ -1,13 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import {
-    MapPin,
     X,
     BarChart2,
-    Link2,
     Loader2,
     ImagePlus,
     FileCode,
@@ -16,9 +13,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
 import {
     Tooltip,
     TooltipContent,
@@ -37,7 +32,6 @@ import { cn } from "@/lib/utils";
 import { containsMarkdown } from "@/utils/markdown";
 import useUser from "@/hooks/useUser";
 import { useDebounce } from "@/hooks/useDebounce";
-import CommunitySwitcher from "@/components/feed/CommunitySwitcher";
 
 const TAG_OPTIONS = [
     "Programming",
