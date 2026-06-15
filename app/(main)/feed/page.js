@@ -14,6 +14,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import InfiniteScrollSentinel from "@/components/shared/InfiniteScrollSentinel";
 import PushPromptManager from "@/components/notifications/PushPromptManager";
 import CommunitySwitcher from "@/components/feed/CommunitySwitcher";
+import ShinyText from "@/components/reactBits/shinyText";
 
 // Lazy load heavy components
 const PostComposer = dynamic(() => import("@/components/post/PostComposer"), {
@@ -143,8 +144,19 @@ export default function FeedPage() {
             {/* Feed header */}
             <div className="sticky top-0 bg-background/80 backdrop-blur-md border-b border-border p-4 z-20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-lg sm:text-2xl font-bold tracking-tight truncate">
-                        Hey, {currentUser?.name || "User"}
+                    <h1 className="text-2xl sm:text-2xl font-bold tracking-tight truncate">
+                        Hello, <ShinyText
+                            text={currentUser?.name || "User"}
+                            speed={2}
+                            delay={0.5}
+                            color="#ffffff"
+                            shineColor="#4ea8e0"
+                            spread={120}
+                            direction="left"
+                            yoyo={false}
+                            pauseOnHover={true}
+                            disabled={false}
+                        />
                     </h1>
                     <p className="text-xs text-muted-foreground">
                         Welcome to your campus feed
@@ -161,11 +173,10 @@ export default function FeedPage() {
                 <div className="flex">
                     <button
                         onClick={() => handleTabChange("discover")}
-                        className={`flex-1 py-3 text-sm font-medium transition-colors relative ${
-                            activeTab === "discover"
-                                ? "text-primary"
-                                : "text-muted-foreground hover:text-foreground"
-                        }`}
+                        className={`flex-1 py-3 text-sm font-medium transition-colors relative ${activeTab === "discover"
+                            ? "text-primary"
+                            : "text-muted-foreground hover:text-foreground"
+                            }`}
                     >
                         Discover
                         {activeTab === "discover" && (
@@ -175,11 +186,10 @@ export default function FeedPage() {
                     {shouldShowInterestsTab && (
                         <button
                             onClick={() => handleTabChange("interests")}
-                            className={`flex-1 py-3 text-sm font-medium transition-colors relative ${
-                                activeTab === "interests"
-                                    ? "text-primary"
-                                    : "text-muted-foreground hover:text-foreground"
-                            }`}
+                            className={`flex-1 py-3 text-sm font-medium transition-colors relative ${activeTab === "interests"
+                                ? "text-primary"
+                                : "text-muted-foreground hover:text-foreground"
+                                }`}
                         >
                             Interests
                             {activeTab === "interests" && (
@@ -189,11 +199,10 @@ export default function FeedPage() {
                     )}
                     <button
                         onClick={() => handleTabChange("new")}
-                        className={`flex-1 py-3 text-sm font-medium transition-colors relative ${
-                            activeTab === "new"
-                                ? "text-primary"
-                                : "text-muted-foreground hover:text-foreground"
-                        }`}
+                        className={`flex-1 py-3 text-sm font-medium transition-colors relative ${activeTab === "new"
+                            ? "text-primary"
+                            : "text-muted-foreground hover:text-foreground"
+                            }`}
                     >
                         Latest
                         {activeTab === "new" && (
@@ -225,17 +234,17 @@ export default function FeedPage() {
                             isLatestMode
                                 ? "No new posts in 8 hours"
                                 : activeTab === "interests"
-                                  ? "No posts matching your interests yet"
-                                  : "No posts yet"
+                                    ? "No posts matching your interests yet"
+                                    : "No posts yet"
                         }
                         description={
                             isLatestMode
                                 ? "Check back later for new posts"
                                 : activeTab === "interests"
-                                  ? "Check back later or update your interests!"
-                                  : selectedCommunity
-                                    ? `Be the first to post in ${selectedCommunity}!`
-                                    : "Be the first to post what's happening on campus!"
+                                    ? "Check back later or update your interests!"
+                                    : selectedCommunity
+                                        ? `Be the first to post in ${selectedCommunity}!`
+                                        : "Be the first to post what's happening on campus!"
                         }
                     />
                 ) : (
