@@ -2,64 +2,69 @@
 
 import { BookOpen, Users, UserPlus, Award } from "lucide-react";
 
-export default function WhyStudentsChoose() {
-    const features = [
-        {
-            icon: BookOpen,
-            title: "Learn Faster",
-            description: "Access notes, PYQs, and curated resources.",
-        },
-        {
-            icon: Users,
-            title: "Build Together",
-            description: "Find teammates for hackathons and projects.",
-        },
-        {
-            icon: UserPlus,
-            title: "Grow Your Network",
-            description: "Connect with ambitious students across campuses.",
-        },
-        {
-            icon: Award,
-            title: "Showcase Your Work",
-            description: "Build a profile that highlights your achievements.",
-        },
-    ];
+const FEATURES = [
+    {
+        icon: BookOpen,
+        title: "Learn Faster",
+        description: "Access notes, PYQs, and curated resources.",
+    },
+    {
+        icon: Users,
+        title: "Build Together",
+        description: "Find teammates for hackathons and projects.",
+    },
+    {
+        icon: UserPlus,
+        title: "Grow Your Network",
+        description: "Connect with ambitious students across campuses.",
+    },
+    {
+        icon: Award,
+        title: "Showcase Your Work",
+        description: "Build a profile that highlights your achievements.",
+    },
+];
 
+export default function WhyStudentsChoose() {
     return (
-        <section className="py-24 px-4 bg-background">
+        <section className="bg-[#0a0a0c] px-4 py-24 md:py-32">
             <div className="max-w-6xl mx-auto">
-                <div className="text-center mb-16 space-y-4">
-                    <h2 className="text-2xl font-bold text-white/40 uppercase tracking-[0.2em]">
-                        Why choose CampusZen
+                <div className="max-w-2xl mb-16 md:mb-20">
+                    <span className="block text-xs font-bold tracking-[0.18em] uppercase text-[#3E63A6] mb-5">
+                        Why CampusZen
+                    </span>
+                    <h2 className="font-serif text-4xl md:text-5xl lg:text-[3.4rem] leading-[1.1] text-[#F2F3F5] mb-5">
+                        Why students choose{" "}
+                        <span className="text-[#3E63A6]">CampusZen</span>
                     </h2>
-                    <p className="text-4xl md:text-5xl font-black text-white tracking-tight">
-                        Why students choose CampusZen
+                    <p className="text-[#9098A8] text-base md:text-lg leading-relaxed">
+                        Built around what actually matters to students — useful
+                        resources, real connections, and a network that lasts
+                        beyond graduation.
                     </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
-                    {features.map((feature, index) => {
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6">
+                    {FEATURES.map((feature, index) => {
                         const Icon = feature.icon;
                         return (
                             <div
                                 key={index}
-                                className="group relative p-8 rounded-[2rem] border border-white/5 bg-card overflow-hidden transition-all duration-500 hover:bg-[#1a1a1a] hover:border-white/10 hover:-translate-y-1"
+                                className="rounded-xl border border-[#202024] bg-[#0e1014] p-7 transition-colors duration-300 hover:border-[#2c2c33]"
                             >
-                                <div className="relative z-10 space-y-6">
-                                    <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center">
-                                        <Icon className="w-8 h-8 text-white/80" />
-                                    </div>
-
-                                    <div className="space-y-3">
-                                        <h3 className="text-xl font-bold text-white group-hover:text-white/90 transition-colors">
-                                            {feature.title}
-                                        </h3>
-                                        <p className="text-white/40 text-base leading-relaxed font-medium group-hover:text-white/60 transition-colors">
-                                            {feature.description}
-                                        </p>
-                                    </div>
+                                <div className="w-11 h-11 flex items-center justify-center bg-[#3E63A6] rounded-md mb-6">
+                                    <Icon
+                                        className="w-5 h-5 text-[#F2F3F5]"
+                                        strokeWidth={1.75}
+                                    />
                                 </div>
+
+                                <h3 className="text-lg font-semibold text-[#F2F3F5] tracking-tight mb-2.5">
+                                    {feature.title}
+                                </h3>
+                                <p className="text-[#9098A8] text-[15px] leading-relaxed">
+                                    {feature.description}
+                                </p>
                             </div>
                         );
                     })}
