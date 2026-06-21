@@ -36,13 +36,14 @@ export function HeroSection({
     description,
     actions,
     titleRotatingText,
+    image,
 }) {
     return (
         <section
             className={cn(
                 "relative isolate min-h-screen flex items-center justify-center overflow-hidden",
                 "bg-[#050505]",
-                "py-12 sm:py-24 md:py-32 px-4",
+                "py-18 sm:py-28 md:py-36 px-4",
             )}
         >
             <div className="relative z-10 mx-auto max-w-4xl text-center">
@@ -134,6 +135,17 @@ export function HeroSection({
                             </Button>
                         ))}
                     </div>
+
+                    {/* Image */}
+                    {image && (
+                        <div className="animate-appear delay-600 w-full max-w-5xl px-4">
+                            <img
+                                src={image.src}
+                                alt={image.alt}
+                                className="w-full h-auto rounded-3xl shadow-2xl border-7 border-white/10"
+                            />
+                        </div>
+                    )}
                 </div>
             </div>
         </section>
