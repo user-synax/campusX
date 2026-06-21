@@ -45,7 +45,7 @@ export function HeroSectionDemo() {
             description="The ultimate campus ecosystem to build your network, crush your goals, and vibe with your tribe. All in one place."
             actions={[
                 {
-                    text: "Join Your Tribe",
+                    text: "Join Now",
                     href: "/signup",
                     variant: "glow",
                 },
@@ -56,6 +56,10 @@ export function HeroSectionDemo() {
                     icon: <ArrowRight className="h-5 w-5" />,
                 },
             ]}
+            image={{
+                src: "/hero-image.png",
+                alt: "CampusX hero image",
+            }}
         />
     );
 }
