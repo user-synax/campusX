@@ -11,19 +11,19 @@ export function HeroSectionDemo() {
                 text: `Made in India: 🇮🇳`,
             }}
             titleRotatingText={{
-                prefix: "Own Your",
+                prefix: "Find Your",
                 component: (
                     <RotatingText
                         texts={[
-                            "Hustle",
-                            "Network",
-                            "Profile",
-                            "Journey",
-                            "Future",
-                            "Campus",
-                            "Career",
-                            "Projects",
-                            "Success",
+                            "Peers",
+                            "Teams",
+                            "Ideas",
+                            "Goals",
+                            "Clubs",
+                            "Dreams",
+                            "Skills",
+                            "Tribe",
+                            "Voice",
                         ]}
                         mainClassName="px-3 sm:px-4 bg-primary text-primary-foreground overflow-hidden py-0.5 sm:py-1 justify-center rounded-xl sm:rounded-2xl inline-flex shadow-2xl border border-primary/50"
                         staggerFrom={"last"}
