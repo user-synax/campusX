@@ -1,14 +1,12 @@
 "use client"
 
 import { useState, useEffect, useCallback, Suspense } from 'react'
-import { 
-  Search, 
-  X, 
-  Upload, 
-  BookOpen, 
-  SlidersHorizontal, 
-  LayoutGrid, 
-  Filter 
+import {
+  Search,
+  X,
+  Upload,
+  BookOpen,
+  Filter
 } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import { Button } from "@/components/ui/button"
@@ -27,8 +25,7 @@ import InfiniteScrollSentinel from '@/components/shared/InfiniteScrollSentinel'
 function ResourcesContent() {
   const { user } = useUser()
   const searchParams = useSearchParams()
-  
-  // ━━━ State ━━━
+
   const [resources, setResources] = useState([])
   const [category, setCategory] = useState(searchParams.get('category') || 'all')
   const [search, setSearch] = useState('')
@@ -43,7 +40,6 @@ function ResourcesContent() {
   const debouncedSearch = useDebounce(search, 300)
   const debouncedCollege = useDebounce(college, 400)
 
-  // ━━━ Fetching Logic ━━━
   const fetchResources = useCallback(async (pageNum, append = false) => {
     try {
       if (append) setLoadingMore(true)
@@ -79,14 +75,12 @@ function ResourcesContent() {
     }
   }, [category, debouncedSearch, debouncedCollege, sort])
 
-  // Initial fetch + Filter changes
   useEffect(() => {
     setPage(1)
     setHasMore(true)
     fetchResources(1, false)
   }, [category, debouncedSearch, debouncedCollege, sort, fetchResources])
 
-  // Infinite Scroll
   const { sentinelRef } = useInfiniteScroll({
     fetchMore: () => {
       const nextPage = page + 1
@@ -99,87 +93,88 @@ function ResourcesContent() {
 
   return (
     <div className="flex flex-col min-h-screen pb-20 md:pb-6">
-      {/* Sticky Filter Bar */}
-      <div className="sticky top-0 bg-background/95 backdrop-blur-xl border-b border-border/50 z-30 shadow-sm">
-        {/* Title + Upload */}
-        <div className="flex justify-between items-center px-4 py-4">
-          <div>
-            <h1 className="text-xl font-black tracking-tight text-foreground flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-primary" />
-              Resources
-            </h1>
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">
-              Community Shared Notes
-            </p>
+
+      {/* ── Sticky header ── */}
+      <div className="sticky top-0 z-30 bg-background/90 backdrop-blur-md border-b border-border">
+
+        {/* Title row */}
+        <div className="flex items-center justify-between px-4 py-3.5">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              <BookOpen className="w-4 h-4 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-base font-bold leading-tight text-foreground">Resources</h1>
+              <p className="text-[11px] text-muted-foreground leading-none mt-0.5">Community shared notes</p>
+            </div>
           </div>
-          <Button 
-            size="sm" 
+          <Button
+            size="sm"
             onClick={() => setUploadOpen(true)}
-            className="h-9 rounded-xl font-black tracking-tight bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20"
+            className="h-8 px-3 rounded-lg text-xs font-semibold"
           >
-            <Upload className="w-4 h-4 mr-1.5" /> Upload
+            <Upload className="w-3.5 h-3.5 mr-1.5" />
+            Upload
           </Button>
         </div>
 
         {/* Search */}
         <div className="px-4 pb-3">
           <div className="relative group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by title, subject or tags..."
-              className="pl-9 h-10 text-sm bg-accent/30 border-border/50 focus-visible:ring-primary/20 rounded-xl font-medium"
+              placeholder="Search by title, subject or tags…"
+              className="pl-10 pr-9 h-9 text-sm bg-accent/50 border-border/60 focus-visible:border-primary/40 focus-visible:ring-0 rounded-lg"
             />
             {search && (
               <button
                 onClick={() => setSearch('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-accent transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground transition-colors"
               >
-                <X className="w-3.5 h-3.5 text-muted-foreground" />
+                <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
         </div>
 
-        {/* Category Pills */}
-        <div 
-          className="flex gap-2 px-4 pb-3 overflow-x-auto no-scrollbar scroll-smooth"
-        >
+        {/* Category pills */}
+        <div className="flex gap-1.5 px-4 pb-3 overflow-x-auto no-scrollbar">
           {CATEGORIES_LIST.map(cat => (
             <button
               key={cat.id}
               onClick={() => setCategory(cat.id)}
               className={`
-                flex items-center gap-1.5 px-4 py-2 rounded-full 
-                text-xs whitespace-nowrap border transition-all duration-300
-                ${category === cat.id 
-                  ? 'bg-primary text-primary-foreground border-primary font-black shadow-lg shadow-primary/20 scale-105' 
-                  : 'bg-background border-border/50 text-muted-foreground hover:border-primary/30 hover:text-foreground font-bold' 
+                flex items-center gap-1 px-3 py-1.5 rounded-lg
+                text-xs whitespace-nowrap border font-medium transition-colors shrink-0
+                ${category === cat.id
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-transparent border-border/60 text-muted-foreground hover:text-foreground hover:border-border'
                 }
               `}
             >
               <span>{cat.emoji}</span>
-              <span className="uppercase tracking-tight">{cat.label}</span>
+              <span>{cat.label}</span>
             </button>
           ))}
         </div>
 
-        {/* Advanced Filters */}
-        <div className="flex gap-2 px-4 pb-4">
+        {/* Secondary filters */}
+        <div className="flex gap-2 px-4 pb-3.5">
           <div className="relative flex-1">
-            <Filter className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+            <Filter className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
             <Input
               value={college}
               onChange={(e) => setCollege(e.target.value)}
-              placeholder="Filter by college name..."
-              className="pl-8 h-8 text-[11px] font-bold bg-accent/20 border-border/50 rounded-lg uppercase tracking-tight"
+              placeholder="Filter by college…"
+              className="pl-8 h-8 text-xs bg-accent/30 border-border/50 rounded-lg"
             />
           </div>
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value)}
-            className="bg-accent border border-border/50 rounded-lg px-2.5 h-8 text-[11px] font-black uppercase tracking-tighter outline-none focus:ring-1 focus:ring-primary/30"
+            className="h-8 px-2.5 text-xs bg-accent/30 border border-border/50 rounded-lg outline-none focus:ring-1 focus:ring-primary/30 text-foreground"
           >
             <option value="newest">Newest</option>
             <option value="popular">Popular</option>
@@ -189,52 +184,49 @@ function ResourcesContent() {
         </div>
       </div>
 
-      {/* Grid Section */}
+      {/* ── Grid ── */}
       <div className="flex-1 p-4">
         {loading && resources.length === 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {Array(6).fill(0).map((_, i) => <ResourceSkeleton key={i} />)}
           </div>
         ) : resources.length === 0 ? (
           <div className="mt-10">
             <EmptyState
               icon={BookOpen}
-              title={search ? `No results for "${search}"` : 'Resource repository is empty'}
+              title={search ? `No results for "${search}"` : 'No resources yet'}
               description={
-                search 
-                  ? 'Try different keywords or refine your filters' 
-                  : 'Be the first to upload and help fellow students!'
+                search
+                  ? 'Try different keywords or adjust your filters'
+                  : 'Be the first to upload and help fellow students'
               }
-              actionLabel="Upload First Resource"
+              actionLabel="Upload a Resource"
               onAction={() => setUploadOpen(true)}
             />
           </div>
         ) : (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {resources.map(r => (
-                <ResourceCard 
-                  key={r._id} 
-                  resource={r} 
-                  currentUserId={user?._id} 
+                <ResourceCard
+                  key={r._id}
+                  resource={r}
+                  currentUserId={user?._id}
                 />
               ))}
             </div>
-            
-            {/* Infinite Scroll Sentinel */}
             <div ref={sentinelRef}>
-              <InfiniteScrollSentinel 
-                loading={loadingMore} 
-                hasMore={hasMore} 
+              <InfiniteScrollSentinel
+                loading={loadingMore}
+                hasMore={hasMore}
               />
             </div>
           </div>
         )}
       </div>
 
-      {/* Modals */}
-      <ResourceUploadModal 
-        open={uploadOpen} 
+      <ResourceUploadModal
+        open={uploadOpen}
         onOpenChange={setUploadOpen}
         onSuccess={() => {
           toast.success('Resource submitted for review!')
@@ -248,8 +240,8 @@ export default function ResourcesPage() {
   return (
     <Suspense fallback={
       <div className="p-4 space-y-4">
-        <div className="h-20 w-full bg-accent/20 rounded-xl animate-pulse" />
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="h-16 w-full bg-accent/20 rounded-xl animate-pulse" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {Array(6).fill(0).map((_, i) => <ResourceSkeleton key={i} />)}
         </div>
       </div>
