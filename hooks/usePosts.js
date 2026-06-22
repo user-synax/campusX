@@ -4,12 +4,15 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import clientCache from "@/lib/client-cache";
 
 export function usePosts(queryParams = {}, initialPosts = []) {
-    // Use useMemo to create a stable cache key
+    const isDiscover = queryParams.mode === "discover";
+
     const cacheKey = useMemo(() => {
         return JSON.stringify(["feed", queryParams]);
     }, [queryParams]);
 
-    const cachedData = clientCache.get(cacheKey);
+    // Discover skips cache entirely
+    const cachedData = isDiscover ? null : clientCache.get(cacheKey);
+
     const [posts, setPosts] = useState(
         cachedData ? cachedData.posts : initialPosts,
     );
@@ -23,7 +26,13 @@ export function usePosts(queryParams = {}, initialPosts = []) {
 
     const prefetchData = useRef(null);
     const isFetchedRef = useRef(false);
+    const loadingRef = useRef(false); // Stable ref to avoid stale closure in fetchPosts
     const prevQueryParamsRef = useRef(queryParams);
+
+    // Sync loadingRef with loading state
+    useEffect(() => {
+        loadingRef.current = loading;
+    }, [loading]);
 
     // Reset when query params change (e.g., mode switch)
     useEffect(() => {
@@ -32,10 +41,10 @@ export function usePosts(queryParams = {}, initialPosts = []) {
             JSON.stringify(queryParams);
         if (paramsChanged) {
             isFetchedRef.current = false;
+            prefetchData.current = null;
             prevQueryParamsRef.current = queryParams;
-            const newCached = clientCache.get(cacheKey);
+            const newCached = isDiscover ? null : clientCache.get(cacheKey);
             if (newCached) {
-                // eslint-disable-next-line react-hooks/set-state-in-effect
                 setPosts(newCached.posts);
                 setHasMore(newCached.hasMore);
                 setCursor(newCached.cursor);
@@ -45,29 +54,25 @@ export function usePosts(queryParams = {}, initialPosts = []) {
                 setCursor(null);
             }
         }
-    }, [cacheKey, queryParams]);
+    }, [cacheKey, queryParams, isDiscover]);
 
     const fetchPosts = useCallback(
         async (currentCursor = null, append = false, forceRefresh = false) => {
-            if (loading) return;
+            if (loadingRef.current) return;
+
+            // Skip fetch if cached and not forcing
             if (
                 !forceRefresh &&
                 !append &&
                 !isFetchedRef.current &&
                 cachedData
             ) {
-                console.log("Using cached data");
                 isFetchedRef.current = true;
                 return;
             }
 
-            console.log(
-                "Fetching posts, cursor:",
-                currentCursor,
-                "mode:",
-                queryParams.mode,
-            );
             setLoading(true);
+            loadingRef.current = true;
             setError(null);
 
             try {
@@ -81,7 +86,6 @@ export function usePosts(queryParams = {}, initialPosts = []) {
                     `/api/posts/cursor-feed?${params.toString()}`,
                 );
                 const data = await res.json();
-                console.log("Fetched data:", data);
 
                 if (!res.ok || !data.success) {
                     throw new Error(
@@ -105,13 +109,18 @@ export function usePosts(queryParams = {}, initialPosts = []) {
                         finalPosts = [...prevPosts, ...filteredNew];
                     }
 
-                    // Cache the result for 3 minutes
-                    const cacheValue = {
-                        posts: finalPosts,
-                        cursor: pagination.nextCursor,
-                        hasMore: pagination.hasNextPage,
-                    };
-                    clientCache.set(cacheKey, cacheValue, 3 * 60 * 1000);
+                    // Only cache non-discover feeds
+                    if (!isDiscover) {
+                        clientCache.set(
+                            cacheKey,
+                            {
+                                posts: finalPosts,
+                                cursor: pagination.nextCursor,
+                                hasMore: pagination.hasNextPage,
+                            },
+                            3 * 60 * 1000,
+                        );
+                    }
 
                     return finalPosts;
                 });
@@ -124,34 +133,31 @@ export function usePosts(queryParams = {}, initialPosts = []) {
                 setError(err.message);
             } finally {
                 setLoading(false);
+                loadingRef.current = false;
             }
         },
-        [cacheKey, queryParams, cachedData],
+        // Removed `cachedData` from deps — read via closure from stable ref instead
+        [cacheKey, queryParams, isDiscover],
     );
 
     // Initial load
     useEffect(() => {
-        if (
-            !isFetchedRef.current &&
-            initialPosts.length === 0 &&
-            posts.length === 0
-        ) {
-            console.log("Initial fetch triggered, cachedData:", cachedData);
+        if (!isFetchedRef.current && posts.length === 0) {
             isFetchedRef.current = true;
-            if (cachedData) {
-                console.log("Cached data available");
-            } else {
-                // eslint-disable-next-line react-hooks/set-state-in-effect
+            if (!cachedData) {
                 fetchPosts(null, false);
             }
         }
-    }, [queryParams, initialPosts, posts.length, cachedData, fetchPosts]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [queryParams]);
+    // Intentionally only re-run on queryParams change, not fetchPosts reference
 
-    // Prefetch logic
+    // Prefetch next page (skipped for discover — not worth it for random feeds)
     const prefetchNextPage = useCallback(async () => {
         if (
+            isDiscover ||
             !hasMore ||
-            loading ||
+            loadingRef.current ||
             isPrefetching ||
             !cursor ||
             prefetchData.current
@@ -184,14 +190,14 @@ export function usePosts(queryParams = {}, initialPosts = []) {
         } finally {
             setIsPrefetching(false);
         }
-    }, [hasMore, loading, isPrefetching, cursor, queryParams]);
+    }, [hasMore, isPrefetching, cursor, queryParams, isDiscover]);
 
     // Load more
     const loadMore = useCallback(() => {
-        if (!hasMore || loading) return;
+        if (!hasMore || loadingRef.current) return;
 
-        // If we have prefetched data, use it
-        if (prefetchData.current) {
+        // Discover never uses prefetch cache
+        if (!isDiscover && prefetchData.current) {
             const {
                 posts: prefetchedPosts,
                 nextCursor,
@@ -206,7 +212,6 @@ export function usePosts(queryParams = {}, initialPosts = []) {
                 );
                 const finalPosts = [...prevPosts, ...filteredNew];
 
-                // Update cache
                 clientCache.set(
                     cacheKey,
                     {
@@ -225,11 +230,13 @@ export function usePosts(queryParams = {}, initialPosts = []) {
         } else {
             fetchPosts(cursor, true);
         }
-    }, [cursor, hasMore, loading, fetchPosts, cacheKey]);
+    }, [cursor, hasMore, fetchPosts, cacheKey, isDiscover]);
 
     const refresh = useCallback(async () => {
         isFetchedRef.current = false;
+        prefetchData.current = null;
         setCursor(null);
+        setPosts([]);
         return fetchPosts(null, false, true);
     }, [fetchPosts]);
 
@@ -240,10 +247,10 @@ export function usePosts(queryParams = {}, initialPosts = []) {
         hasMore,
         loadMore,
         refresh,
+        prefetchNextPage,
         addPost: (post) => {
             setPosts((prev) => [post, ...prev]);
-            // Invalidate feed cache on new post
-            clientCache.invalidate("feed");
+            if (!isDiscover) clientCache.invalidate("feed");
         },
         removePost: (id) =>
             setPosts((prev) => prev.filter((p) => p._id !== id)),
@@ -260,16 +267,11 @@ export function usePosts(queryParams = {}, initialPosts = []) {
                 const data = await res.json();
 
                 setPosts((prev) =>
-                    prev.map((p) => {
-                        if (p._id === postId) {
-                            return {
-                                ...p,
-                                likesCount: data.likesCount,
-                                _isLiked: data.liked,
-                            };
-                        }
-                        return p;
-                    }),
+                    prev.map((p) =>
+                        p._id === postId
+                            ? { ...p, likesCount: data.likesCount, _isLiked: data.liked }
+                            : p,
+                    ),
                 );
 
                 return data;
