@@ -13,6 +13,7 @@ const FEED_WEIGHTS = {
     sameCollege: 20,
     likes: 1,
     comments: 2,
+    random: 12,
 };
 
 // Calculate post score based on user's interests and other factors
@@ -42,6 +43,9 @@ function calculatePostScore(post, userInterests, userCollege) {
     const hoursAgo = (now - postDate) / (1000 * 60 * 60);
     // Decay score by 5% every hour
     score *= Math.pow(0.95, hoursAgo);
+
+    // Small random jitter keeps feed fresh while preserving relevance.
+    score += Math.random() * FEED_WEIGHTS.random;
 
     return score;
 }
@@ -119,7 +123,7 @@ export async function GET(request) {
 
             if (feedType === "interests" && currentUser) {
                 const userInterests = currentUser.interests || [];
-                
+
                 // Prioritize AI-related content
                 const sortedInterests = [...userInterests].sort((a, b) => {
                     if (a === "AI") return -1;
@@ -144,107 +148,14 @@ export async function GET(request) {
                         })
                         .lean();
                 }
-            } else { // feedType === 'discover'
-                if (mode === "default" && currentUser) {
-                    // --- First, get interest-matching posts ---
-                    const userInterests = currentUser.interests || [];
-                    const userCollege = currentUser.college || "";
+            } else {
+                if (mode === "default") {
+                    // Keep cursor pagination contiguous by _id, then rank only within this page.
+                    const userInterests = currentUser?.interests || [];
+                    const userCollege = currentUser?.college || "";
 
-                    let interestPosts = [];
-                    let trendingPosts = [];
-                    let discoveryPosts = [];
-
-                    if (userInterests.length > 0) {
-                        const interestQuery = {
-                            ...query,
-                            tags: { $in: userInterests },
-                        };
-
-                        interestPosts = await Post.find(interestQuery)
-                            .sort({ createdAt: -1 })
-                            .limit(Math.floor(limit * 1.5))
-                            .select("-likes -__v -updatedAt")
-                            .populate({
-                                path: "author",
-                                select: "name username avatar college isVerified verificationType",
-                                options: { lean: true },
-                            })
-                            .lean();
-                    }
-
-                    // --- Get trending posts ---
-                    const trendingQuery = { ...query };
-                    trendingPosts = await Post.find(trendingQuery)
-                        .sort({ likesCount: -1, createdAt: -1 })
-                        .limit(Math.floor(limit * 0.5))
-                        .select("-likes -__v -updatedAt")
-                        .populate({
-                            path: "author",
-                            select: "name username avatar college isVerified verificationType",
-                            options: { lean: true },
-                        })
-                        .lean();
-
-                    // --- Get discovery posts (same college or recent) ---
-                    let discoveryQuery = { ...query };
-                    if (userCollege) {
-                        discoveryQuery = {
-                            ...query,
-                            $or: [
-                                { community: userCollege },
-                                {
-                                    createdAt: {
-                                        $gte: new Date(
-                                            Date.now() - 7 * 24 * 60 * 60 * 1000,
-                                        ),
-                                    },
-                                }, // Last 7 days
-                            ],
-                        };
-                    } else {
-                        discoveryQuery.createdAt = {
-                            $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-                        };
-                    }
-
-                    discoveryPosts = await Post.find(discoveryQuery)
-                        .sort({ createdAt: -1 })
-                        .limit(Math.floor(limit * 0.5))
-                        .select("-likes -__v -updatedAt")
-                        .populate({
-                            path: "author",
-                            select: "name username avatar college isVerified verificationType",
-                            options: { lean: true },
-                        })
-                        .lean();
-
-                    // Combine all posts, remove duplicates
-                    const allPostsMap = new Map();
-                    [...interestPosts, ...trendingPosts, ...discoveryPosts].forEach(
-                        (post) => {
-                            if (!allPostsMap.has(post._id.toString())) {
-                                allPostsMap.set(post._id.toString(), post);
-                            }
-                        },
-                    );
-                    let allPosts = Array.from(allPostsMap.values());
-
-                    // Score and sort posts
-                    allPosts = allPosts.map((post) => ({
-                        ...post,
-                        _score: calculatePostScore(
-                            post,
-                            userInterests,
-                            userCollege,
-                        ),
-                    }));
-                    allPosts.sort((a, b) => b._score - a._score);
-
-                    posts = allPosts.slice(0, limit + 1); // Take limit + 1 for pagination
-                } else if (mode === "default" && !currentUser) {
-                    // Not logged in - just show trending
-                    posts = await Post.find(query)
-                        .sort({ likesCount: -1, createdAt: -1 })
+                    const pageWindow = await Post.find(query)
+                        .sort({ _id: -1 })
                         .limit(limit + 1)
                         .select("-likes -__v -updatedAt")
                         .populate({
@@ -253,6 +164,27 @@ export async function GET(request) {
                             options: { lean: true },
                         })
                         .lean();
+
+                    const hasWindowMore = pageWindow.length > limit;
+                    const windowResultPosts = hasWindowMore
+                        ? pageWindow.slice(0, limit)
+                        : pageWindow;
+
+                    const rankedWindow = windowResultPosts
+                        .map((post) => ({
+                            ...post,
+                            _score: calculatePostScore(
+                                post,
+                                userInterests,
+                                userCollege,
+                            ),
+                        }))
+                        .sort((a, b) => b._score - a._score);
+
+                    // Add lookahead item only to preserve existing hasMore computation.
+                    posts = hasWindowMore
+                        ? [...rankedWindow, pageWindow[limit]]
+                        : rankedWindow;
                 } else {
                     // Other modes (latest8h, etc.)
                     posts = await Post.find(query)
@@ -278,19 +210,19 @@ export async function GET(request) {
             const communities =
                 communityNames.length > 0
                     ? await Community.find({
-                          $or: [
-                              { name: { $in: communityNames } },
-                              {
-                                  slug: {
-                                      $in: communityNames.map((n) =>
-                                          n.toLowerCase().replace(/\s+/g, "-"),
-                                      ),
-                                  },
-                              },
-                          ],
-                      })
-                          .select("name slug emoji")
-                          .lean()
+                        $or: [
+                            { name: { $in: communityNames } },
+                            {
+                                slug: {
+                                    $in: communityNames.map((n) =>
+                                        n.toLowerCase().replace(/\s+/g, "-"),
+                                    ),
+                                },
+                            },
+                        ],
+                    })
+                        .select("name slug emoji")
+                        .lean()
                     : [];
 
             const communityMap = communities.reduce((acc, c) => {
@@ -302,14 +234,14 @@ export async function GET(request) {
             const processedPosts = resultPosts.map((post) => {
                 const isLiked = currentUser
                     ? post.likes?.some(
-                          (id) => id.toString() === currentUser._id.toString(),
-                      )
+                        (id) => id.toString() === currentUser._id.toString(),
+                    )
                     : false;
                 const isBookmarked =
                     currentUser && currentUser.bookmarks
                         ? currentUser.bookmarks.some(
-                              (id) => id.toString() === post._id.toString(),
-                          )
+                            (id) => id.toString() === post._id.toString(),
+                        )
                         : false;
 
                 const communityInfo = post.community
@@ -335,19 +267,36 @@ export async function GET(request) {
                     _isBookmarked: isBookmarked,
                     communityInfo: communityInfo
                         ? {
-                              name: communityInfo.name,
-                              slug: communityInfo.slug,
-                              emoji: communityInfo.emoji,
-                          }
+                            name: communityInfo.name,
+                            slug: communityInfo.slug,
+                            emoji: communityInfo.emoji,
+                        }
                         : null,
                 };
             });
 
             const nextCursor = hasMore
                 ? Buffer.from(
-                      resultPosts[resultPosts.length - 1]._id.toString(),
-                  ).toString("base64")
+                    resultPosts
+                        .reduce((minId, post) =>
+                            post._id.toString() < minId.toString()
+                                ? post._id
+                                : minId,
+                            resultPosts[0]._id)
+                        .toString(),
+                ).toString("base64")
                 : null;
+
+            if (process.env.NODE_ENV !== "production") {
+                console.log("[cursor-feed]", {
+                    mode,
+                    feedType,
+                    cursor,
+                    resultCount: processedPosts.length,
+                    hasMore,
+                    nextCursor,
+                });
+            }
 
             return {
                 posts: processedPosts,

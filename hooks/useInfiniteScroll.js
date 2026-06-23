@@ -2,7 +2,13 @@
 
 import { useEffect, useRef } from "react";
 
-export function useInfiniteScroll({ fetchMore, hasMore, loading }) {
+export function useInfiniteScroll({
+    fetchMore,
+    hasMore,
+    loading,
+    rootMargin = "200px",
+    threshold = 0.1,
+}) {
     const observerRef = useRef(null);
     const loadingRef = useRef(loading);
     const fetchMoreRef = useRef(fetchMore);
@@ -29,8 +35,8 @@ export function useInfiniteScroll({ fetchMore, hasMore, loading }) {
                 }
             },
             {
-                threshold: 0.1,
-                rootMargin: "200px",
+                threshold,
+                rootMargin,
             },
         );
 
@@ -43,7 +49,7 @@ export function useInfiniteScroll({ fetchMore, hasMore, loading }) {
             }
             observer.disconnect();
         };
-    }, [hasMore]);
+    }, [hasMore, rootMargin, threshold]);
 
     return { sentinelRef: observerRef };
 }

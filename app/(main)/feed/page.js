@@ -47,6 +47,7 @@ export default function FeedPage() {
         error,
         hasMore,
         loadMore,
+        prefetchNextPage,
         addPost,
         removePost,
         updatePostLike,
@@ -74,7 +75,7 @@ export default function FeedPage() {
     const postsVirtualizer = useWindowVirtualizer({
         count: posts.length,
         estimateSize: () => 350,
-        overscan: 5,
+        overscan: 4,
         scrollMargin,
         key: modeKey,
     });
@@ -92,7 +93,49 @@ export default function FeedPage() {
         fetchMore: loadMore,
         hasMore,
         loading,
+        rootMargin: "900px",
     });
+
+    useEffect(() => {
+        if (!hasMore) return;
+
+        let ticking = false;
+        const prefetchDistance = 1200;
+        const loadDistance = 450;
+        const loadThrottleMs = 800;
+        let lastLoadAt = 0;
+
+        const onScroll = () => {
+            if (ticking) return;
+            ticking = true;
+
+            requestAnimationFrame(() => {
+                const remaining =
+                    document.documentElement.scrollHeight -
+                    (window.scrollY + window.innerHeight);
+
+                if (remaining < prefetchDistance) {
+                    prefetchNextPage();
+                }
+
+                // Fallback for cases where sentinel intersection is missed.
+                if (
+                    remaining < loadDistance &&
+                    !loading &&
+                    Date.now() - lastLoadAt > loadThrottleMs
+                ) {
+                    lastLoadAt = Date.now();
+                    loadMore();
+                }
+
+                ticking = false;
+            });
+        };
+
+        window.addEventListener("scroll", onScroll, { passive: true });
+        onScroll();
+        return () => window.removeEventListener("scroll", onScroll);
+    }, [hasMore, loading, prefetchNextPage, loadMore]);
 
     const handlePostCreated = useCallback(
         (newPost) => {

@@ -4,14 +4,14 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import clientCache from "@/lib/client-cache";
 
 export function usePosts(queryParams = {}, initialPosts = []) {
-    const isDiscover = queryParams.mode === "discover";
+    const isDiscover = queryParams.feedType === "discover";
+    const cacheTtl = isDiscover ? 90 * 1000 : 5 * 60 * 1000;
 
     const cacheKey = useMemo(() => {
         return JSON.stringify(["feed", queryParams]);
     }, [queryParams]);
 
-    // Discover skips cache entirely
-    const cachedData = isDiscover ? null : clientCache.get(cacheKey);
+    const cachedData = clientCache.get(cacheKey);
 
     const [posts, setPosts] = useState(
         cachedData ? cachedData.posts : initialPosts,
@@ -27,12 +27,17 @@ export function usePosts(queryParams = {}, initialPosts = []) {
     const prefetchData = useRef(null);
     const isFetchedRef = useRef(false);
     const loadingRef = useRef(false); // Stable ref to avoid stale closure in fetchPosts
+    const postsRef = useRef(cachedData ? cachedData.posts : initialPosts);
     const prevQueryParamsRef = useRef(queryParams);
 
     // Sync loadingRef with loading state
     useEffect(() => {
         loadingRef.current = loading;
     }, [loading]);
+
+    useEffect(() => {
+        postsRef.current = posts;
+    }, [posts]);
 
     // Reset when query params change (e.g., mode switch)
     useEffect(() => {
@@ -43,13 +48,15 @@ export function usePosts(queryParams = {}, initialPosts = []) {
             isFetchedRef.current = false;
             prefetchData.current = null;
             prevQueryParamsRef.current = queryParams;
-            const newCached = isDiscover ? null : clientCache.get(cacheKey);
+            const newCached = clientCache.get(cacheKey);
             if (newCached) {
                 setPosts(newCached.posts);
+                postsRef.current = newCached.posts;
                 setHasMore(newCached.hasMore);
                 setCursor(newCached.cursor);
             } else {
                 setPosts([]);
+                postsRef.current = [];
                 setHasMore(true);
                 setCursor(null);
             }
@@ -57,7 +64,12 @@ export function usePosts(queryParams = {}, initialPosts = []) {
     }, [cacheKey, queryParams, isDiscover]);
 
     const fetchPosts = useCallback(
-        async (currentCursor = null, append = false, forceRefresh = false) => {
+        async (
+            currentCursor = null,
+            append = false,
+            forceRefresh = false,
+            attempt = 0,
+        ) => {
             if (loadingRef.current) return;
 
             // Skip fetch if cached and not forcing
@@ -94,40 +106,69 @@ export function usePosts(queryParams = {}, initialPosts = []) {
                 }
 
                 const { posts: newPosts, pagination } = data;
+                let appendedCount = 0;
 
-                setPosts((prevPosts) => {
-                    let finalPosts;
-                    if (!append) {
-                        finalPosts = newPosts;
-                    } else {
-                        const existingIds = new Set(
-                            prevPosts.map((p) => p._id),
-                        );
-                        const filteredNew = newPosts.filter(
-                            (p) => !existingIds.has(p._id),
-                        );
-                        finalPosts = [...prevPosts, ...filteredNew];
-                    }
+                if (!append) {
+                    setPosts(newPosts);
+                    postsRef.current = newPosts;
+                } else {
+                    const existingIds = new Set(
+                        postsRef.current.map((p) => p._id),
+                    );
+                    const filteredNew = newPosts.filter(
+                        (p) => !existingIds.has(p._id),
+                    );
+                    appendedCount = filteredNew.length;
+                    const finalPosts = [...postsRef.current, ...filteredNew];
 
-                    // Only cache non-discover feeds
-                    if (!isDiscover) {
-                        clientCache.set(
-                            cacheKey,
-                            {
-                                posts: finalPosts,
-                                cursor: pagination.nextCursor,
-                                hasMore: pagination.hasNextPage,
-                            },
-                            3 * 60 * 1000,
-                        );
-                    }
+                    setPosts(finalPosts);
+                    postsRef.current = finalPosts;
+                }
 
-                    return finalPosts;
-                });
+                clientCache.set(
+                    cacheKey,
+                    {
+                        posts: postsRef.current,
+                        cursor: pagination.nextCursor,
+                        hasMore: pagination.hasNextPage,
+                    },
+                    cacheTtl,
+                );
 
                 setHasMore(pagination.hasNextPage);
                 setCursor(pagination.nextCursor);
                 isFetchedRef.current = true;
+
+                if (process.env.NODE_ENV !== "production") {
+                    console.log("[usePosts] page", {
+                        append,
+                        requestCursor: currentCursor,
+                        received: newPosts.length,
+                        appendedCount,
+                        hasNextPage: pagination.hasNextPage,
+                        nextCursor: pagination.nextCursor,
+                        total: postsRef.current.length,
+                        attempt,
+                    });
+                }
+
+                // If a page is duplicate-only, advance cursor again to avoid stalling.
+                if (
+                    append &&
+                    appendedCount === 0 &&
+                    pagination.hasNextPage &&
+                    pagination.nextCursor &&
+                    attempt < 3
+                ) {
+                    loadingRef.current = false;
+                    await fetchPosts(
+                        pagination.nextCursor,
+                        true,
+                        false,
+                        attempt + 1,
+                    );
+                    return;
+                }
             } catch (err) {
                 console.error("fetchPosts error:", err);
                 setError(err.message);
@@ -137,7 +178,7 @@ export function usePosts(queryParams = {}, initialPosts = []) {
             }
         },
         // Removed `cachedData` from deps — read via closure from stable ref instead
-        [cacheKey, queryParams, isDiscover],
+        [cacheKey, queryParams, cacheTtl],
     );
 
     // Initial load
@@ -152,10 +193,9 @@ export function usePosts(queryParams = {}, initialPosts = []) {
     }, [queryParams]);
     // Intentionally only re-run on queryParams change, not fetchPosts reference
 
-    // Prefetch next page (skipped for discover — not worth it for random feeds)
+    // Prefetch next page as user approaches bottom for smoother loading.
     const prefetchNextPage = useCallback(async () => {
         if (
-            isDiscover ||
             !hasMore ||
             loadingRef.current ||
             isPrefetching ||
@@ -190,14 +230,13 @@ export function usePosts(queryParams = {}, initialPosts = []) {
         } finally {
             setIsPrefetching(false);
         }
-    }, [hasMore, isPrefetching, cursor, queryParams, isDiscover]);
+    }, [hasMore, isPrefetching, cursor, queryParams]);
 
     // Load more
     const loadMore = useCallback(() => {
         if (!hasMore || loadingRef.current) return;
 
-        // Discover never uses prefetch cache
-        if (!isDiscover && prefetchData.current) {
+        if (prefetchData.current) {
             const {
                 posts: prefetchedPosts,
                 nextCursor,
@@ -205,11 +244,14 @@ export function usePosts(queryParams = {}, initialPosts = []) {
             } = prefetchData.current;
             prefetchData.current = null;
 
+            let appendedCount = 0;
+
             setPosts((prevPosts) => {
                 const existingIds = new Set(prevPosts.map((p) => p._id));
                 const filteredNew = prefetchedPosts.filter(
                     (p) => !existingIds.has(p._id),
                 );
+                appendedCount = filteredNew.length;
                 const finalPosts = [...prevPosts, ...filteredNew];
 
                 clientCache.set(
@@ -219,7 +261,7 @@ export function usePosts(queryParams = {}, initialPosts = []) {
                         cursor: nextCursor,
                         hasMore: hasNextPage,
                     },
-                    3 * 60 * 1000,
+                    cacheTtl,
                 );
 
                 return finalPosts;
@@ -227,16 +269,22 @@ export function usePosts(queryParams = {}, initialPosts = []) {
 
             setCursor(nextCursor);
             setHasMore(hasNextPage);
+
+            // If this prefetched page was fully duplicate, move forward immediately.
+            if (appendedCount === 0 && hasNextPage && nextCursor) {
+                fetchPosts(nextCursor, true);
+            }
         } else {
             fetchPosts(cursor, true);
         }
-    }, [cursor, hasMore, fetchPosts, cacheKey, isDiscover]);
+    }, [cursor, hasMore, fetchPosts, cacheKey, cacheTtl]);
 
     const refresh = useCallback(async () => {
         isFetchedRef.current = false;
         prefetchData.current = null;
         setCursor(null);
         setPosts([]);
+        postsRef.current = [];
         return fetchPosts(null, false, true);
     }, [fetchPosts]);
 
@@ -250,7 +298,7 @@ export function usePosts(queryParams = {}, initialPosts = []) {
         prefetchNextPage,
         addPost: (post) => {
             setPosts((prev) => [post, ...prev]);
-            if (!isDiscover) clientCache.invalidate("feed");
+            clientCache.invalidate("feed");
         },
         removePost: (id) =>
             setPosts((prev) => prev.filter((p) => p._id !== id)),
