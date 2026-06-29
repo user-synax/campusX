@@ -36,7 +36,35 @@
 }
 
 @layer base {
+    /* Light theme (default for :root) */
     :root {
+        --background: 0 0% 100%;
+        --foreground: 222 47% 11%;
+        --card: 0 0% 98%;
+        --card-foreground: 222 47% 11%;
+        --popover: 0 0% 98%;
+        --popover-foreground: 222 47% 11%;
+
+        --primary: 203 71% 59%; /* #4ba9e1 */
+        --primary-foreground: 0 0% 100%;
+
+        --secondary: 210 40% 96%;
+        --secondary-foreground: 222 47% 11%;
+        --muted: 210 40% 96%;
+        --muted-foreground: 215 16% 47%;
+        --accent: 210 40% 93%;
+        --accent-foreground: 222 47% 11%;
+        --destructive: 0 84% 60%;
+        --destructive-foreground: 0 0% 100%;
+        --border: 214 32% 91%;
+        --input: 214 32% 91%;
+        --ring: 203 71% 59%;
+
+        --radius: 0.5rem;
+    }
+
+    /* Dark theme */
+    .dark {
         --background: 222 14% 7%;
         --foreground: 210 20% 95%;
         --card: 222 14% 10%;
@@ -164,11 +192,7 @@
     .bg-grid-pattern {
         background-image:
             linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-            linear-gradient(
-                90deg,
-                rgba(255, 255, 255, 0.03) 1px,
-                transparent 1px
-            );
+            linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
         background-size: 64px 64px;
     }
 
@@ -192,6 +216,30 @@
     .animate-appear {
         animation: appear 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         opacity: 0;
+    }
+
+    /* Animated gradient for profile headers */
+    .animate-gradient {
+        background: linear-gradient(-45deg, 
+            hsl(var(--primary) / 0.3), 
+            hsl(var(--accent) / 0.3), 
+            hsl(var(--primary) / 0.2), 
+            hsl(var(--accent) / 0.2)
+        );
+        background-size: 400% 400%;
+        animation: gradient-shift 15s ease infinite;
+    }
+
+    @keyframes gradient-shift {
+        0% {
+            background-position: 0% 50%;
+        }
+        50% {
+            background-position: 100% 50%;
+        }
+        100% {
+            background-position: 0% 50%;
+        }
     }
 
     @keyframes appear {
