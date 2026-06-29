@@ -2,6 +2,7 @@ import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import SchemaMarkup from "@/components/shared/SchemaMarkup";
+import { ThemeProvider } from "@/context/ThemeContext";
 
 export const metadata = {
     metadataBase: new URL("https://campuszen.tech"),
@@ -87,12 +88,30 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
     return (
-        <html lang="en" className="dark" suppressHydrationWarning>
+        <html lang="en" suppressHydrationWarning>
+            <head>
+                <script
+                    dangerouslySetInnerHTML={{
+                        __html: `
+                            (function() {
+                                try {
+                                    const theme = localStorage.getItem('theme');
+                                    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                                    const activeTheme = theme || (prefersDark ? 'dark' : 'light');
+                                    document.documentElement.classList.add(activeTheme);
+                                } catch (e) {}
+                            })();
+                        `,
+                    }}
+                />
+            </head>
             <body suppressHydrationWarning>
-                <SchemaMarkup />
-                {children}
-                <Analytics />
-                <SpeedInsights />
+                <ThemeProvider>
+                    <SchemaMarkup />
+                    {children}
+                    <Analytics />
+                    <SpeedInsights />
+                </ThemeProvider>
             </body>
         </html>
     );
