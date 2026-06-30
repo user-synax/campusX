@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +23,11 @@ import {
     MessageSquare,
     Lock,
     Share2,
+    Crown,
+    Volume2,
+    Pause,
+    StopCircle,
+    VolumeX,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -99,6 +104,13 @@ export default function ProfileClient({ username: initialUsername }) {
     const [editOpen, setEditOpen] = useState(false);
     const [exportOpen, setExportOpen] = useState(false);
 
+    // Pro Welcome Message & Sound Effect State
+    const [showWelcomeMessage, setShowWelcomeMessage] = useState(false);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [autoPlaySound, setAutoPlaySound] = useState(true);
+    const [soundLoaded, setSoundLoaded] = useState(false);
+    const audioRef = useRef(null);
+
     // Follow modal state
     const [followModal, setFollowModal] = useState(false);
     const [followModalTab, setFollowModalTab] = useState("followers");
@@ -113,6 +125,121 @@ export default function ProfileClient({ username: initialUsername }) {
         currentUser?.following?.some(
             (id) => id.toString() === profileUser?._id?.toString(),
         );
+
+    // Load sound preferences from localStorage
+    useEffect(() => {
+        const savedAutoPlay = localStorage.getItem("pro-sound-autoplay");
+        if (savedAutoPlay !== null) {
+            setAutoPlaySound(savedAutoPlay === "true");
+        }
+    }, []);
+
+    // Preload & manage Pro welcome sound
+    useEffect(() => {
+        // Only for Pro users (not admins)
+        const isProUser =
+            profileUser?.isPro &&
+            !(
+                profileUser?.role === "admin" ||
+                profileUser?.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL
+            );
+
+        if (isProUser && !isOwnProfile) {
+            // Only show for visitors to Pro profiles
+            // Preload sound during idle time
+            const preloadSound = () => {
+                if (!audioRef.current) {
+                    audioRef.current = new Audio("/pro-welcome.mp3"); // Default sound file
+                    audioRef.current.preload = "auto";
+                    audioRef.current.oncanplaythrough = () => {
+                        setSoundLoaded(true);
+                    };
+                    audioRef.current.onended = () => {
+                        setIsPlaying(false);
+                    };
+                    audioRef.current.onerror = () => {
+                        console.log(
+                            "Pro welcome sound failed to load (expected if file doesn't exist yet)",
+                        );
+                    };
+                }
+            };
+
+            if (requestIdleCallback) {
+                requestIdleCallback(preloadSound);
+            } else {
+                preloadSound();
+            }
+
+            // Show welcome message with slight delay for better UX
+            const timer = setTimeout(() => {
+                setShowWelcomeMessage(true);
+
+                // Auto-play sound if enabled
+                if (autoPlaySound && audioRef.current && soundLoaded) {
+                    audioRef.current.play().catch((err) => {
+                        console.log(
+                            "Auto-play prevented by browser (expected behavior)",
+                            err,
+                        );
+                    });
+                    setIsPlaying(true);
+                }
+            }, 800);
+
+            return () => clearTimeout(timer);
+        }
+
+        // Cleanup
+        return () => {
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current = null;
+            }
+        };
+    }, [profileUser, isOwnProfile, autoPlaySound, soundLoaded]);
+
+    const toggleAutoPlay = () => {
+        const newValue = !autoPlaySound;
+        setAutoPlaySound(newValue);
+        localStorage.setItem("pro-sound-autoplay", newValue.toString());
+        toast.success(
+            newValue ? "Sound auto-play enabled" : "Sound auto-play disabled",
+        );
+    };
+
+    const playSound = () => {
+        if (audioRef.current && !isPlaying) {
+            audioRef.current.currentTime = 0;
+            audioRef.current.play().catch((err) => {
+                console.log("Playback prevented", err);
+            });
+            setIsPlaying(true);
+        }
+    };
+
+    const pauseSound = () => {
+        if (audioRef.current && isPlaying) {
+            audioRef.current.pause();
+            setIsPlaying(false);
+        }
+    };
+
+    const stopSound = () => {
+        if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current.currentTime = 0;
+            setIsPlaying(false);
+        }
+    };
+
+    // Get time-of-day greeting
+    const getTimeOfDayGreeting = () => {
+        const hour = new Date().getHours();
+        if (hour < 12) return "Good morning";
+        if (hour < 18) return "Good afternoon";
+        return "Good evening";
+    };
 
     useEffect(() => {
         const fetchProfileData = async () => {
@@ -258,17 +385,211 @@ export default function ProfileClient({ username: initialUsername }) {
                     )}
                 </div>
 
-                <div className="px-4 pb-4">
-                    <div className="flex justify-between items-end -mt-16 mb-3 relative z-10">
-                        <Avatar className="w-32 h-32 border-4 border-background shadow-xl ring-2 ring-black/10">
-                            <AvatarImage
-                                src={profileUser.avatar}
-                                alt={profileUser.name}
+                {/* Pro Welcome Message Floating Popup */}
+                {showWelcomeMessage &&
+                    profileUser?.isPro &&
+                    !(
+                        profileUser.role === "admin" ||
+                        profileUser.email ===
+                            process.env.NEXT_PUBLIC_ADMIN_EMAIL
+                    ) &&
+                    !isOwnProfile && (
+                        <div
+                            className="fixed inset-0 z-50 flex items-start justify-center pt-48 sm:pt-56"
+                            role="dialog"
+                            aria-modal="true"
+                            aria-label="Welcome to Pro profile"
+                        >
+                            {/* Blurred Backdrop */}
+                            <div
+                                className="absolute inset-0 bg-black/30 backdrop-blur-sm animate-in fade-in duration-300"
+                                onClick={() => setShowWelcomeMessage(false)}
                             />
-                            <AvatarFallback>
-                                {profileUser.name?.charAt(0)?.toUpperCase()}
-                            </AvatarFallback>
-                        </Avatar>
+
+                            {/* Popup Content - Near Profile Photo */}
+                            <div className="relative w-[92%] sm:w-[420px] animate-in fade-in slide-in-from-top-8 duration-500">
+                                <Card className="p-5 border-yellow-500 bg-gradient-to-br from-red-500 to-yellow-500/10 shadow-2xl border">
+                                    <div className="flex flex-col gap-5">
+                                        <div className="flex items-start justify-between gap-3">
+                                            <div className="flex items-center gap-2">
+                                                <Crown className="w-6 h-6 text-yellow-500" />
+                                                <span className="font-bold text-yellow-500 text-sm uppercase tracking-wide">
+                                                    Pro Member Welcome
+                                                </span>
+                                            </div>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-8 w-8 rounded-full"
+                                                onClick={() =>
+                                                    setShowWelcomeMessage(false)
+                                                }
+                                                aria-label="Close welcome message"
+                                            >
+                                                <svg
+                                                    className="w-4 h-4"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                        strokeWidth={2}
+                                                        d="M6 18L18 6M6 6l12 12"
+                                                    />
+                                                </svg>
+                                            </Button>
+                                        </div>
+
+                                        <p className="text-foreground font-medium text-base">
+                                            {getTimeOfDayGreeting()}{" "}
+                                            {currentUser?.name || "there"}! 👋
+                                            Welcome to{" "}
+                                            <span className="font-bold text-lg">
+                                                {profileUser.name}
+                                            </span>
+                                            's Pro profile!
+                                        </p>
+
+                                        <div className="flex gap-2 items-center justify-between pt-1">
+                                            {/* Sound Controls */}
+                                            <div className="flex gap-1 bg-muted/30 rounded-full p-1">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-9 w-9 rounded-full"
+                                                    onClick={
+                                                        isPlaying
+                                                            ? pauseSound
+                                                            : playSound
+                                                    }
+                                                    aria-label={
+                                                        isPlaying
+                                                            ? "Pause sound"
+                                                            : "Play welcome sound"
+                                                    }
+                                                >
+                                                    {isPlaying ? (
+                                                        <Pause className="w-4 h-4" />
+                                                    ) : (
+                                                        <Volume2 className="w-4 h-4" />
+                                                    )}
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-9 w-9 rounded-full"
+                                                    onClick={stopSound}
+                                                    aria-label="Stop sound"
+                                                >
+                                                    <StopCircle className="w-4 h-4" />
+                                                </Button>
+                                            </div>
+
+                                            {/* Auto-play Toggle */}
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={toggleAutoPlay}
+                                                className="h-9 rounded-full text-xs flex items-center gap-1.5 px-3"
+                                                aria-label={
+                                                    autoPlaySound
+                                                        ? "Disable auto-play sound"
+                                                        : "Enable auto-play sound"
+                                                }
+                                            >
+                                                {autoPlaySound ? (
+                                                    <Volume2 className="w-3.5 h-3.5 text-green-500" />
+                                                ) : (
+                                                    <VolumeX className="w-3.5 h-3.5 text-muted-foreground" />
+                                                )}
+                                                {autoPlaySound
+                                                    ? "Auto: On"
+                                                    : "Auto: Off"}
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </Card>
+                            </div>
+                        </div>
+                    )}
+
+                <div className="px-4 pb-4 relative">
+                    {/* Sparkling Animation for Pro Users */}
+                    {profileUser.isPro &&
+                        !(
+                            profileUser.role === "admin" ||
+                            profileUser.email ===
+                                process.env.NEXT_PUBLIC_ADMIN_EMAIL
+                        ) && (
+                            <>
+                                <div
+                                    className="absolute top-8 left-6 sm:top-10 sm:left-10 w-1 sm:w-1.5 h-1 sm:h-1.5 bg-yellow-300 rounded-full animate-ping opacity-75"
+                                    style={{ animationDuration: "2s" }}
+                                />
+                                <div
+                                    className="absolute top-16 right-12 sm:top-20 sm:right-16 w-1 h-1 bg-amber-400 rounded-full animate-ping opacity-60"
+                                    style={{
+                                        animationDuration: "2.5s",
+                                        animationDelay: "0.5s",
+                                    }}
+                                />
+                                <div
+                                    className="absolute bottom-28 left-16 sm:bottom-32 sm:left-20 w-1 sm:w-1.5 h-1 sm:h-1.5 bg-orange-300 rounded-full animate-ping opacity-65"
+                                    style={{
+                                        animationDuration: "1.8s",
+                                        animationDelay: "1s",
+                                    }}
+                                />
+                                <div
+                                    className="absolute top-32 right-20 sm:top-40 sm:right-24 w-1 h-1 bg-yellow-400 rounded-full animate-ping opacity-70"
+                                    style={{
+                                        animationDuration: "2.2s",
+                                        animationDelay: "1.5s",
+                                    }}
+                                />
+                                <div
+                                    className="absolute bottom-16 right-8 sm:bottom-20 sm:right-10 w-1 sm:w-1.5 h-1 sm:h-1.5 bg-amber-300 rounded-full animate-ping opacity-55"
+                                    style={{
+                                        animationDuration: "2.8s",
+                                        animationDelay: "0.8s",
+                                    }}
+                                />
+                            </>
+                        )}
+
+                    <div className="flex justify-between items-end -mt-16 mb-3 relative z-10">
+                        {/* Profile Avatar with Premium Glowing Frame */}
+                        <div className="relative">
+                            {profileUser.isPro &&
+                                !(
+                                    profileUser.role === "admin" ||
+                                    profileUser.email ===
+                                        process.env.NEXT_PUBLIC_ADMIN_EMAIL
+                                ) && (
+                                    <div className="absolute -inset-2 rounded-full animate-pulse bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 blur-md opacity-50" />
+                                )}
+                            <Avatar
+                                className={`w-28 h-28 sm:w-32 sm:h-32 border-4 border-background shadow-xl ring-2 ring-black/10 relative z-10 ${profileUser.isPro && !(profileUser.role === "admin" || profileUser.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL) ? "ring-4 ring-yellow-400/50" : ""}`}
+                            >
+                                {profileUser.isPro &&
+                                    !(
+                                        profileUser.role === "admin" ||
+                                        profileUser.email ===
+                                            process.env.NEXT_PUBLIC_ADMIN_EMAIL
+                                    ) && (
+                                        <div className="absolute inset-0 rounded-full border-2 border-yellow-400/70 animate-pulse z-20" />
+                                    )}
+                                <AvatarImage
+                                    src={profileUser.avatar}
+                                    alt={profileUser.name}
+                                />
+                                <AvatarFallback>
+                                    {profileUser.name?.charAt(0)?.toUpperCase()}
+                                </AvatarFallback>
+                            </Avatar>
+                        </div>
 
                         {isOwnProfile ? (
                             <div className="flex gap-2">
@@ -279,8 +600,8 @@ export default function ProfileClient({ username: initialUsername }) {
                                     className="rounded-full flex items-center gap-1.5"
                                 >
                                     <Share2 className="w-3.5 h-3.5" />
-                                    
                                 </Button>
+
                                 <Button
                                     variant="outline"
                                     size="sm"
@@ -292,15 +613,6 @@ export default function ProfileClient({ username: initialUsername }) {
                             </div>
                         ) : (
                             <div className="flex gap-2">
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setExportOpen(true)}
-                                    className="rounded-full p-2 h-9 w-9 flex items-center justify-center"
-                                    title="Export Profile Card"
-                                >
-                                    <Share2 className="w-4 h-4" />
-                                </Button>
                                 <FollowButton
                                     targetUserId={profileUser._id}
                                     username={profileUser.username}
@@ -340,9 +652,31 @@ export default function ProfileClient({ username: initialUsername }) {
                     </div>
 
                     <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xl font-bold text-foreground">
+                        <span
+                            className={`text-xl font-bold ${
+                                profileUser.isPro &&
+                                !(
+                                    profileUser.role === "admin" ||
+                                    profileUser.email ===
+                                        process.env.NEXT_PUBLIC_ADMIN_EMAIL
+                                )
+                                    ? "text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-500 animate-pulse drop-shadow-[0_0_8px_rgba(250,204,21,0.4)]"
+                                    : "text-foreground"
+                            }`}
+                        >
                             {profileUser.name}
                         </span>
+                        {profileUser?.isPro &&
+                            !(
+                                profileUser.role === "admin" ||
+                                profileUser.email ===
+                                    process.env.NEXT_PUBLIC_ADMIN_EMAIL
+                            ) && (
+                                <Badge className="bg-gradient-to-r from-yellow-400/20 to-amber-400/20 text-yellow-400 border-yellow-500/40 hover:from-yellow-400/30 hover:to-amber-400/30 rounded-full px-3 py-1 text-xs font-bold flex items-center gap-1">
+                                    <Crown className="w-3 h-3" />
+                                    Pro
+                                </Badge>
+                            )}
                         {profileUser?.isVerified && (
                             <VerifiedBadge
                                 size="lg"
@@ -355,7 +689,7 @@ export default function ProfileClient({ username: initialUsername }) {
                             profileUser.email ===
                                 process.env.NEXT_PUBLIC_ADMIN_EMAIL) && (
                             <Badge className="bg-purple-600/20 text-purple-400 border-purple-600/30 hover:bg-purple-600/30 rounded-full px-3 py-1 text-xs font-bold">
-                                Admin
+                                Founder
                             </Badge>
                         )}
                     </div>
@@ -719,12 +1053,14 @@ export default function ProfileClient({ username: initialUsername }) {
                 currentUserId={currentUser?._id}
             />
 
-            {/* Export Profile Card Modal */}
-            <ProfileCardExportModal
-                open={exportOpen}
-                onOpenChange={setExportOpen}
-                profileUser={profileUser}
-            />
+            {/* Export Profile Card Modal - Only for Own Profile */}
+            {isOwnProfile && (
+                <ProfileCardExportModal
+                    open={exportOpen}
+                    onOpenChange={setExportOpen}
+                    profileUser={profileUser}
+                />
+            )}
         </div>
     );
 }
