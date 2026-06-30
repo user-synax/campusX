@@ -22,6 +22,7 @@ import {
     Medal,
     MessageSquare,
     Lock,
+    Share2,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -49,6 +50,10 @@ const EditProfileDrawer = dynamic(
 );
 const ActivityHeatmap = dynamic(
     () => import("@/components/profile/ActivityHeatmap"),
+    { ssr: false },
+);
+const ProfileCardExportModal = dynamic(
+    () => import("@/components/user/ProfileCardExportModal"),
     { ssr: false },
 );
 
@@ -92,6 +97,7 @@ export default function ProfileClient({ username: initialUsername }) {
     const [profileUser, setProfileUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [editOpen, setEditOpen] = useState(false);
+    const [exportOpen, setExportOpen] = useState(false);
 
     // Follow modal state
     const [followModal, setFollowModal] = useState(false);
@@ -265,16 +271,36 @@ export default function ProfileClient({ username: initialUsername }) {
                         </Avatar>
 
                         {isOwnProfile ? (
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setEditOpen(true)}
-                                className="rounded-full"
-                            >
-                                Edit profile
-                            </Button>
+                            <div className="flex gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setExportOpen(true)}
+                                    className="rounded-full flex items-center gap-1.5"
+                                >
+                                    <Share2 className="w-3.5 h-3.5" />
+                                    Export Card
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setEditOpen(true)}
+                                    className="rounded-full"
+                                >
+                                    Edit profile
+                                </Button>
+                            </div>
                         ) : (
                             <div className="flex gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setExportOpen(true)}
+                                    className="rounded-full p-2 h-9 w-9 flex items-center justify-center"
+                                    title="Export Profile Card"
+                                >
+                                    <Share2 className="w-4 h-4" />
+                                </Button>
                                 <FollowButton
                                     targetUserId={profileUser._id}
                                     username={profileUser.username}
@@ -691,6 +717,13 @@ export default function ProfileClient({ username: initialUsername }) {
                 open={followModal}
                 onOpenChange={setFollowModal}
                 currentUserId={currentUser?._id}
+            />
+
+            {/* Export Profile Card Modal */}
+            <ProfileCardExportModal
+                open={exportOpen}
+                onOpenChange={setExportOpen}
+                profileUser={profileUser}
             />
         </div>
     );
