@@ -279,7 +279,7 @@ export default function ProfileClient({ username: initialUsername }) {
                                     className="rounded-full flex items-center gap-1.5"
                                 >
                                     <Share2 className="w-3.5 h-3.5" />
-                                    Export Card
+                                    
                                 </Button>
                                 <Button
                                     variant="outline"
