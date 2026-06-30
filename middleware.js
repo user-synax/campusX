@@ -17,70 +17,57 @@ const protectedRoutes = [
     "/billing",
 ];
 
-export default async function middleware(request) {
+export default function middleware(request) {
     const { pathname } = request.nextUrl;
 
-    // Allow Better Auth API routes to pass through
+    // Skip Better Auth routes
     if (pathname.startsWith("/api/auth")) {
         const response = NextResponse.next();
         addSecurityHeaders(response, false);
         return response;
     }
 
-    // Get JWT session token
     const session = request.cookies.get("campusx_token")?.value;
 
-    // Public routes - always accessible
-    const publicRoutes = ["/", "/login", "/signup"];
-    const isPublicRoute = publicRoutes.some((route) => pathname === route);
-
-    // API auth routes - always accessible
-    const isAuthApiRoute = pathname.startsWith("/api/auth");
-
-    if (isAuthApiRoute) {
-        const response = NextResponse.next();
-        addSecurityHeaders(response, false);
-        return response;
-    }
-
-    // If user is logged in and tries to access login/signup, redirect to feed
+    // Redirect logged-in users away from auth pages
     if (session && (pathname === "/login" || pathname === "/signup")) {
         const response = NextResponse.redirect(new URL("/feed", request.url));
         addSecurityHeaders(response);
         return response;
     }
 
+    // Protect private routes
     const isProtectedRoute = protectedRoutes.some((route) =>
         pathname.startsWith(route),
     );
 
-    if (isProtectedRoute) {
-        if (!session) {
-            const loginUrl = new URL("/login", request.url);
-            loginUrl.searchParams.set("redirect", pathname);
-            const response = NextResponse.redirect(loginUrl);
-            addSecurityHeaders(response);
-            return response;
-        }
+    if (isProtectedRoute && !session) {
+        const loginUrl = new URL("/login", request.url);
+        loginUrl.searchParams.set("redirect", pathname);
+
+        const response = NextResponse.redirect(loginUrl);
+        addSecurityHeaders(response);
+        return response;
     }
 
     const response = NextResponse.next();
     addSecurityHeaders(response);
+
     return response;
 }
 
 function addSecurityHeaders(response, includeCSP = true) {
     if (includeCSP) {
-        const cspHeader =
+        const csp =
             process.env.NODE_ENV === "production"
                 ? getProductionCSP()
                 : getDevelopmentCSP();
-        response.headers.set("Content-Security-Policy", cspHeader);
+
+        response.headers.set("Content-Security-Policy", csp);
     }
 
     response.headers.set("X-Content-Type-Options", "nosniff");
     response.headers.set("X-Frame-Options", "DENY");
-    response.headers.set("X-XSS-Protection", "1; mode=block");
     response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
     response.headers.set(
         "Permissions-Policy",
@@ -99,15 +86,15 @@ function getDevelopmentCSP() {
 
         "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.youtube.com https://cdn.jsdelivr.net https://cdn.tldraw.com https://*.tldraw.com http://localhost:* ws://localhost:*",
 
-        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.tldraw.com https://*.tldraw.com blob: http://localhost:*",
+        "style-src 'self' 'unsafe-inline' blob: https://cdn.jsdelivr.net https://cdn.tldraw.com https://*.tldraw.com http://localhost:*",
 
         "img-src 'self' data: blob: https: http: https://res.cloudinary.com https://utfs.io https://*.uploadthing.com https://*.ufs.sh https://api.dicebear.com https://*.tldraw.com http://localhost:*",
 
         "connect-src 'self' https://api.anthropic.com https://res.cloudinary.com https://api.dicebear.com https://www.googleapis.com https://accounts.google.com https://oauth2.googleapis.com https://*.uploadthing.com https://*.ingest.uploadthing.com https://cdn.jsdelivr.net https://cdn.tldraw.com https://*.tldraw.com https://*.pusher.com wss://*.pusher.com blob: data: http://localhost:* ws://localhost:*",
 
-        "font-src 'self' data: https://cdn.jsdelivr.net https://cdn.tldraw.com https://*.tldraw.com http://localhost:*",
+        "font-src 'self' data: https://cdn.jsdelivr.net https://cdn.tldraw.com https://*.tldraw.com",
 
-        "frame-src 'self' https://www.youtube.com https://*.tldraw.com http://localhost:*",
+        "frame-src 'self' https://www.youtube.com https://*.tldraw.com",
 
         "worker-src 'self' blob: https://*.tldraw.com",
 
@@ -124,17 +111,29 @@ function getDevelopmentCSP() {
 function getProductionCSP() {
     return [
         "default-src 'self'",
+
         "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.youtube.com https://cdn.jsdelivr.net https://cdn.tldraw.com https://*.tldraw.com",
-        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.tldraw.com https://*.tldraw.com blob:",
-        "img-src 'self' data: https: http: blob: https://utfs.io https://*.uploadthing.com https://*.ufs.sh https://*.tldraw.com",
-        "connect-src 'self' https://api.anthropic.com wss://*.pusher.com https://*.pusher.com https://www.googleapis.com https://accounts.google.com https://oauth2.googleapis.com https://*.uploadthing.com https://*.ingest.uploadthing.com https://cdn.jsdelivr.net https://cdn.tldraw.com https://*.tldraw.com blob: data:",
-        "font-src 'self' https://cdn.jsdelivr.net https://cdn.tldraw.com https://*.tldraw.com data:",
+
+        "style-src 'self' 'unsafe-inline' blob: https://cdn.jsdelivr.net https://cdn.tldraw.com https://*.tldraw.com",
+
+        "img-src 'self' data: blob: https: http: https://res.cloudinary.com https://utfs.io https://*.uploadthing.com https://*.ufs.sh https://api.dicebear.com https://*.tldraw.com",
+
+        "connect-src 'self' https://api.anthropic.com https://res.cloudinary.com https://api.dicebear.com https://www.googleapis.com https://accounts.google.com https://oauth2.googleapis.com https://*.uploadthing.com https://*.ingest.uploadthing.com https://cdn.jsdelivr.net https://cdn.tldraw.com https://*.tldraw.com https://*.pusher.com wss://*.pusher.com blob: data:",
+
+        "font-src 'self' data: https://cdn.jsdelivr.net https://cdn.tldraw.com https://*.tldraw.com",
+
         "frame-src 'self' https://www.youtube.com https://*.tldraw.com",
+
         "worker-src 'self' blob: https://*.tldraw.com",
+
         "child-src 'self' blob:",
+
         "object-src 'none'",
+
         "base-uri 'self'",
+
         "form-action 'self'",
+
         "report-uri /api/csp-violation-report",
     ].join("; ");
 }

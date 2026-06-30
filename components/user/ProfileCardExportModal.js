@@ -83,8 +83,8 @@ export default function ProfileCardExportModal({
                     }
 
                     return new Promise((resolve) => {
-                        img.onload = resolve;
-                        img.onerror = resolve; // don't reject
+                        img.addEventListener("load", resolve, { once: true });
+                        img.addEventListener("error", resolve, { once: true });
                     });
                 }),
             );
@@ -94,11 +94,18 @@ export default function ProfileCardExportModal({
             );
 
             const dataUrl = await toPng(cardRef.current, {
-                pixelRatio:
-                    window.devicePixelRatio > 2 ? 2 : window.devicePixelRatio,
                 cacheBust: true,
-                skipFonts: false,
+                pixelRatio: Math.min(window.devicePixelRatio || 1, 2),
                 backgroundColor: null,
+                skipFonts: false,
+
+                imagePlaceholder:
+                    "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=",
+
+                fetchRequestInit: {
+                    mode: "cors",
+                    credentials: "omit",
+                },
             });
 
             const safeUsername = (profileUser.username || "profile").replace(
