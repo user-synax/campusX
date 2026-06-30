@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,10 +24,6 @@ import {
     Lock,
     Share2,
     Crown,
-    Volume2,
-    Pause,
-    StopCircle,
-    VolumeX,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -104,13 +100,6 @@ export default function ProfileClient({ username: initialUsername }) {
     const [editOpen, setEditOpen] = useState(false);
     const [exportOpen, setExportOpen] = useState(false);
 
-    // Pro Welcome Message & Sound Effect State
-    const [showWelcomeMessage, setShowWelcomeMessage] = useState(false);
-    const [isPlaying, setIsPlaying] = useState(false);
-    const [autoPlaySound, setAutoPlaySound] = useState(true);
-    const [soundLoaded, setSoundLoaded] = useState(false);
-    const audioRef = useRef(null);
-
     // Follow modal state
     const [followModal, setFollowModal] = useState(false);
     const [followModalTab, setFollowModalTab] = useState("followers");
@@ -125,121 +114,6 @@ export default function ProfileClient({ username: initialUsername }) {
         currentUser?.following?.some(
             (id) => id.toString() === profileUser?._id?.toString(),
         );
-
-    // Load sound preferences from localStorage
-    useEffect(() => {
-        const savedAutoPlay = localStorage.getItem("pro-sound-autoplay");
-        if (savedAutoPlay !== null) {
-            setAutoPlaySound(savedAutoPlay === "true");
-        }
-    }, []);
-
-    // Preload & manage Pro welcome sound
-    useEffect(() => {
-        // Only for Pro users (not admins)
-        const isProUser =
-            profileUser?.isPro &&
-            !(
-                profileUser?.role === "admin" ||
-                profileUser?.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL
-            );
-
-        if (isProUser && !isOwnProfile) {
-            // Only show for visitors to Pro profiles
-            // Preload sound during idle time
-            const preloadSound = () => {
-                if (!audioRef.current) {
-                    audioRef.current = new Audio("/pro-welcome.mp3"); // Default sound file
-                    audioRef.current.preload = "auto";
-                    audioRef.current.oncanplaythrough = () => {
-                        setSoundLoaded(true);
-                    };
-                    audioRef.current.onended = () => {
-                        setIsPlaying(false);
-                    };
-                    audioRef.current.onerror = () => {
-                        console.log(
-                            "Pro welcome sound failed to load (expected if file doesn't exist yet)",
-                        );
-                    };
-                }
-            };
-
-            if (requestIdleCallback) {
-                requestIdleCallback(preloadSound);
-            } else {
-                preloadSound();
-            }
-
-            // Show welcome message with slight delay for better UX
-            const timer = setTimeout(() => {
-                setShowWelcomeMessage(true);
-
-                // Auto-play sound if enabled
-                if (autoPlaySound && audioRef.current && soundLoaded) {
-                    audioRef.current.play().catch((err) => {
-                        console.log(
-                            "Auto-play prevented by browser (expected behavior)",
-                            err,
-                        );
-                    });
-                    setIsPlaying(true);
-                }
-            }, 800);
-
-            return () => clearTimeout(timer);
-        }
-
-        // Cleanup
-        return () => {
-            if (audioRef.current) {
-                audioRef.current.pause();
-                audioRef.current = null;
-            }
-        };
-    }, [profileUser, isOwnProfile, autoPlaySound, soundLoaded]);
-
-    const toggleAutoPlay = () => {
-        const newValue = !autoPlaySound;
-        setAutoPlaySound(newValue);
-        localStorage.setItem("pro-sound-autoplay", newValue.toString());
-        toast.success(
-            newValue ? "Sound auto-play enabled" : "Sound auto-play disabled",
-        );
-    };
-
-    const playSound = () => {
-        if (audioRef.current && !isPlaying) {
-            audioRef.current.currentTime = 0;
-            audioRef.current.play().catch((err) => {
-                console.log("Playback prevented", err);
-            });
-            setIsPlaying(true);
-        }
-    };
-
-    const pauseSound = () => {
-        if (audioRef.current && isPlaying) {
-            audioRef.current.pause();
-            setIsPlaying(false);
-        }
-    };
-
-    const stopSound = () => {
-        if (audioRef.current) {
-            audioRef.current.pause();
-            audioRef.current.currentTime = 0;
-            setIsPlaying(false);
-        }
-    };
-
-    // Get time-of-day greeting
-    const getTimeOfDayGreeting = () => {
-        const hour = new Date().getHours();
-        if (hour < 12) return "Good morning";
-        if (hour < 18) return "Good afternoon";
-        return "Good evening";
-    };
 
     useEffect(() => {
         const fetchProfileData = async () => {
@@ -384,136 +258,6 @@ export default function ProfileClient({ username: initialUsername }) {
                         />
                     )}
                 </div>
-
-                {/* Pro Welcome Message Floating Popup */}
-                {showWelcomeMessage &&
-                    profileUser?.isPro &&
-                    !(
-                        profileUser.role === "admin" ||
-                        profileUser.email ===
-                            process.env.NEXT_PUBLIC_ADMIN_EMAIL
-                    ) &&
-                    !isOwnProfile && (
-                        <div
-                            className="fixed inset-0 z-50 flex items-start justify-center pt-48 sm:pt-56"
-                            role="dialog"
-                            aria-modal="true"
-                            aria-label="Welcome to Pro profile"
-                        >
-                            {/* Blurred Backdrop */}
-                            <div
-                                className="absolute inset-0 bg-black/30 backdrop-blur-sm animate-in fade-in duration-300"
-                                onClick={() => setShowWelcomeMessage(false)}
-                            />
-
-                            {/* Popup Content - Near Profile Photo */}
-                            <div className="relative w-[92%] sm:w-[420px] animate-in fade-in slide-in-from-top-8 duration-500">
-                                <Card className="p-5 border-yellow-500 bg-gradient-to-br from-red-500 to-yellow-500/10 shadow-2xl border">
-                                    <div className="flex flex-col gap-5">
-                                        <div className="flex items-start justify-between gap-3">
-                                            <div className="flex items-center gap-2">
-                                                <Crown className="w-6 h-6 text-yellow-500" />
-                                                <span className="font-bold text-yellow-500 text-sm uppercase tracking-wide">
-                                                    Pro Member Welcome
-                                                </span>
-                                            </div>
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-8 w-8 rounded-full"
-                                                onClick={() =>
-                                                    setShowWelcomeMessage(false)
-                                                }
-                                                aria-label="Close welcome message"
-                                            >
-                                                <svg
-                                                    className="w-4 h-4"
-                                                    fill="none"
-                                                    stroke="currentColor"
-                                                    viewBox="0 0 24 24"
-                                                >
-                                                    <path
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                        strokeWidth={2}
-                                                        d="M6 18L18 6M6 6l12 12"
-                                                    />
-                                                </svg>
-                                            </Button>
-                                        </div>
-
-                                        <p className="text-foreground font-medium text-base">
-                                            {getTimeOfDayGreeting()}{" "}
-                                            {currentUser?.name || "there"}! 👋
-                                            Welcome to{" "}
-                                            <span className="font-bold text-lg">
-                                                {profileUser.name}
-                                            </span>
-                                            's Pro profile!
-                                        </p>
-
-                                        <div className="flex gap-2 items-center justify-between pt-1">
-                                            {/* Sound Controls */}
-                                            <div className="flex gap-1 bg-muted/30 rounded-full p-1">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-9 w-9 rounded-full"
-                                                    onClick={
-                                                        isPlaying
-                                                            ? pauseSound
-                                                            : playSound
-                                                    }
-                                                    aria-label={
-                                                        isPlaying
-                                                            ? "Pause sound"
-                                                            : "Play welcome sound"
-                                                    }
-                                                >
-                                                    {isPlaying ? (
-                                                        <Pause className="w-4 h-4" />
-                                                    ) : (
-                                                        <Volume2 className="w-4 h-4" />
-                                                    )}
-                                                </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-9 w-9 rounded-full"
-                                                    onClick={stopSound}
-                                                    aria-label="Stop sound"
-                                                >
-                                                    <StopCircle className="w-4 h-4" />
-                                                </Button>
-                                            </div>
-
-                                            {/* Auto-play Toggle */}
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={toggleAutoPlay}
-                                                className="h-9 rounded-full text-xs flex items-center gap-1.5 px-3"
-                                                aria-label={
-                                                    autoPlaySound
-                                                        ? "Disable auto-play sound"
-                                                        : "Enable auto-play sound"
-                                                }
-                                            >
-                                                {autoPlaySound ? (
-                                                    <Volume2 className="w-3.5 h-3.5 text-green-500" />
-                                                ) : (
-                                                    <VolumeX className="w-3.5 h-3.5 text-muted-foreground" />
-                                                )}
-                                                {autoPlaySound
-                                                    ? "Auto: On"
-                                                    : "Auto: Off"}
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </Card>
-                            </div>
-                        </div>
-                    )}
 
                 <div className="px-4 pb-4 relative">
                     {/* Sparkling Animation for Pro Users */}
