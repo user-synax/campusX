@@ -121,7 +121,23 @@ function getDevelopmentCSP() {
     ].join("; ");
 }
 
-
+function getProductionCSP() {
+    return [
+        "default-src 'self'",
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.youtube.com https://cdn.jsdelivr.net https://cdn.tldraw.com https://*.tldraw.com",
+        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.tldraw.com https://*.tldraw.com blob:",
+        "img-src 'self' data: https: http: blob: https://utfs.io https://*.uploadthing.com https://*.ufs.sh https://*.tldraw.com",
+        "connect-src 'self' https://api.anthropic.com wss://*.pusher.com https://*.pusher.com https://www.googleapis.com https://accounts.google.com https://oauth2.googleapis.com https://*.uploadthing.com https://*.ingest.uploadthing.com https://cdn.jsdelivr.net https://cdn.tldraw.com https://*.tldraw.com blob: data:",
+        "font-src 'self' https://cdn.jsdelivr.net https://cdn.tldraw.com https://*.tldraw.com data:",
+        "frame-src 'self' https://www.youtube.com https://*.tldraw.com",
+        "worker-src 'self' blob: https://*.tldraw.com",
+        "child-src 'self' blob:",
+        "object-src 'none'",
+        "base-uri 'self'",
+        "form-action 'self'",
+        "report-uri /api/csp-violation-report",
+    ].join("; ");
+}
 
 export const config = {
     matcher: ["/((?!api/auth|_next/static|_next/image|favicon.ico).*)"],
