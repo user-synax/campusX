@@ -13,7 +13,16 @@ import FollowButton from "@/components/user/FollowButton";
 import PostCard from "@/components/post/PostCard";
 import PostSkeleton from "@/components/post/PostSkeleton";
 import EmptyState from "@/components/shared/EmptyState";
-import { FileText, Pin, Zap, Flame, Trophy, Medal } from "lucide-react";
+import {
+    FileText,
+    Pin,
+    Zap,
+    Flame,
+    Trophy,
+    Medal,
+    MessageSquare,
+    Lock,
+} from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import useUser from "@/hooks/useUser";
@@ -47,6 +56,7 @@ export default function ProfileClient({ username: initialUsername }) {
     const params = useParams();
     const username = initialUsername || params.username;
     const { user: currentUser, refetch: refetchCurrentUser } = useUser();
+    const router = useRouter();
     const {
         posts,
         loading: postsLoading,
@@ -57,6 +67,7 @@ export default function ProfileClient({ username: initialUsername }) {
         removePost,
         updatePostLike,
     } = usePosts({ username });
+    const [sendingDm, setSendingDm] = useState(false);
 
     const { sentinelRef } = useInfiniteScroll({
         fetchMore: loadMore,
@@ -145,6 +156,40 @@ export default function ProfileClient({ username: initialUsername }) {
         refetchCurrentUser();
     };
 
+    const handleSendDM = async () => {
+        if (!currentUser || !profileUser) return;
+
+        if (!profileUser.dmEnabled) {
+            toast.error("This user has disabled direct messages");
+            return;
+        }
+
+        setSendingDm(true);
+
+        try {
+            const res = await fetch("/api/dms", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ userId: profileUser._id }),
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                router.push(`/chats/dm/${data.conversation._id}`);
+            } else {
+                const errorData = await res.json();
+                toast.error(
+                    errorData.message || "Failed to start conversation",
+                );
+            }
+        } catch (error) {
+            console.error("DM error:", error);
+            toast.error("Failed to start conversation");
+        } finally {
+            setSendingDm(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex flex-col min-h-screen">
@@ -229,20 +274,42 @@ export default function ProfileClient({ username: initialUsername }) {
                                 Edit profile
                             </Button>
                         ) : (
-                            <FollowButton
-                                targetUserId={profileUser._id}
-                                username={profileUser.username}
-                                initialIsFollowing={isFollowing}
-                                initialFollowersCount={
-                                    profileUser.followersCount
-                                }
-                                onToggle={(following, count) => {
-                                    setProfileUser((prev) => ({
-                                        ...prev,
-                                        followersCount: count,
-                                    }));
-                                }}
-                            />
+                            <div className="flex gap-2">
+                                <FollowButton
+                                    targetUserId={profileUser._id}
+                                    username={profileUser.username}
+                                    initialIsFollowing={isFollowing}
+                                    initialFollowersCount={
+                                        profileUser.followersCount
+                                    }
+                                    onToggle={(following, count) => {
+                                        setProfileUser((prev) => ({
+                                            ...prev,
+                                            followersCount: count,
+                                        }));
+                                    }}
+                                />
+                                {profileUser.dmEnabled ? (
+                                    <Button
+                                        size="sm"
+                                        onClick={handleSendDM}
+                                        disabled={sendingDm}
+                                        className="rounded-full"
+                                    >
+                                        <MessageSquare className="w-4 h-4 mr-1" />
+                                        {sendingDm ? "Opening..." : "DM"}
+                                    </Button>
+                                ) : (
+                                    <Button
+                                        size="sm"
+                                        disabled
+                                        className="rounded-full opacity-70"
+                                    >
+                                        <Lock className="w-4 h-4 mr-1" />
+                                        DM Locked
+                                    </Button>
+                                )}
+                            </div>
                         )}
                     </div>
 
@@ -497,9 +564,12 @@ export default function ProfileClient({ username: initialUsername }) {
                                         🎨
                                     </div>
                                     <div className="flex-1">
-                                        <h4 className="font-semibold text-sm">Theme Master</h4>
+                                        <h4 className="font-semibold text-sm">
+                                            Theme Master
+                                        </h4>
                                         <p className="text-xs text-muted-foreground">
-                                            Customizing their CampusZen experience
+                                            Customizing their CampusZen
+                                            experience
                                         </p>
                                     </div>
                                 </div>
