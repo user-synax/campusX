@@ -19,7 +19,8 @@ const THEMES = [
     {
         id: "midnight",
         name: "Midnight Stealth",
-        bgClass: "bg-linear-to-br from-neutral-950 via-zinc-900 to-neutral-950 border border-white/10",
+        bgClass:
+            "bg-linear-to-br from-neutral-950 via-zinc-900 to-neutral-950 border border-white/10",
         pfpBorder: "border-neutral-900 ring-white/10",
         statsBg: "bg-white/5 border-white/5",
         badgeBg: "bg-white/5 border-white/10",
@@ -28,7 +29,8 @@ const THEMES = [
     {
         id: "brand",
         name: "Campus Zen Blue",
-        bgClass: "bg-linear-to-br from-slate-950 via-[#1A2E5A] to-slate-950 border border-[#3E63A6]/30",
+        bgClass:
+            "bg-linear-to-br from-slate-950 via-[#1A2E5A] to-slate-950 border border-[#3E63A6]/30",
         pfpBorder: "border-[#0d162d] ring-primary/30",
         statsBg: "bg-primary/5 border-primary/10",
         badgeBg: "bg-primary/5 border-primary/15",
@@ -37,7 +39,8 @@ const THEMES = [
     {
         id: "sunset",
         name: "Sunset Warmth",
-        bgClass: "bg-linear-to-br from-[#1E0D1C] via-[#4A1A12] to-neutral-950 border border-orange-500/25",
+        bgClass:
+            "bg-linear-to-br from-[#1E0D1C] via-[#4A1A12] to-neutral-950 border border-orange-500/25",
         pfpBorder: "border-[#1c0c1b] ring-orange-500/30",
         statsBg: "bg-orange-500/5 border-orange-500/10",
         badgeBg: "bg-orange-500/5 border-orange-500/15",
@@ -46,7 +49,8 @@ const THEMES = [
     {
         id: "emerald",
         name: "Emerald Growth",
-        bgClass: "bg-linear-to-br from-[#0B1E13] via-[#103A20] to-[#0a120e] border border-emerald-500/25",
+        bgClass:
+            "bg-linear-to-br from-[#0B1E13] via-[#103A20] to-[#0a120e] border border-emerald-500/25",
         pfpBorder: "border-[#0a1b11] ring-emerald-500/30",
         statsBg: "bg-emerald-500/5 border-emerald-500/10",
         badgeBg: "bg-emerald-500/5 border-emerald-500/15",
@@ -54,37 +58,64 @@ const THEMES = [
     },
 ];
 
-export default function ProfileCardExportModal({ open, onOpenChange, profileUser }) {
+export default function ProfileCardExportModal({
+    open,
+    onOpenChange,
+    profileUser,
+}) {
     const [activeTheme, setActiveTheme] = useState(THEMES[0]);
     const [exporting, setExporting] = useState(false);
     const cardRef = useRef(null);
 
     const handleExport = async () => {
         if (!cardRef.current) return;
+
         setExporting(true);
 
-        // Wait a tiny bit for the UI/images to fully compute layouts
-        await new Promise((resolve) => setTimeout(resolve, 300));
-
         try {
+            // Wait until all images are loaded
+            const images = Array.from(cardRef.current.querySelectorAll("img"));
+
+            await Promise.all(
+                images.map((img) => {
+                    if (img.complete && img.naturalWidth > 0) {
+                        return Promise.resolve();
+                    }
+
+                    return new Promise((resolve) => {
+                        img.onload = resolve;
+                        img.onerror = resolve; // don't reject
+                    });
+                }),
+            );
+
+            await new Promise((resolve) =>
+                requestAnimationFrame(() => resolve()),
+            );
+
             const dataUrl = await toPng(cardRef.current, {
-                quality: 0.98,
-                pixelRatio: 2.5, // Crisp high-definition export
+                pixelRatio:
+                    window.devicePixelRatio > 2 ? 2 : window.devicePixelRatio,
                 cacheBust: true,
-                style: {
-                    borderRadius: "0px", // Avoid corner clipping issues in output PNG
-                },
+                skipFonts: false,
+                backgroundColor: null,
             });
 
+            const safeUsername = (profileUser.username || "profile").replace(
+                /[^\w-]/g,
+                "_",
+            );
+
             const link = document.createElement("a");
-            link.download = `${profileUser.username}-campuszen-card.png`;
+            link.download = `${safeUsername}-campuszen-card.png`;
             link.href = dataUrl;
             link.click();
+
             toast.success("Profile card exported successfully!");
             onOpenChange(false);
         } catch (error) {
-            console.error("Card capture failed:", error);
-            toast.error("Failed to generate image. Please try again.");
+            console.error("Card export failed:", error);
+            toast.error("Unable to export profile card.");
         } finally {
             setExporting(false);
         }
@@ -99,15 +130,20 @@ export default function ProfileCardExportModal({ open, onOpenChange, profileUser
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-md p-6 bg-card border-border overflow-y-auto max-h-[90vh]">
                 <DialogHeader className="mb-4">
-                    <DialogTitle className="text-xl font-bold">Export Profile Card</DialogTitle>
+                    <DialogTitle className="text-xl font-bold">
+                        Export Profile Card
+                    </DialogTitle>
                     <DialogDescription className="text-xs text-muted-foreground">
-                        Showcase your accomplishments on social media with a customized profile card.
+                        Showcase your accomplishments on social media with a
+                        customized profile card.
                     </DialogDescription>
                 </DialogHeader>
 
                 {/* Theme Selector */}
                 <div className="space-y-2 mb-6">
-                    <span className="text-xs font-bold uppercase text-muted-foreground tracking-wider">Select Theme</span>
+                    <span className="text-xs font-bold uppercase text-muted-foreground tracking-wider">
+                        Select Theme
+                    </span>
                     <div className="grid grid-cols-2 gap-2">
                         {THEMES.map((theme) => (
                             <button
@@ -134,21 +170,39 @@ export default function ProfileCardExportModal({ open, onOpenChange, profileUser
                         {/* Banner Image */}
                         <div className="h-20 w-full relative rounded-xl overflow-hidden mb-8 border border-white/5 bg-zinc-800">
                             <img
-                                src={getBannerUrl(profileUser.banner, profileUser.username)}
+                                src={getBannerUrl(
+                                    profileUser.banner,
+                                    profileUser.username,
+                                )}
                                 alt="Banner"
                                 className="w-full h-full object-cover"
                                 crossOrigin="anonymous"
+                                onLoad={() => console.log("Banner loaded")}
+                                onError={(e) => {
+                                    console.log("Banner failed");
+                                    console.log(e.currentTarget.src);
+                                }}
                             />
                         </div>
 
                         {/* Avatar */}
                         <div className="absolute top-[52px] left-1/2 -translate-x-1/2">
-                            <div className={`w-16 h-16 rounded-full border-4 overflow-hidden shadow-xl ring-2 ${activeTheme.pfpBorder}`}>
+                            <div
+                                className={`w-16 h-16 rounded-full border-4 overflow-hidden shadow-xl ring-2 ${activeTheme.pfpBorder}`}
+                            >
                                 <img
-                                    src={profileUser.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${profileUser.name}`}
+                                    src={
+                                        profileUser.avatar ||
+                                        `https://api.dicebear.com/7.x/initials/svg?seed=${profileUser.name}`
+                                    }
                                     alt={profileUser.name}
                                     className="w-full h-full object-cover"
                                     crossOrigin="anonymous"
+                                    onLoad={() => console.log("Avatar loaded")}
+                                    onError={(e) => {
+                                        console.log("Avatar failed");
+                                        console.log(e.currentTarget.src);
+                                    }}
                                 />
                             </div>
                         </div>
@@ -158,23 +212,35 @@ export default function ProfileCardExportModal({ open, onOpenChange, profileUser
                             <h2 className="text-base font-bold text-white flex items-center justify-center gap-1">
                                 {profileUser.name}
                                 {profileUser.isVerified && (
-                                    <span className="text-sky-400 text-sm">✓</span>
+                                    <span className="text-sky-400 text-sm">
+                                        ✓
+                                    </span>
                                 )}
                             </h2>
-                            <p className="text-xs text-white/50">@{profileUser.username}</p>
-                            
+                            <p className="text-xs text-white/50">
+                                @{profileUser.username}
+                            </p>
+
                             {(profileUser.college || profileUser.course) && (
                                 <p className="text-[10px] text-white/40 pt-1 font-medium truncate max-w-[280px] mx-auto">
-                                    {profileUser.college ? `🎓 ${profileUser.college}` : ""}
-                                    {profileUser.college && profileUser.course ? " • " : ""}
-                                    {profileUser.course ? `${profileUser.course}` : ""}
+                                    {profileUser.college
+                                        ? `🎓 ${profileUser.college}`
+                                        : ""}
+                                    {profileUser.college && profileUser.course
+                                        ? " • "
+                                        : ""}
+                                    {profileUser.course
+                                        ? `${profileUser.course}`
+                                        : ""}
                                 </p>
                             )}
                         </div>
 
                         {/* Stats Row */}
                         <div className="grid grid-cols-3 gap-2 mb-5">
-                            <div className={`p-2 rounded-xl flex flex-col items-center justify-center border text-center ${activeTheme.statsBg}`}>
+                            <div
+                                className={`p-2 rounded-xl flex flex-col items-center justify-center border text-center ${activeTheme.statsBg}`}
+                            >
                                 <Zap className="w-3.5 h-3.5 text-primary fill-primary mb-1" />
                                 <span className="text-sm font-black leading-none">
                                     {profileUser.totalXP || profileUser.xp || 0}
@@ -184,7 +250,9 @@ export default function ProfileCardExportModal({ open, onOpenChange, profileUser
                                 </span>
                             </div>
 
-                            <div className={`p-2 rounded-xl flex flex-col items-center justify-center border text-center ${activeTheme.statsBg}`}>
+                            <div
+                                className={`p-2 rounded-xl flex flex-col items-center justify-center border text-center ${activeTheme.statsBg}`}
+                            >
                                 <Flame className="w-3.5 h-3.5 text-orange-500 fill-orange-500 mb-1" />
                                 <span className="text-sm font-black leading-none">
                                     {profileUser.currentStreak || 0}
@@ -194,7 +262,9 @@ export default function ProfileCardExportModal({ open, onOpenChange, profileUser
                                 </span>
                             </div>
 
-                            <div className={`p-2 rounded-xl flex flex-col items-center justify-center border text-center ${activeTheme.statsBg}`}>
+                            <div
+                                className={`p-2 rounded-xl flex flex-col items-center justify-center border text-center ${activeTheme.statsBg}`}
+                            >
                                 <Trophy className="w-3.5 h-3.5 text-yellow-500 mb-1" />
                                 <span className="text-sm font-black leading-none">
                                     {profileUser.level || 1}
@@ -211,7 +281,9 @@ export default function ProfileCardExportModal({ open, onOpenChange, profileUser
                                 <span>Level Progress</span>
                                 <span>{xpProgress}%</span>
                             </div>
-                            <div className={`w-full h-1.5 rounded-full overflow-hidden ${activeTheme.progressBarTrack}`}>
+                            <div
+                                className={`w-full h-1.5 rounded-full overflow-hidden ${activeTheme.progressBarTrack}`}
+                            >
                                 <div
                                     className="h-full bg-primary rounded-full transition-all duration-300"
                                     style={{ width: `${xpProgress}%` }}
@@ -227,17 +299,26 @@ export default function ProfileCardExportModal({ open, onOpenChange, profileUser
                                     Top Achievements
                                 </h3>
                                 <div className="grid grid-cols-2 gap-1.5">
-                                    {profileUser.badges.slice(0, 4).map((b, i) => b.badgeId && (
-                                        <div
-                                            key={i}
-                                            className={`p-1.5 rounded-lg border flex items-center gap-1.5 overflow-hidden ${activeTheme.badgeBg}`}
-                                        >
-                                            <span className="text-sm shrink-0">{b.badgeId.icon || "🏅"}</span>
-                                            <span className="text-[9px] font-semibold truncate text-white/80">
-                                                {b.badgeId.name}
-                                            </span>
-                                        </div>
-                                    ))}
+                                    {profileUser.badges.slice(0, 4).map(
+                                        (b, i) =>
+                                            b.badgeId && (
+                                                <div
+                                                    key={
+                                                        b.badgeId?._id ||
+                                                        b.badgeId?.id ||
+                                                        i
+                                                    }
+                                                    className={`p-1.5 rounded-lg border flex items-center gap-1.5 overflow-hidden ${activeTheme.badgeBg}`}
+                                                >
+                                                    <span className="text-sm shrink-0">
+                                                        {b.badgeId.icon || "🏅"}
+                                                    </span>
+                                                    <span className="text-[9px] font-semibold truncate text-white/80">
+                                                        {b.badgeId.name}
+                                                    </span>
+                                                </div>
+                                            ),
+                                    )}
                                 </div>
                             </div>
                         )}
@@ -250,7 +331,7 @@ export default function ProfileCardExportModal({ open, onOpenChange, profileUser
                                 </span>
                             </div>
                             <span className="text-[8px] text-white/35 font-semibold tracking-wider uppercase">
-                                campuszen.vercel.app
+                                campuszen.tech
                             </span>
                         </div>
                     </div>
@@ -258,7 +339,11 @@ export default function ProfileCardExportModal({ open, onOpenChange, profileUser
 
                 {/* Modal Footer Buttons */}
                 <div className="flex gap-3 justify-end mt-4">
-                    <Button variant="ghost" className="rounded-xl h-11" onClick={() => onOpenChange(false)}>
+                    <Button
+                        variant="ghost"
+                        className="rounded-xl h-11"
+                        onClick={() => onOpenChange(false)}
+                    >
                         Cancel
                     </Button>
                     <Button
