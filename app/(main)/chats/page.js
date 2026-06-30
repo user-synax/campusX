@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Search, MessageSquare } from "lucide-react";
+import { Plus, Search, MessageSquare, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import EmptyState from "@/components/shared/EmptyState";
 import GroupChatItem from "@/components/chat/GroupChatItem";
+import DMChatItem from "@/components/chat/DMChatItem";
 import CreateGroupModal from "@/components/chat/CreateGroupModal";
 import useUser from "@/hooks/useUser";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -14,6 +16,7 @@ import { isAdmin } from "@/lib/admin";
 import { useTabData } from "@/hooks/useTabData";
 
 export default function ChatsPage() {
+    const [activeTab, setActiveTab] = useState("dms");
     const [searchQuery, setSearchQuery] = useState("");
     const [createOpen, setCreateOpen] = useState(false);
     const { user: currentUser } = useUser();
@@ -22,7 +25,7 @@ export default function ChatsPage() {
     const {
         data: groups,
         loading: groupsLoading,
-        fetchData,
+        fetchData: fetchGroups,
     } = useTabData(
         "chats-groups",
         async () => {
@@ -34,15 +37,44 @@ export default function ChatsPage() {
         { ttl: 2 * 60 * 1000 }, // 2 minutes
     );
 
+    const {
+        data: dms,
+        loading: dmsLoading,
+        fetchData: fetchDMs,
+    } = useTabData(
+        "chats-dms",
+        async () => {
+            const res = await fetch("/api/dms");
+            if (!res.ok) throw new Error("Failed to fetch DMs");
+            const data = await res.json();
+            return data.conversations || [];
+        },
+        { ttl: 2 * 60 * 1000 }, // 2 minutes
+    );
+
     useEffect(() => {
-        if (!groups) {
-            fetchData();
+        if (activeTab === "groups" && !groups) {
+            fetchGroups();
+        } else if (activeTab === "dms" && !dms) {
+            fetchDMs();
         }
-    }, []);
+    }, [activeTab]);
 
     const filteredGroups = groups
         ? groups.filter((group) =>
               group.name.toLowerCase().includes(searchQuery.toLowerCase()),
+          )
+        : [];
+
+    const filteredDMs = dms
+        ? dms.filter(
+              (conv) =>
+                  conv.otherParticipant?.name
+                      ?.toLowerCase()
+                      .includes(searchQuery.toLowerCase()) ||
+                  conv.otherParticipant?.username
+                      ?.toLowerCase()
+                      .includes(searchQuery.toLowerCase()),
           )
         : [];
 
@@ -51,8 +83,8 @@ export default function ChatsPage() {
             {/* Sticky Header */}
             <div className="sticky top-0 bg-background/80 backdrop-blur border-b z-10 px-4 py-3">
                 <div className="flex items-center justify-between mb-3">
-                    <h1 className="text-xl font-bold">💬 Group Chats</h1>
-                    {isAdmin(currentUser) && (
+                    <h1 className="text-xl font-bold">💬 Chats</h1>
+                    {isAdmin(currentUser) && activeTab === "groups" && (
                         <Button
                             size="sm"
                             onClick={() => setCreateOpen(true)}
@@ -63,11 +95,38 @@ export default function ChatsPage() {
                     )}
                 </div>
 
+                <Tabs
+                    defaultValue="dms"
+                    value={activeTab}
+                    onValueChange={setActiveTab}
+                >
+                    <TabsList className="w-full mb-3">
+                        <TabsTrigger
+                            value="dms"
+                            className="flex-1 flex items-center gap-2"
+                        >
+                            <MessageSquare className="w-4 h-4" />
+                            Direct Messages
+                        </TabsTrigger>
+                        <TabsTrigger
+                            value="groups"
+                            className="flex-1 flex items-center gap-2"
+                        >
+                            <Users className="w-4 h-4" />
+                            Groups
+                        </TabsTrigger>
+                    </TabsList>
+                </Tabs>
+
                 {/* Search */}
-                <div className="relative mt-3">
+                <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
-                        placeholder="Search groups..."
+                        placeholder={
+                            activeTab === "dms"
+                                ? "Search conversations..."
+                                : "Search groups..."
+                        }
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="pl-9 h-9 text-sm bg-accent/50 border-border/50 focus-visible:ring-primary/50"
@@ -77,7 +136,51 @@ export default function ChatsPage() {
 
             {/* Content */}
             <div className="flex-1 overflow-y-auto">
-                {groupsLoading ? (
+                {activeTab === "dms" ? (
+                    dmsLoading ? (
+                        Array(5)
+                            .fill(0)
+                            .map((_, i) => (
+                                <div
+                                    key={i}
+                                    className="flex items-center gap-3 px-4 py-3 border-b border-border/50"
+                                >
+                                    <Skeleton className="w-12 h-12 rounded-full" />
+                                    <div className="flex-1 space-y-2">
+                                        <Skeleton className="h-4 w-1/3" />
+                                        <Skeleton className="h-3 w-1/2" />
+                                    </div>
+                                </div>
+                            ))
+                    ) : filteredDMs.length === 0 ? (
+                        <div className="mt-20">
+                            <EmptyState
+                                icon={MessageSquare}
+                                title={
+                                    searchQuery
+                                        ? "No conversations found"
+                                        : "No direct messages yet"
+                                }
+                                description={
+                                    searchQuery
+                                        ? "Try searching for something else"
+                                        : "Start a conversation from a user's profile"
+                                }
+                            />
+                        </div>
+                    ) : (
+                        filteredDMs.map((conv) => (
+                            <DMChatItem
+                                key={conv._id}
+                                conversation={conv}
+                                currentUserId={currentUser?._id}
+                                onClick={() =>
+                                    router.push(`/chats/dm/${conv._id}`)
+                                }
+                            />
+                        ))
+                    )
+                ) : groupsLoading ? (
                     Array(5)
                         .fill(0)
                         .map((_, i) => (
@@ -95,7 +198,7 @@ export default function ChatsPage() {
                 ) : filteredGroups.length === 0 ? (
                     <div className="mt-20">
                         <EmptyState
-                            icon={MessageSquare}
+                            icon={Users}
                             title={
                                 searchQuery
                                     ? "No groups found"
