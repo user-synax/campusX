@@ -66,27 +66,7 @@ export function HeroSection({
 
                     {/* Title */}
                     <h1
-                        className="
-                            animate-appear
-                            flex flex-col md:flex-row
-                            items-center justify-center
-                            gap-2 md:gap-4
-                            text-center
-                            px-4
-                            font-black
-                            tracking-tight
-                            leading-none
-                            text-4xl
-                            sm:text-5xl
-                            md:text-6xl
-                            lg:text-7xl
-                            xl:text-8xl
-                            bg-gradient-to-b
-                            from-white via-white/90 to-neutral-400
-                            bg-clip-text
-                            text-transparent
-                            drop-shadow-2xl
-                          "
+                        className="animate-appear flex flex-col md:flex-row items-center justify-center gap-2 md:gap-4 text-center px-4 font-black tracking-tight leading-none text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl bg-gradient-to-b from-white via-white/90 to-neutral-400 bg-clip-text text-transparent drop-shadow-2xl"
                     >
                         {titleRotatingText ? (
                             <>
