@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import AdminUsersTable from "@/components/admin/AdminUsersTable";
 import AdminReportedContent from "@/components/admin/AdminReportedContent";
+import AdminBlockedContent from "@/components/admin/AdminBlockedContent";
 import AdminSecurityPanel from "@/components/admin/AdminSecurityPanel";
 import AdminVerifications from "@/components/admin/AdminVerifications";
 import AdminShopManager from "@/components/admin/AdminShopManager";
@@ -118,6 +119,9 @@ export default function AdminDashboard() {
                             Verify ID
                         </TabsTrigger>
                         <TabsTrigger value="content">Content</TabsTrigger>
+                        <TabsTrigger value="blocked">
+                            Blocked Attempts
+                        </TabsTrigger>
                         <TabsTrigger value="shop">Shop</TabsTrigger>
                         <TabsTrigger value="dms">Direct Messages</TabsTrigger>
                         <TabsTrigger value="themes">Generate Theme</TabsTrigger>
@@ -237,6 +241,10 @@ export default function AdminDashboard() {
 
                 <TabsContent value="content">
                     <AdminReportedContent />
+                </TabsContent>
+
+                <TabsContent value="blocked">
+                    <AdminBlockedContent />
                 </TabsContent>
 
                 <TabsContent value="shop">

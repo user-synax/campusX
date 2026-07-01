@@ -141,6 +141,8 @@ export default function PostComposer({
     const [pollOptions, setPollOptions] = useState(["", ""]);
     const [isUploadingImages, setIsUploadingImages] = useState(false);
     const [tags, setTags] = useState([]);
+    const [isBlocked, setIsBlocked] = useState(false);
+    const [blockedViolations, setBlockedViolations] = useState([]);
 
     useEffect(() => {
         const fetchCommunities = async () => {
@@ -295,6 +297,10 @@ export default function PostComposer({
     const handleSubmit = async () => {
         if (!content.trim() || content.length > 2000) return;
 
+        // Reset blocked state first
+        setIsBlocked(false);
+        setBlockedViolations([]);
+
         // Poll validation
         if (showPoll) {
             if (!pollOptions[0].trim() || !pollOptions[1].trim()) {
@@ -303,6 +309,35 @@ export default function PostComposer({
                 });
                 return;
             }
+        }
+
+        // Moderation check FIRST
+        try {
+            const moderationRes = await fetch("/api/posts/moderation-check", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    content,
+                    community: defaultCommunity || manualCommunity,
+                    tags,
+                }),
+            });
+
+            const moderationData = await moderationRes.json();
+
+            if (moderationData.isBlocked) {
+                setIsBlocked(true);
+                setBlockedViolations(moderationData.violations);
+                toast.error("Content blocked", {
+                    description:
+                        "Your post contains inappropriate content and has been reported.",
+                });
+                return;
+            }
+        } catch (err) {
+            console.error("Moderation check failed", err);
+            toast.error("Content check failed, please try again");
+            return;
         }
 
         // Upload images first if any are selected
@@ -397,19 +432,78 @@ export default function PostComposer({
     const iconBtnBase =
         "relative inline-flex items-center justify-center h-8 rounded-lg text-muted-foreground transition-colors duration-150 hover:bg-muted hover:text-foreground disabled:opacity-40 disabled:pointer-events-none disabled:hover:bg-transparent";
 
+    // Reset blocked state when user edits content
+    useEffect(() => {
+        if (isBlocked) {
+            setIsBlocked(false);
+            setBlockedViolations([]);
+        }
+    }, [content]);
+
     return (
         <div
             className={cn(
-                "px-4 py-3.5 bg-background/50",
+                "px-4 py-3.5 transition-colors duration-300",
+                isBlocked
+                    ? "bg-red-500/10 border-red-500/30"
+                    : "bg-background/50",
                 !noBorder && "border-b border-border",
             )}
         >
+            {/* Warning banner if content blocked */}
+            {isBlocked && (
+                <div className="mb-3 flex items-center gap-2 bg-red-500/20 border border-red-500/40 rounded-xl px-4 py-3">
+                    <div className="p-2 bg-red-500/20 rounded-full">
+                        <svg
+                            className="w-5 h-5 text-red-400"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                        >
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                    </div>
+                    <div className="flex-1">
+                        <h3 className="font-semibold text-red-400 text-sm">
+                            Content Blocked
+                        </h3>
+                        <p className="text-xs text-muted-foreground mt-1">
+                            Your post has been flagged for violating our
+                            community guidelines:{" "}
+                            {blockedViolations
+                                .map(
+                                    (v) =>
+                                        v.charAt(0).toUpperCase() + v.slice(1),
+                                )
+                                .join(", ")}
+                            .
+                        </p>
+                    </div>
+                    <button
+                        onClick={() => setIsBlocked(false)}
+                        className="p-1.5 rounded-full hover:bg-red-500/20 text-red-400"
+                    >
+                        <X className="w-4 h-4" />
+                    </button>
+                </div>
+            )}
+
             {/* Community Indicator */}
             {(defaultCommunity || manualCommunity) && (
                 <div className="hidden sm:flex items-center gap-2 mb-3 px-1">
                     <Badge
                         variant="secondary"
-                        className="gap-1.5 py-1 px-2.5 rounded-full bg-primary/10 text-primary border border-primary/15 font-medium"
+                        className={cn(
+                            "gap-1.5 py-1 px-2.5 rounded-full font-medium",
+                            isBlocked
+                                ? "bg-red-500/15 text-red-400 border-red-500/30"
+                                : "bg-primary/10 text-primary border border-primary/15",
+                        )}
                     >
                         <span className="leading-none">
                             {activeCommunity?.emoji || "🌐"}
