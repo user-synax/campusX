@@ -40,7 +40,6 @@ export async function GET(request, { params }) {
 
         const postCount = await Post.countDocuments({
             author: userResult._id,
-            isAnonymous: false,
             isDeleted: false,
         });
 
@@ -55,6 +54,8 @@ export async function GET(request, { params }) {
 
         const responseData = {
             ...sanitizeUser(userResult),
+            role: userResult.role,
+            email: userResult.email,
             postCount,
             followersCount: userResult.followers?.length || 0,
             followingCount: userResult.following?.length || 0,
@@ -115,6 +116,8 @@ export async function PATCH(request, { params }) {
             banner,
             socialLinks,
             interests,
+            role,
+            email,
             dmEnabled,
         } = body;
         const updateData = {};
