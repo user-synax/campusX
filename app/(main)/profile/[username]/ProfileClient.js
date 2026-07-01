@@ -745,6 +745,31 @@ export default function ProfileClient({ username: initialUsername }) {
                 ) : (
                     <>
                         <div className="divide-y divide-border">
+                            {/* Show pinned post first if exists */}
+                            {profileUser?.pinnedPost && (
+                                <PostCard
+                                    key={
+                                        typeof profileUser.pinnedPost ===
+                                        "object"
+                                            ? profileUser.pinnedPost._id
+                                            : profileUser.pinnedPost
+                                    }
+                                    post={
+                                        typeof profileUser.pinnedPost ===
+                                        "object"
+                                            ? profileUser.pinnedPost
+                                            : posts.find(
+                                                  (p) =>
+                                                      p._id ===
+                                                      profileUser.pinnedPost,
+                                              )
+                                    }
+                                    currentUserId={currentUser?._id}
+                                    onDelete={handleDeletePost}
+                                    onLike={handleLikePost}
+                                    isPinned={true}
+                                />
+                            )}
                             {posts
                                 .filter(
                                     (post) =>
